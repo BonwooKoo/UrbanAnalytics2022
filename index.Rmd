@@ -168,7 +168,7 @@ weeks %>%
 1. Be prepared for occasional frustration. It’s part of learning process. However, don’t spin the wheel. You are responsible for actively searching for help. Don’t wait until the last minute (e.g., homework).
 2. Read assigned book chapters/materials, review their examples and snippets, replicate their results, and repeat until you understand.
 3. Work with peers. Form a group early in the semester, and have their sharp eyes on your code. Still, you need to submit your HW individually.
-4. If you have a trouble with your code outside of class (and get frustrated), Google it. It will not only be faster and more efficient than contacting us, but trouble-shooting on your own is essential skill, particularly after you graduate. Luckily, most of the problems you may encounter in this class have been already encountered by others. You can search how they solved them in **StackOverFlow**. 
+4. If you have a trouble with your code outside of class (and get frustrated), Google it. It will not only be faster and more efficient than contacting us, but trouble-shooting on your own is essential skill, particularly after you graduate. Luckily, most of the problems you may encounter in this class have been already encountered by others. You can search how they solved them in **StackOverFlow.** 
 5. Of course, you can ask questions to us anytime, inside or outside classroom. I strongly encourage you to utilize our office hours as another learning opportunity.
 
 # Textbooks/resources
