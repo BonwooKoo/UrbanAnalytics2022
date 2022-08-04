@@ -93,7 +93,7 @@ topic_col <- c(
   "From messy to tidy data",# 4
   "First insights from your data",# 5
   "Interactive visualization",# 6
-  "[GTFA, OSM, and Equity](https://github.com/BonwooKoo/UrbanAnalytics2022/blob/main/Lab/W3/W3_AccessGTFS.html)",# 7
+  "[GTFA, OSM, and Equity](./Lab/W3/W3_AccessGTFS.html)",# 7
   "",# 8
   "",# 9
   "",# 10
