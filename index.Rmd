@@ -1,0 +1,191 @@
+---
+title: "Intro to Urban Analytics"
+author: "Bon Woo Koo & Subhrajit Guhathakurta"
+date: '2022-08-20'
+output: 
+  rmdformats::downcute:
+    downcute_theme: "chaos"
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(gt)
+library(tidyverse)
+library(kableExtra)
+```
+
+# Course description
+This course introduces students to the field of urban analytics. The main objective of this course is for students to master important theories and concepts emerging in the field of urban analytics. Students will complete this course with a working knowledge of how data and advanced analytical techniques can enhance the planning and operation of cities.
+
+# Prerequisites
+* Basic understanding of geographic information systems (GIS) and applied statistics
+* Working knowledge of any programming language, preferably the R (or Python)
+
+# Grading breakdown
+There are four major assignments, four mini assignments, and one final team project.
+Only three out of the four major assignments will be counted towards the final grade. 
+Same applies to the mini assignments.
+
+```{r echo=F}
+data.frame('Assignment Type' = c("Final project", 'Major assignment', 'Mini assignment'),
+           'Percent' = c("25% (up to X number of people)", "45% (15% each x 3)", "30% (10% each x 3)")) %>% 
+  kbl() %>% 
+  kable_styling(bootstrap_options = c("condensed", "responsive"))
+
+```
+
+The final grade will be assigned as a letter grade according to the following scale:
+
+* **A $~~~$ 100%-90%** $~~~$ Excellent (4 quality points per credit hour)
+* **B $~~~$ 89% - 80%** $~~~$ Good (3 quality points per credit hour)
+* **C $~~~$ 79% - 70%** $~~~$ Satisfactory (2 quality points per credit hour)
+* **D $~~~$ 69% - 60%** $~~~$ Passing (1 quality points per credit hour)
+* **F $~~~$ 59% $~$-$~$ 0%** $~~~$ Failure (0 quality points per credit hour)
+
+# Course schedules
+
+```{r include=F}
+total_week = 17
+
+weeks <- tibble(
+  Module = c(
+    rep("Pre-module", 2),
+    rep("Module 1: <br> A walk-through of your first UA project", 4), # 2 days, 4 weeks
+    rep("Module 2: <br> Transportation", 2),
+    rep("Module 3: <br> Image & computer vision", 2),
+    rep("Module 4: <br> Social media", 2),
+    rep("Module 5: <br> Storytelling", 2),
+    rep("Student Presentations", 1),
+    rep("Reading weeks", 2)
+  ),
+  Week = as.character(rep(1:total_week))
+  )
+```
+
+
+There are `r total_week/2` weeks. 
+
+```{r, echo=FALSE}
+# col_formatter <- function(df, col_name){
+#   out <- df %>% 
+#     rbind(data.frame('desc'=c(rep("", total_week - nrow(df))), 
+#                      "link"=c(rep("", total_week - nrow(df))))) 
+#   out <- out %>% 
+#     mutate(temp_col = case_when(
+#       nchar(desc)  > 0 & nchar(link)  > 0 ~ glue::glue("[{desc}]({link})"),
+#       nchar(desc) == 0 & nchar(link) == 0 ~ ""
+#       )) %>% 
+#   mutate(temp_col = map(temp_col, gt::md)) %>% 
+#   select(-desc, -link)
+#   
+#   names(out) <- col_name
+#   
+#   return(out)
+# }
+```
+
+```{r, echo=FALSE}
+topic_col <- c(
+  "[Intro to Urban Analytics in R](https://rpubs.com/spring19cp6521/Syllabus)",# 1
+  "",# 2
+  "Accessing data in UA ways",# 3
+  "From messy to tidy data",# 4
+  "First insights from your data",# 5
+  "Interactive visualization",# 6
+  "[GTFA, OSM, and Equity](https://rpubs.com/bonwoodesign/UA_Trans_GTFS)",# 7
+  "",# 8
+  "",# 9
+  "",# 10
+  "",# 11
+  "",# 12
+  "",# 13
+  "",# 14
+  "",# 15
+  "",# 16
+  ""# 17
+)
+
+reading_col <- c(
+  "",# 1
+  "[DS-CH2](https://r4ds.had.co.nz/workflow-basics.html),<br> [GEO-CH2](https://rpubs.com/spring19cp6521/Syllabus)",# 2
+  "",# 3
+  "",# 4
+  "",# 5
+  "",# 6
+  "",# 7
+  "",# 8
+  "",# 9
+  "",# 10
+  "",# 11
+  "",# 12
+  "",# 13
+  "",# 14
+  "",# 15
+  "",# 16
+  ""# 17
+) 
+
+# For collapse_row function's bugfix, 
+# kableExtra was downloaded from 
+# devtools::install_github(repo="haozhu233/kableExtra", ref="a6af5c0")
+
+assignment_col <- c(
+  "",# 1
+  "",# 2
+  "[Mini-1](https://rpubs.com/spring19cp6521/Syllabus),[Mini-2]()",# 3
+  "[Mini-1](),[Mini-2]()",# 4
+  "",# 5
+  "",# 6
+  "",# 7
+  "",# 8
+  "",# 9
+  "",# 10
+  "",# 11
+  "",# 12
+  "",# 13
+  "",# 14
+  "",# 15
+  "",# 16
+  ""# 17
+)
+
+# For collapse_row function's bugfix, 
+# kableExtra was downloaded from 
+# devtools::install_github(repo="haozhu233/kableExtra", ref="a6af5c0")
+
+weeks %>%
+  cbind("Topic" = topic_col) %>%
+  cbind("Reading" = reading_col) %>% 
+  cbind("Assignment" = assignment_col) %>% 
+  kbl(escape = F) %>%
+  column_spec(1, width = "12em") %>% 
+  kable_styling(bootstrap_options = c("condensed")) %>%
+  collapse_rows(columns = 1:2, valign = "top") 
+```
+
+# How to succeed in this class
+1. Be prepared for occasional frustration. It’s part of learning process. However, don’t spin the wheel. You are responsible for actively searching for help. Don’t wait until the last minute (e.g., homework).
+2. Read assigned book chapters/materials, review their examples and snippets, replicate their results, and repeat until you understand.
+3. Work with peers. Form a group early in the semester, and have their sharp eyes on your code. Still, you need to submit your HW individually.
+4. If you have a trouble with your code outside of class (and get frustrated), Google it. It will not only be faster and more efficient than contacting us, but trouble-shooting on your own is essential skill, particularly after you graduate. Luckily, most of the problems you may encounter in this class have been already encountered by others. You can search how they solved them in **StackOverFlow**. 
+5. Of course, you can ask questions to us anytime, inside or outside classroom. I strongly encourage you to utilize our office hours as another learning opportunity.
+
+# Textbooks/resources
+* [R for Data Science](https://r4ds.had.co.nz/): free online
+* [Geocomputation with R](https://rpubs.com/spring19cp6521/Syllabus): free online
+* [Urban Analytics - supporting materials](https://github.com/alexsingleton/urban_analytics)
+
+# Technology
+Cell phone use is prohibited at all times during class, except if you are using cell phones to answer quizzes/ surveys. Laptops, tablets, e-readers, and other digital devices may be used to take notes or refer to relevant information, take quizzes, and complete in-class assignments. If you are using a digital device for non-course purposes at any time during the semester, you will be asked to refrain from using it for the remainder of the course. No exceptions.
+
+There will be times in class when the instructor reserves the right to enact the “No Device Rule.” During these times, all digital devices will be required to be stored off desks so that students may concentrate on tasks or presentations. Expect that this rule will be used when your peers are presenting and during guest lectures.
+
+# Student-Faculty expectations
+At Georgia Tech, we believe that it is important to continually strive for an atmosphere of mutual respect, acknowledgement, and responsibility between faculty members and the student body. See http://www.catalog.gatech.edu/rules/22.php for an articulation of some basic expectations—that you can have of me, and that I have of you. Respect for knowledge, hard work, and cordial interactions will help build the environment we seek. Therefore, I encourage you to remain committed to the ideals of Georgia Tech while in this class.
+
+# Academic integrity
+Georgia Tech aims to cultivate a community based on trust, academic integrity, and honor. Students are expected to act according to the highest ethical standards. For more information on Georgia Tech’s Academic Honor Code, please visit http://www.catalog.gatech.edu/rules/18b.php and http://www.catalog.gatech.edu/genregulations/honorcode.php.
+
+# ADA accommodations
+If you are a student with learning needs that require special accommodation, contact the Office of Disability Services at (404)894-2563 or http://disabilityservices.gatech.edu/, as soon as possible, to make an appointment to discuss your special needs and to obtain an accommodations letter.  Please also e-mail me as soon as possible in order to set up a time to discuss your learning needs.
