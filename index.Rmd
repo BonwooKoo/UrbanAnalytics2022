@@ -93,8 +93,8 @@ topic_col <- c(
   "Tidy data (Slide), Data wrangling (RMD)",# 4
   "First insights from your data - Stats (Slide), Hands-on (RMD)",# 5
   "Interactive visualization (Slide), Hands-on (RMD)",# 6
-  "Intro to GTFS (Slide), [GTFS and equity](./Lab/module_2/1_GTFS.html)",# 7
-  "Intro to OSM (Slide), [OSM as a graph](./Lab/module_2/2_OSM.html)",# 8
+  "Intro to GTFS (Slide), [GTFS and equity (RMD)](./Lab/module_2/1_GTFS.html)",# 7
+  "Intro to OSM (Slide), [OSM as a graph (RMD)](./Lab/module_2/2_OSM_v2.html)",# 8
   "Images and computer vision - 1",# 9
   "Images and computer vision - 2",# 10
   "What people are twitting about our cities - 1",# 11
@@ -108,9 +108,9 @@ topic_col <- c(
 
 reading_col <- c(
   "",# 1
-  "[DS-CH2](https://r4ds.had.co.nz/workflow-basics.html),<br> [GEO-CH2](https://rpubs.com/spring19cp6521/Syllabus)",# 2
+  "",# 2
   "",# 3
-  "",# 4
+  "[1](https://r4ds.had.co.nz/tidy-data.html), [2](https://r4ds.had.co.nz/transform.html)",# 4
   "",# 5
   "",# 6
   "",# 7
@@ -133,18 +133,18 @@ reading_col <- c(
 assignment_col <- c(
   "",# 1
   "",# 2
-  "[Mini-1](https://rpubs.com/spring19cp6521/Syllabus), <br> [Mini-2]()",# 3
-  "[Mini-1](), <br> [Mini-2]()",# 4
-  "",# 5
-  "",# 6
+  "Mini",# 3
+  "Mini",# 4
+  "Mini",# 5
+  "Mini",# 6
   "",# 7
-  "",# 8
+  "Major",# 8
   "",# 9
-  "",# 10
+  "Major",# 10
   "",# 11
-  "",# 12
+  "Major",# 12
   "",# 13
-  "",# 14
+  "Major",# 14
   "",# 15
   "",# 16
   ""# 17

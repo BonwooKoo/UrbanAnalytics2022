@@ -1,30 +1,29 @@
 ---
-title: "GTFS, OSM, and Equity - 2"
-author: "Bonwoo Koo"
-date: "2022-08-05"
-output: html_document
+title: "Intro to Urban Analytics"
+author: "Bon Woo Koo & Subhrajit Guhathakurta"
+date: '2022-08-20'
+output: 
+  rmdformats::downcute:
+    downcute_theme: "chaos"
+    code_folding: show
 ---
 
 # Environment Setting
 ```{r message=FALSE, warning=FALSE}
 # Import required packages
-library(tidytransit)
 library(tidyverse)
 library(tmap)
 library(ggplot2)
-library(gtfsrouter)
-library(here)
 library(units)
 library(sf)
 library(leaflet)
 library(tidycensus)
-library(plotly)
-library(igraph)
-library(tidygraph)
-library(dodgr)
 library(leafsync)
 library(dbscan)
 library(sfnetworks)
+library(tigris)
+library(tidygraph)
+library(plotly)
 
 wd <- file.path(Sys.getenv('setwd'),"work/working/School/UA_2022/external/Lab/module_2")
 setwd(eval(wd))
@@ -54,13 +53,14 @@ bb_sf <- bb %>% t %>% data.frame() %>%
 tm_shape(bb_sf) + tm_borders()
 ```
 
-[OSM wiki](https://wiki.openstreetmap.org/wiki/Map_features) provides a detailed description on various 'key-value' pairs.
+[OSM wiki](https://wiki.openstreetmap.org/wiki/Map_features) provides a detailed description on various 'key-value' pairs. To download all possible key:value pairs, you can insert `available_tags("highway")` instead of manually specifying a list of values. One caveat is that, using all available tags will generate a large data, significantly slowing down the processing speed.
 
 ```{r}
 # Get OSM road data
 osm_road <- opq(bbox = bb) %>%
   add_osm_feature(key = 'highway', 
-                  value = available_tags("highway")) %>%
+                  value = c("motorway", "trunk", "primary", "secondary", "tertiary", "unclassified",
+                            "residential")) %>%
   osmdata_sf() %>% 
   osm_poly2line()
 
@@ -77,7 +77,7 @@ table(osm_road$osm_lines$highway)
 
 ## Defining a custom bounding box 
 
-Calculating network centrality and betweenness of the network we just downloaded requires a bit too long time for this class. For class exercise, let's limit the bounding box to a smaller area. This technique of generating your own bounding box can also be useful if you have a specific area of interest that doesn't overlap well with commonly used boundaries.
+Calculating network centrality and betweenness of the network we just downloaded requires a bit too long time for this class. For class exercise, let's limit the bounding box to a smaller area and download only road networks (see [this](https://wiki.openstreetmap.org/wiki/Key:highway) to check what I mean by road networks). This technique of generating your own bounding box can also be useful if you have a specific area of interest that doesn't overlap well with commonly used boundaries.
 
 You need to define two points for bounding box, one point at the lower left corner and the other at the upper right corner. You can go to Google Maps, right-click on a point on map, and copy the XY coordinate. Let's store them in `p1` and `p2`.
 
@@ -103,19 +103,37 @@ my_bb %>% t %>% data.frame() %>%
   st_bbox() %>% 
   st_as_sfc() %>% 
   tm_shape(.) + tm_borders()
+
+# Get OSM road data
+osm_sml <- opq(bbox = my_bb) %>%
+  add_osm_feature(key = 'highway', 
+                  value = c("motorway", "trunk", "primary", "secondary", "tertiary", "unclassified",
+                            "residential")) %>%
+  osmdata_sf() %>% 
+  osm_poly2line()
+
+osm_sml_pal <- colorFactor(palette = "Spectral", domain = osm_sml$osm_lines$highway)
+
+leaflet() %>% 
+  addProviderTiles(providers$CartoDB.DarkMatter) %>% 
+  addPolylines(data = osm_sml$osm_lines, weight = 3, opacity = 0.9, color = ~osm_sml_pal(highway)) %>% 
+  addLegend(position = "bottomright", pal = osm_sml_pal, 
+            values = osm_sml$osm_lines$highway, title = "Highway Categories")
+
 ```
 
 # Converting OSM data into a graph
 
 
 ```{r}
-net <- sfnetworks::as_sfnetwork(osm_road$osm_lines)
+net <- sfnetworks::as_sfnetwork(osm_sml$osm_lines, directed = FALSE)
 print(net)
 
 leaflet() %>% 
   addProviderTiles(providers$CartoDB.DarkMatter) %>% 
   addPolylines(data = net %>% st_as_sf('edges'), col = "grey", weight = 3, opacity = 0.9) %>% 
-    addCircles(data = net %>% st_as_sf('nodes'), fillColor = 'yellow', stroke = F, radius = 20, fillOpacity = 0.7) 
+    addCircles(data = net %>% st_as_sf('nodes'), fillColor = 'yellow', 
+               stroke = F, radius = 20, fillOpacity = 0.7) 
 ```
 
 
@@ -135,7 +153,11 @@ simple_net <- net %>%
   activate("edges") %>%
   filter(!edge_is_multiple()) %>%
   filter(!edge_is_loop())
+
+message(str_c("Before simplification, there were ", net %>% st_as_sf("edges") %>% nrow(), " edges. \n",
+            "After simplification, there are ", simple_net %>% st_as_sf("edges") %>% nrow(), " edges."))
 ```
+
 
 ## Subdivide edges
 
@@ -151,7 +173,7 @@ subdiv_net <- subdiv_net %>% activate("nodes") %>% mutate(custom_id = seq(1,nrow
 
 subdiv_map <- leaflet() %>% 
   addProviderTiles(providers$CartoDB.DarkMatter) %>% 
-  setView(-84.36508925130082, 33.77122894799306, zoom = 14) %>% # zooming in to show more details
+  setView( -84.3854, 33.7768, zoom = 14) %>% # zooming in to show more details
   addPolylines(data = subdiv_net %>% st_as_sf('edges'), col = "grey", weight = 3, opacity = 0.9) %>% 
     addCircles(data = subdiv_net %>% st_as_sf('nodes'), fillColor = 'yellow', stroke = F, radius = 20, fillOpacity = 0.7) 
 
@@ -160,7 +182,9 @@ subdiv_map
 
 
 ## Delete pseudo nodes
- 
+
+
+
 ```{r}
 smoothed_net <- convert(subdiv_net, sfnetworks::to_spatial_smooth)
 
@@ -170,11 +194,11 @@ removed <- setdiff(subdiv_net %>% st_as_sf('nodes') %>% pull(custom_id),
 
 smooth_map <- leaflet() %>% 
   addProviderTiles(providers$CartoDB.DarkMatter) %>% 
-  setView(-84.36508925130082, 33.77122894799306, zoom = 14) %>% # zooming in to show more details
+  setView( -84.3854, 33.7768, zoom = 14) %>% # zooming in to show more details
   addPolylines(data = smoothed_net %>% st_as_sf('edges'), col = "grey", weight = 3, opacity = 0.9) %>% 
     addCircles(data = smoothed_net %>% st_as_sf('nodes'), fillColor = 'yellow', stroke = F, radius = 20, fillOpacity = 0.7) %>% 
     addCircles(data = subdiv_net %>% st_as_sf("nodes") %>% filter(custom_id %in% removed), 
-               fillColor = "red", stroke = F, radius = 30, fillOpacity = 0.3)
+               fillColor = "red", stroke = F, radius = 15, fillOpacity = 0.8)
 
 leafsync::sync(subdiv_map, smooth_map)
 ```
@@ -208,14 +232,14 @@ contracted = convert(
 
 before <- leaflet() %>% 
   addProviderTiles(providers$CartoDB.DarkMatter) %>% 
-  setView(-84.36508925130082, 33.77122894799306, zoom = 14) %>% # zooming in to show more details
+  setView( -84.3854, 33.7768, zoom = 14) %>% # zooming in to show more details
   addPolylines(data = net %>% st_as_sf('edges'), col = "grey", weight = 3, opacity = 0.9) %>% 
     addCircles(data = net %>% st_as_sf('nodes'), fillColor = 'yellow', stroke = F, radius = 20, fillOpacity = 0.7) %>% 
   addControl(html = htmltools::HTML("Raw download from OSM"))
 
 after <- leaflet() %>% 
   addProviderTiles(providers$CartoDB.DarkMatter) %>% 
-  setView(-84.36508925130082, 33.77122894799306, zoom = 14) %>% # zooming in to show more details
+  setView( -84.3854, 33.7768, zoom = 14) %>% # zooming in to show more details
   addPolylines(data = contracted %>% st_as_sf('edges'), col = "grey", weight = 3, opacity = 0.9) %>% 
     addCircles(data = contracted %>% st_as_sf('nodes'), fillColor = 'yellow', stroke = F, radius = 20, fillOpacity = 0.7) %>% 
   addControl(html = htmltools::HTML("Fully processed"))
@@ -229,23 +253,53 @@ leafsync::sync(before, after)
 network_char <- contracted %>% 
   activate("edges") %>%
   mutate(weight = edge_length()) %>% 
+  mutate(edge_bc = centrality_edge_betweenness(weights = weight, directed = F)) %>%
   activate("nodes") %>% 
-  mutate(bc = centrality_betweenness(weights = weight, directed = FALSE),
-         bc_scale = ((min(bc) - bc)/(max(bc)-min(bc)))*20)
+  mutate(node_bc = centrality_betweenness(weights = weight, directed = F))
 
-bet_pal <- colorQuantile(palette = "Reds", domain = network_char %>% activate("nodes") %>% pull(bc), n = 10)
+# Edge betweenness
+bet_pal_edge <- colorNumeric(palette = "Reds", domain = network_char %>% activate("edges") %>% pull(edge_bc), n = 6)
 
+# Node betweenness
+bet_pal_node <- colorNumeric(palette = "Reds", domain = network_char %>% activate("nodes") %>% pull(node_bc), n = 6)
+
+# Map
 leaflet() %>% 
   addProviderTiles(providers$CartoDB.DarkMatter) %>%
-  setView(-84.36508925130082, 33.77122894799306, zoom = 14) %>% # zooming in to show more details
-  addPolylines(data = contracted %>% st_as_sf("edges"), color = "grey", weight = 2) %>% 
-  addCircles(data = network_char %>% st_as_sf("nodes"), fillColor = ~bet_pal(bc), fillOpacity = 0.9, stroke = F, 
-             radius = network_char %>% st_as_sf('nodes') %>% pull(bc_scale))
+  setView( -84.3854, 33.7768, zoom = 14) %>% # zooming in to show more details
+  addPolylines(data = network_char %>% st_as_sf("edges"), 
+               color = ~bet_pal_edge(network_char %>% st_as_sf('edges') %>% pull(edge_bc)), weight = 3, opacity = 0.7) %>% 
+  addCircles(data = network_char %>% st_as_sf("nodes"), 
+               fillColor = ~bet_pal_node(network_char %>% st_as_sf('nodes') %>% pull(node_bc)), stroke = F, fillOpacity = 0.7, 
+             radius = network_char %>% st_as_sf("nodes") %>% with(.$node_bc/1000)) # 1000 is selected to make the max value roughly equal to 100
 
 # Try 2 more other centrality measures.
 # Find good ways to calculate the radius argument in addCircles() function for visually pleasing maps for the 2 centrality measures.
 ```
 
+## Shortest path
+
+```{r}
+# Start point
+start_p <- st_point(c(-84.40364459476174,33.776160322717544)) %>% st_sfc(crs = 4326) # CRC at Georgia Tech
+# End point
+target_p <- st_point(c(-84.37639335217811, 33.75718076235044)) %>% st_sfc(crs = 4326) # MLK National Historical Park
+# Get the shortest path
+paths = st_network_paths(net, from = start_p, to = target_p)
+# Extract shortest path
+paths_sf <- net %>%
+  slice(paths$node_paths[[1]])
+
+# Visualize
+leaflet() %>% 
+  addProviderTiles(providers$CartoDB.DarkMatter) %>% 
+  addPolylines(data = net %>% st_as_sf("edges"), color = 'grey', weight = 2, opacity = 0.7) %>% 
+  addPolylines(data = paths_sf %>% st_as_sf("edges"), color = "red", weight = 4, opacity = 0.8) %>% 
+  addCircles(data = paths_sf %>% st_as_sf("nodes"), stroke = F, fillColor = "red", fillOpacity = 0.8, radius = 50)
+
+## Assignment: sample one point from each tract, calculate average travel time from one census tract to all others. Repeat for all tracts.
+## See if there is any patterns to the accessibility.
+```
 
 
 
@@ -263,123 +317,12 @@ intersections <- end_points %>%
 
 leaflet() %>% 
   addProviderTiles(providers$CartoDB.DarkMatter) %>% 
-  setView(-84.36508925130082, 33.77122894799306, zoom = 14) %>% # zooming in to show more details
+  setView( -84.3854, 33.7768, zoom = 14) %>% # zooming in to show more details
   addPolylines(data = smoothed_net %>% st_as_sf('edges'), col = "grey", weight = 3, opacity = 0.9) %>% 
-    addCircles(data = intersections %>% st_as_sf('nodes'), fillColor = 'skyblue', stroke = F, radius = 20, fillOpacity = 0.7) 
+    addCircles(data = intersections %>% st_as_sf('nodes'), fillColor = 'red', stroke = F, radius = 20, fillOpacity = 0.7) 
 ```
 
 
-
-
-
-
-
-<!-- ## Using dodgr -->
-
-<!-- ```{r eval=F} -->
-<!-- # get OSM -->
-<!-- net <- dodgr_streetnet(my_bb) -->
-
-<!-- osm_net <- opq(bbox = my_bb) %>% -->
-<!--   add_osm_feature(key = 'highway', -->
-<!--                   value = c('motorway','primary','secondary', 'teriary', -->
-<!--                             'unclassified', 'residential')) %>% -->
-<!--   osmdata_sf() %>% -->
-<!--   osm_poly2line() -->
-
-<!-- # get weighted graph -->
-<!-- net <- weight_streetnet(net, wt_profile = "foot") -->
-<!-- # remove redundant vertices -->
-<!-- cnet <- dodgr_contract_graph(net) -->
-<!-- # centrality (output is the the same graph with an added column 'centrality') -->
-<!-- cnet <- dodgr_centrality (cnet) -->
-<!-- # Map back to original full network -->
-<!-- cnet_full <- dodgr_uncontract_graph (cnet) -->
-<!-- # Merge directed edges into equivalent undirected values by aggregating across directions. This function is primarily intended to aid visualisation of directed graphs, -->
-<!-- cnet_sf <- merge_directed_graph (cnet_full) %>% -->
-<!--     dodgr_to_sf () -->
-<!-- ``` -->
-
-<!-- ```{r eval=F} -->
-<!-- pal <- colorQuantile(palette = "YlOrRd", domain = cnet_sf$centrality) -->
-
-<!-- leaflet() %>% -->
-<!--   addProviderTiles(providers$CartoDB.DarkMatter) %>% -->
-<!--   addPolylines(data = cnet_sf, color = ~pal(centrality), weight = 2) -->
-<!-- ``` -->
-
-
-<!-- # Open Street Map -->
-
-<!-- https://journal.r-project.org/archive/2013/RJ-2013-005/RJ-2013-005.pdf -->
-
-<!-- https://r-spatial.org/r/2019/09/26/spatial-networks.html -->
-
-<!-- https://cran.r-project.org/web/packages/dodgr/vignettes/dodgr.html -->
-
-<!-- ```{r} -->
-<!-- library(osmdata) -->
-
-<!-- # Get bounding box coordinates for Atlanta -->
-<!-- bb <- getbb('Fulton County, GA') -->
-
-<!-- bb_sf <- bb %>% t %>% data.frame() %>% -->
-<!--   st_as_sf(coords = c("x", "y"), crs = 4326) %>% -->
-<!--   st_bbox() %>% -->
-<!--   st_as_sfc() -->
-
-<!-- # To see where bb covers -->
-<!-- bb_sf %>% -->
-<!--   tm_shape() + tm_borders() -->
-<!-- ``` -->
-
-
-<!-- ```{r} -->
-<!-- # Get OSM road data -->
-<!-- osm_road <- opq(bbox = bb) %>% -->
-<!--   add_osm_feature(key = 'highway', -->
-<!--                   value = c('motorway','primary','secondary', 'teriary', "road", -->
-<!--                             'residential')) %>% -->
-<!--   osmdata_sf() %>% -->
-<!--   osm_poly2line() -->
-
-<!-- names(osm_road) -->
-<!-- ``` -->
-
-<!-- ```{r} -->
-<!-- tm_shape(osm_road$osm_lines) + tm_lines(col = "highway") -->
-<!-- ``` -->
-
-<!-- ```{r} -->
-<!-- table(osm_road$osm_lines$highway) -->
-<!-- ``` -->
-
-<!-- # Calculating network centrality -->
-
-<!-- ```{r} -->
-<!-- # # get OSM -->
-<!-- # net <- dodgr::dodgr_streetnet(bb) -->
-<!-- # # get weighted graph -->
-<!-- # net <- weight_streetnet(net, wt_profile = "foot") -->
-<!-- net <- weight_streetnet(osm_road$osm_lines, wt_profile = "foot") -->
-<!-- # remove redundant vertices -->
-<!-- cnet <- dodgr_contract_graph(net) -->
-<!-- # centrality (output is the the same graph with an added column 'centrality') -->
-<!-- cnet <- dodgr_centrality (cnet) -->
-<!-- # Map back to original full network -->
-<!-- cnet_full <- dodgr_uncontract_graph (cnet) -->
-<!-- # Merge directed edges into equivalent undirected values by aggregating across directions. This function is primarily intended to aid visualisation of directed graphs, -->
-<!-- cnet_sf <- merge_directed_graph (cnet_full) %>% -->
-<!--     dodgr_to_sf () -->
-<!-- ``` -->
-
-<!-- ```{r} -->
-<!-- pal <- colorQuantile(palette = "YlOrRd", domain = cnet_sf$centrality) -->
-
-<!-- leaflet() %>% -->
-<!--   addProviderTiles(providers$CartoDB.DarkMatter) %>% -->
-<!--   addPolylines(data = cnet_sf, color = ~pal(centrality), weight = 2) -->
-<!-- ``` -->
 
 # Merge it with Census data
 
@@ -387,6 +330,7 @@ Let's recycle the code for downloading Census data through API from last week.
 
 ```{r message=FALSE, warning=FALSE, echo=FALSE, results='hide'}
 # Get American Community Survey
+census_api_key(Sys.getenv('census_api'))
 acs2020 <- tidycensus::get_acs(geography = "tract",
                    variables = c("hhinc" = 'B19013_001',
                                  "r_tot" = "B02001_001",
@@ -434,12 +378,12 @@ census_centrality <- acs2020c[bb_sf, ,op = st_within] %>%
             pct_wh = mean(pct_wh, na.rm = T),
             pct_bl = mean(pct_bl, na.rm = T),
             pct_novhc = mean(pct_novhc, na.rm = T),
-            bc = mean(bc, na.rm = T))
+            node_bc = mean(node_bc, na.rm = T))
 ```
 
 ```{r}
 tm_shape(acs2020c) + tm_polygons(col = "grey", alpha = 0.5) +
-  tm_shape(census_centrality) + tm_polygons(col = "bc", style = "quantile") +
+  tm_shape(census_centrality) + tm_polygons(col = "node_bc", style = "quantile") +
   tm_shape(bb_sf) + tm_borders()
 ```
 
@@ -447,16 +391,17 @@ tm_shape(acs2020c) + tm_polygons(col = "grey", alpha = 0.5) +
 census_centrality_plot <- census_centrality %>%
   mutate(hhinc = log(hhinc),
          pct_novhc = log(pct_novhc + 0.02)) %>%
-  pivot_longer(cols = c('hhinc', 'pct_wh', 'pct_bl', 'pct_novhc'), names_to = "variable", values_to = "value")
+  pivot_longer(cols = c('hhinc', 'pct_wh', 'pct_bl', 'pct_novhc'), names_to = "variable", values_to = "value") %>% 
+  mutate(variable = factor(variable, labels = c("Household Income", "% Black", "% No HH with no cars", "% White")))
 
 centrality_plot <- census_centrality_plot %>%
   ggplot() +
-  geom_point(aes(x = centrality, y = value), alpha = 0.2) +
-  facet_wrap(~variable, scales = "free_y", labeller = var_labeller) +
+  geom_point(aes(x = node_bc, y = value), alpha = 0.2) +
+  facet_wrap(~variable, scales = "free_y") +
   labs(x = "Centrality", title = "Centrality VS. Socio-demographics") +
   theme_bw()
 
-centrality_plot + ggpubr::stat_cor(aes(x = centrality, y = value))
+centrality_plot + ggpubr::stat_cor(aes(x = node_bc, y = value))
 
 ggplotly(centrality_plot)
 ```
