@@ -50,7 +50,7 @@ total_week = 17
 
 weeks <- tibble(
   Module = c(
-    rep("Pre-module", 2),
+    rep("Preparation", 2),
     rep("Module 1: <br> A walk-through of your first UA project", 4), # 2 days, 4 weeks
     rep("Module 2: <br> Transportation", 2),
     rep("Module 3: <br> Image & computer vision", 2),
@@ -64,7 +64,7 @@ weeks <- tibble(
 ```
 
 
-There are `r total_week/2` weeks. 
+There are `r total_week` weeks. 
 
 ```{r, echo=FALSE}
 # col_formatter <- function(df, col_name){
@@ -87,23 +87,23 @@ There are `r total_week/2` weeks.
 
 ```{r, echo=FALSE}
 topic_col <- c(
-  "[Intro to Urban Analytics in R](https://rpubs.com/spring19cp6521/Syllabus)",# 1
-  "",# 2
-  "Accessing data in UA ways",# 3
-  "From messy to tidy data",# 4
-  "First insights from your data",# 5
-  "Interactive visualization",# 6
-  "[GTFA, OSM, and Equity](./Lab/W3/W3_AccessGTFS.html)",# 7
-  "",# 8
-  "",# 9
-  "",# 10
-  "",# 11
-  "",# 12
-  "",# 13
-  "",# 14
-  "",# 15
-  "",# 16
-  ""# 17
+  "Intro to Urban Analytics in R (Slide), Intro to R - 1 (RMD)",# 1
+  "Modern urban data vs. conventional data (Slide), Intro to R - 2 (RMD)",# 2
+  "Accessing data (Slide), Census API (RMD), Yelp API (RMD)",# 3
+  "Tidy data (Slide), Data wrangling (RMD)",# 4
+  "First insights from your data - Stats (Slide), Hands-on (RMD)",# 5
+  "Interactive visualization (Slide), Hands-on (RMD)",# 6
+  "Intro to GTFS (Slide), [GTFS and equity](./Lab/module_2/1_GTFS.html)",# 7
+  "Intro to OSM (Slide), [OSM as a graph](./Lab/module_2/2_OSM.html)",# 8
+  "Images and computer vision - 1",# 9
+  "Images and computer vision - 2",# 10
+  "What people are twitting about our cities - 1",# 11
+  "What people are twitting about our cities - 2",# 12
+  "Storytelling with data",# 13
+  "Storytelling with data",# 14
+  "Student presentations",# 15
+  "Student presentations",# 16
+  "Dead week"# 17
 )
 
 reading_col <- c(
@@ -133,8 +133,8 @@ reading_col <- c(
 assignment_col <- c(
   "",# 1
   "",# 2
-  "[Mini-1](https://rpubs.com/spring19cp6521/Syllabus),[Mini-2]()",# 3
-  "[Mini-1](),[Mini-2]()",# 4
+  "[Mini-1](https://rpubs.com/spring19cp6521/Syllabus), <br> [Mini-2]()",# 3
+  "[Mini-1](), <br> [Mini-2]()",# 4
   "",# 5
   "",# 6
   "",# 7
