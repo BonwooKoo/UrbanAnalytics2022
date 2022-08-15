@@ -15,7 +15,9 @@ library(tidyverse)
 library(kableExtra)
 ```
 
-# Course description
+<br>
+<br>
+
 This course introduces students to the field of urban analytics. The main objective of this course is for students to master important theories and concepts emerging in the field of urban analytics. Students will complete this course with a working knowledge of how data and advanced analytical techniques can enhance the planning and operation of cities.
 
 # Prerequisites
@@ -51,7 +53,7 @@ total_week = 17
 weeks <- tibble(
   Module = c(
     rep("Preparation", 2),
-    rep("Module 1: <br> A walk-through of your first UA project", 4), # 2 days, 4 weeks
+    rep("Module 1: <br> A walk-through of your first UA project - <br> POI & Census", 4), # 2 days, 4 weeks
     rep("Module 2: <br> Transportation", 2),
     rep("Module 3: <br> Image & computer vision", 2),
     rep("Module 4: <br> Social media", 2),
@@ -62,9 +64,6 @@ weeks <- tibble(
   Week = as.character(rep(1:total_week))
   )
 ```
-
-
-There are `r total_week` weeks. 
 
 ```{r, echo=FALSE}
 # col_formatter <- function(df, col_name){
@@ -87,27 +86,27 @@ There are `r total_week` weeks.
 
 ```{r, echo=FALSE}
 topic_col <- c(
-  "Intro to Urban Analytics in R (Slide), Intro to R - 1 (RMD)",# 1
-  "Modern urban data vs. conventional data (Slide), Intro to R - 2 (RMD)",# 2
-  "Accessing data (Slide), Census API (RMD), Yelp API (RMD)",# 3
-  "Tidy data (Slide), Data wrangling (RMD)",# 4
-  "First insights from your data - Stats (Slide), Hands-on (RMD)",# 5
-  "Interactive visualization (Slide), Hands-on (RMD)",# 6
-  "Intro to GTFS (Slide), [GTFS and equity (RMD)](./Lab/module_2/1_GTFS.html)",# 7
-  "Intro to OSM (Slide), [OSM as a graph (RMD)](./Lab/module_2/2_OSM_v2.html)",# 8
-  "Images and computer vision - 1",# 9
-  "Images and computer vision - 2",# 10
-  "What people are twitting about our cities - 1",# 11
-  "What people are twitting about our cities - 2",# 12
-  "Storytelling with data",# 13
-  "Storytelling with data",# 14
+  "Intro to Urban Analytics in R (Slide), <br> Intro to R - 1 (RMD)",# 1
+  "Modern urban data vs. conventional data (Slide), <br> Intro to R - 2 (RMD)",# 2
+  "Accessing data (Slide), Census API (RMD), <br> Yelp API (RMD)",# 3
+  "Tidy data (Slide), <br> Data wrangling (RMD)",# 4
+  "First statistical insights from your data (Slide), <br> Hands-on (RMD)",# 5
+  "Interactive visualization (Slide), <br> Hands-on (RMD)",# 6
+  "General Transit Feed Specification (Slide), <br> [GTFS and equity (RMD)](./Lab/module_2/1_GTFS.html)",# 7
+  "Open Street Map (Slide), <br> [OSM as a graph (RMD)](./Lab/module_2/2_OSM.html)",# 8
+  "Urban images and computer vision (Slide), <br> Yolo in R (RMD)",# 9
+  "Many ways of viewing your city (Slide), <br> Sampling images and using Vision API (RMD)",# 10
+  "Twitter API (Slide), ",# 11
+  "Preprocessing texts (Slide), <br> Sentiment analysis (RMD)",# 12
+  "Storytelling with data - 1",# 13
+  "Storytelling with data - 2",# 14
   "Student presentations",# 15
-  "Student presentations",# 16
-  "Dead week"# 17
+  "Student presentations - continued",# 16
+  "Wrap up"# 17
 )
 
 reading_col <- c(
-  "",# 1
+  "[1](https://journals.sagepub.com/doi/full/10.1177/2399808319839494)",# 1
   "",# 2
   "",# 3
   "[1](https://r4ds.had.co.nz/tidy-data.html), [2](https://r4ds.had.co.nz/transform.html)",# 4
@@ -116,7 +115,9 @@ reading_col <- c(
   "",# 7
   "",# 8
   "",# 9
+  # https://www.sciencedirect.com/science/article/pii/S0264275119308443?casa_token=ttj9fEoFey4AAAAA:nR_Wf8tJHv8vfLv93cIlRHlsIqGdUMWByA3AyXcP_zWEYwJAPGKaxZ9TsdwiZlfX1-L8Z0Y7ag
   "",# 10
+  # https://www.sciencedirect.com/science/article/pii/S2211335519300440
   "",# 11
   "",# 12
   "",# 13
@@ -131,14 +132,14 @@ reading_col <- c(
 # devtools::install_github(repo="haozhu233/kableExtra", ref="a6af5c0")
 
 assignment_col <- c(
-  "",# 1
+  "[Survey](https://forms.gle/4BBtMfrvr5yJLebK9)",# 1
   "",# 2
   "Mini",# 3
   "Mini",# 4
   "Mini",# 5
   "Mini",# 6
   "",# 7
-  "Major",# 8
+  "Major",# 8 # Chicago GTFS feed http://www.transitchicago.com/downloads/sch_data/google_transit.zip
   "",# 9
   "Major",# 10
   "",# 11
@@ -172,6 +173,8 @@ weeks %>%
 5. Of course, you can ask questions to us anytime, inside or outside classroom. I strongly encourage you to utilize our office hours as another learning opportunity.
 
 # Textbooks/resources
+There is no textbook associated with this course. I highly recommend Data Action by Sarah Williams, and Urban Analytics by Alex Singleton, Seth Spielman and David Folch is another popular textbook on the topic.
+
 * [R for Data Science](https://r4ds.had.co.nz/): free online
 * [Geocomputation with R](https://rpubs.com/spring19cp6521/Syllabus): free online
 * [Urban Analytics - supporting materials](https://github.com/alexsingleton/urban_analytics)

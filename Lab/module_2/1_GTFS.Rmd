@@ -51,7 +51,7 @@ Let's download some GTFS feed provided by Metropolitan Atlanta Rapid Transit Aut
 ```{r, results='hide'}
 # This GTFS file is downloaded from
 # https://opendata.atlantaregional.com/datasets/marta-gtfs-latest-feed/about
-atl <- read_gtfs('MARTA_GTFS_Latest_Feed.zip')
+atl <- read_gtfs('MARTA_GTFS_Latest_Feed.zip') 
 ```
 
 
