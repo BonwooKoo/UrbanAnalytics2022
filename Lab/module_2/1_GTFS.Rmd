@@ -3,7 +3,7 @@ title: "GTFS, OSM, and Equity - 1"
 author: "Bon Woo Koo & Subhrajit Guhathakurta"
 date: '2022-07-14'
 output: 
-  rmdformats::downcute:
+  rmdformats:: %>% downcute:
     downcute_theme: "chaos"
     code_folding: show
 ---
@@ -136,7 +136,9 @@ These maps (route shapes on the left; stop locations on the right) show the cove
 
 
 # Calculating Transit Service Quality
+
 &nbsp;
+
 ## Calculate travel times from one station to all other stations
 The tidytransit package offers a very convenient function that calculates the shortest travel times from a stop to all other stops. Try `?tidytransit::travel_times` to see what this function does and what arguments it takes. Notice that only two out of nine arguments are required, and the rest are optional. The required arguments are 'filtered_stop_times' and 'stop_name.' If you do not provide the optional arguments, the function will use the pre-populated values for the calculation.
 
