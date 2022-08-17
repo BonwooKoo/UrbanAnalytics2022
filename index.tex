@@ -1,0 +1,302 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={Intro to Urban Analytics},
+  pdfauthor={Bon Woo Koo \& Subhrajit Guhathakurta},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage{float}
+\usepackage{colortbl}
+\usepackage{pdflscape}
+\usepackage{tabu}
+\usepackage{threeparttable}
+\usepackage{threeparttablex}
+\usepackage[normalem]{ulem}
+\usepackage{makecell}
+\usepackage{xcolor}
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+
+\title{Intro to Urban Analytics}
+\author{Bon Woo Koo \& Subhrajit Guhathakurta}
+\date{2022-08-20}
+
+\begin{document}
+\maketitle
+
+This course introduces students to the field of urban analytics. The
+main objective of this course is for students to master important
+theories and concepts emerging in the field of urban analytics. Students
+will complete this course with a working knowledge of how data and
+advanced analytical techniques can enhance the planning and operation of
+cities.
+
+\hypertarget{prerequisites}{%
+\section{Prerequisites}\label{prerequisites}}
+
+\begin{itemize}
+\tightlist
+\item
+  Basic understanding of geographic information systems (GIS) and
+  applied statistics
+\item
+  Working knowledge of any programming language, preferably the R (or
+  Python)
+\end{itemize}
+
+\hypertarget{grading-breakdown}{%
+\section{Grading breakdown}\label{grading-breakdown}}
+
+There are four major assignments, four mini assignments, and one final
+team project. Only three out of the four major assignments will be
+counted towards the final grade. Same applies to the mini assignments.
+
+\begin{table}
+\centering
+\begin{tabular}[t]{l|l}
+\hline
+Assignment.Type & Percent\\
+\hline
+Final project & 25\% (up to X number of people)\\
+\hline
+Major assignment & 45\% (15\% each x 3)\\
+\hline
+Mini assignment & 30\% (10\% each x 3)\\
+\hline
+\end{tabular}
+\end{table}
+
+The final grade will be assigned as a letter grade according to the
+following scale:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{A \(~~~\) 100\%-90\%} \(~~~\) Excellent (4 quality points per
+  credit hour)
+\item
+  \textbf{B \(~~~\) 89\% - 80\%} \(~~~\) Good (3 quality points per
+  credit hour)
+\item
+  \textbf{C \(~~~\) 79\% - 70\%} \(~~~\) Satisfactory (2 quality points
+  per credit hour)
+\item
+  \textbf{D \(~~~\) 69\% - 60\%} \(~~~\) Passing (1 quality points per
+  credit hour)
+\item
+  \textbf{F \(~~~\) 59\% \(~\)-\(~\) 0\%} \(~~~\) Failure (0 quality
+  points per credit hour)
+\end{itemize}
+
+\hypertarget{course-schedules}{%
+\section{Course schedules}\label{course-schedules}}
+
+\begin{verbatim}
+## Warning in (function (..., deparse.level = 1) : number of columns of result is
+## not a multiple of vector length (arg 1)
+\end{verbatim}
+
+\begin{table}
+\centering
+\begin{tabular}[t]{>{\raggedright\arraybackslash}p{12em}|l|l|l|l}
+\hline
+Module & Week & Topic & Reading & Assignment\\
+\hline
+ & 1 & Intro to Urban Analytics in R (Slide), <br> Intro to R - 1 (RMD) & [1](https://journals.sagepub.com/doi/full/10.1177/2399808319839494) & [Survey](https://forms.gle/4BBtMfrvr5yJLebK9) & Preparation\\
+\cline{2-5}
+\multirow[t]{-2}{12em}{\raggedright\arraybackslash Preparation} & 2 & Modern urban data vs. conventional data (Slide), <br> Intro to R - 2 (RMD) &  &  & Preparation\\
+\cline{1-5}
+ &  & 3 & Accessing data (Slide), Census API (RMD), <br> Yelp API (RMD) &  & Mini\\
+\cline{3-5}
+ &  & 4 & Tidy data (Slide), <br> Data wrangling (RMD) & [1](https://r4ds.had.co.nz/tidy-data.html), [2](https://r4ds.had.co.nz/transform.html) & Mini\\
+\cline{3-5}
+ &  & 5 & First statistical insights from your data (Slide), <br> Hands-on (RMD) &  & Mini\\
+\cline{3-5}
+\multirow[t]{-4}{12em}{\raggedright\arraybackslash Module 1: <br> A walk-through of your first UA project - <br> POI} & \multirow[t]{-4}{*}{\raggedright\arraybackslash Census} & 6 & Interactive visualization (Slide), <br> Hands-on (RMD) &  & Mini\\
+\cline{1-5}
+ & 7 & General Transit Feed Specification (Slide), <br> [GTFS and equity (RMD)](./Lab/module_2/1_GTFS.html) &  &  & Module 2: <br> Transportation\\
+\cline{2-5}
+\multirow[t]{-2}{12em}{\raggedright\arraybackslash Module 2: <br> Transportation} & 8 & Open Street Map (Slide), <br> [OSM as a graph (RMD)](./Lab/module_2/2_OSM.html) &  & Major & Module 2: <br> Transportation\\
+\cline{1-5}
+ &  & 9 & Urban images and computer vision (Slide), <br> Yolo in R (RMD) &  & \\
+\cline{3-5}
+\multirow[t]{-2}{12em}{\raggedright\arraybackslash Module 3: <br> Image} & \multirow[t]{-2}{*}{\raggedright\arraybackslash computer vision} & 10 & Many ways of viewing your city (Slide), <br> Sampling images and using Vision API (RMD) &  & Major\\
+\cline{1-5}
+ & 11 & Twitter API (Slide), &  &  & Module 4: <br> Social media\\
+\cline{2-5}
+\multirow[t]{-2}{12em}{\raggedright\arraybackslash Module 4: <br> Social media} & 12 & Preprocessing texts (Slide), <br> Sentiment analysis (RMD) &  & Major & Module 4: <br> Social media\\
+\cline{1-5}
+ & 13 & Storytelling with data - 1 &  &  & Module 5: <br> Storytelling\\
+\cline{2-5}
+\multirow[t]{-2}{12em}{\raggedright\arraybackslash Module 5: <br> Storytelling} & 14 & Storytelling with data - 2 &  & Major & Module 5: <br> Storytelling\\
+\cline{1-5}
+Student Presentations & 15 & Student presentations &  &  & Student Presentations\\
+\cline{1-5}
+ & 16 & Student presentations - continued &  &  & Reading weeks\\
+\cline{2-5}
+\multirow[t]{-2}{12em}{\raggedright\arraybackslash Reading weeks} & 17 & Wrap up &  &  & Reading weeks\\
+\hline
+\end{tabular}
+\end{table}
+
+\hypertarget{how-to-succeed-in-this-class}{%
+\section{How to succeed in this
+class}\label{how-to-succeed-in-this-class}}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Be prepared for occasional frustration. It's part of learning process.
+  However, don't spin the wheel. You are responsible for actively
+  searching for help. Don't wait until the last minute (e.g., homework).
+\item
+  Read assigned book chapters/materials, review their examples and
+  snippets, replicate their results, and repeat until you understand.
+\item
+  Work with peers. Form a group early in the semester, and have their
+  sharp eyes on your code. Still, you need to submit your HW
+  individually.
+\item
+  If you have a trouble with your code outside of class (and get
+  frustrated), Google it. It will not only be faster and more efficient
+  than contacting us, but trouble-shooting on your own is essential
+  skill, particularly after you graduate. Luckily, most of the problems
+  you may encounter in this class have been already encountered by
+  others. You can search how they solved them in \textbf{StackOverFlow.}
+\item
+  Of course, you can ask questions to us anytime, inside or outside
+  classroom. I strongly encourage you to utilize our office hours as
+  another learning opportunity.
+\end{enumerate}
+
+\hypertarget{textbooksresources}{%
+\section{Textbooks/resources}\label{textbooksresources}}
+
+There is no textbook associated with this course. I highly recommend
+Data Action by Sarah Williams, and Urban Analytics by Alex Singleton,
+Seth Spielman and David Folch is another popular textbook on the topic.
+
+\begin{itemize}
+\tightlist
+\item
+  \href{https://r4ds.had.co.nz/}{R for Data Science}: free online
+\item
+  \href{https://rpubs.com/spring19cp6521/Syllabus}{Geocomputation with
+  R}: free online
+\item
+  \href{https://github.com/alexsingleton/urban_analytics}{Urban
+  Analytics - supporting materials}
+\end{itemize}
+
+\hypertarget{technology}{%
+\section{Technology}\label{technology}}
+
+Cell phone use is prohibited at all times during class, except if you
+are using cell phones to answer quizzes/ surveys. Laptops, tablets,
+e-readers, and other digital devices may be used to take notes or refer
+to relevant information, take quizzes, and complete in-class
+assignments. If you are using a digital device for non-course purposes
+at any time during the semester, you will be asked to refrain from using
+it for the remainder of the course. No exceptions.
+
+There will be times in class when the instructor reserves the right to
+enact the ``No Device Rule.'' During these times, all digital devices
+will be required to be stored off desks so that students may concentrate
+on tasks or presentations. Expect that this rule will be used when your
+peers are presenting and during guest lectures.
+
+\hypertarget{student-faculty-expectations}{%
+\section{Student-Faculty
+expectations}\label{student-faculty-expectations}}
+
+At Georgia Tech, we believe that it is important to continually strive
+for an atmosphere of mutual respect, acknowledgement, and responsibility
+between faculty members and the student body. See
+\url{http://www.catalog.gatech.edu/rules/22.php} for an articulation of
+some basic expectations---that you can have of me, and that I have of
+you. Respect for knowledge, hard work, and cordial interactions will
+help build the environment we seek. Therefore, I encourage you to remain
+committed to the ideals of Georgia Tech while in this class.
+
+\hypertarget{academic-integrity}{%
+\section{Academic integrity}\label{academic-integrity}}
+
+Georgia Tech aims to cultivate a community based on trust, academic
+integrity, and honor. Students are expected to act according to the
+highest ethical standards. For more information on Georgia Tech's
+Academic Honor Code, please visit
+\url{http://www.catalog.gatech.edu/rules/18b.php} and
+\url{http://www.catalog.gatech.edu/genregulations/honorcode.php}.
+
+\hypertarget{ada-accommodations}{%
+\section{ADA accommodations}\label{ada-accommodations}}
+
+If you are a student with learning needs that require special
+accommodation, contact the Office of Disability Services at
+(404)894-2563 or \url{http://disabilityservices.gatech.edu/}, as soon as
+possible, to make an appointment to discuss your special needs and to
+obtain an accommodations letter. Please also e-mail me as soon as
+possible in order to set up a time to discuss your learning needs.
+
+\end{document}
