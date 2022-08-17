@@ -160,6 +160,7 @@ weeks %>%
   collapse_rows(columns = 1:2, valign = "top") 
 ```
 *NOTE 1: Slide - presentation format; RMD - R Markdown format*
+
 *NOTE 2: The links to the class material will be updated each week.*
 
 
@@ -194,8 +195,10 @@ The final grade will be assigned as a letter grade according to the following sc
 # Textbooks/resources
 There is no textbook associated with this course. I highly recommend Data Action by Sarah Williams, and Urban Analytics by Alex Singleton, Seth Spielman and David Folch is another popular textbook on the topic.
 
-* [R for Data Science](https://r4ds.had.co.nz/): free online
-* [Geocomputation with R](https://rpubs.com/spring19cp6521/Syllabus): free online
+Here are some other free resources:
+
+* [R for Data Science](https://r4ds.had.co.nz/)
+* [Geocomputation with R](https://rpubs.com/spring19cp6521/Syllabus)
 * [Urban Analytics - supporting materials](https://github.com/alexsingleton/urban_analytics)
 
 # Technology
