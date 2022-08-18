@@ -1,209 +1,136 @@
 <!DOCTYPE html>
 <html lang="" xml:lang="">
   <head>
-    <title>slide - Intro to R - 1</title>
+    <title>Intro to Programming in R - 1  </title>
     <meta charset="utf-8" />
-    <meta name="author" content="Bonwoo Koo" />
-    <meta name="date" content="2022-08-18" />
-    <script src="w1_d2_Intro_to_R_1_files/header-attrs-2.15/header-attrs.js"></script>
-    <link href="w1_d2_Intro_to_R_1_files/remark-css-0.0.1/default.css" rel="stylesheet" />
-    <link href="w1_d2_Intro_to_R_1_files/remark-css-0.0.1/default-fonts.css" rel="stylesheet" />
+    <meta name="author" content="Bon Woo Koo" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link rel="stylesheet" href="my-theme.css" type="text/css" />
   </head>
   <body>
     <textarea id="source">
-class: center, middle, inverse, title-slide
 
-.title[
-# slide - Intro to R - 1
-]
-.author[
-### Bonwoo Koo
-]
-.date[
-### 2022-08-18
-]
+name:title
+
+class: middle, center, inverse
+
+background-image: url("https://i2.wp.com/files.123freevectors.com/wp-content/original/110712-dark-blue-blurred-background-vector.jpg?w=2000&amp;q=95")
+background-size: cover
+
+# Intro to Programming in R
+&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;
+
+&lt;font size=4&gt;by&lt;/font&gt;
+&lt;br&gt;
+&lt;font size=6&gt; Bon Woo Koo &lt;br&gt; Subhro Guhathakurta &lt;/font&gt;
+&lt;br&gt;&lt;br&gt;
+&lt;font size=4&gt; Aug 25, 2022&lt;/font&gt;
+
+
 
 ---
+# What is R?
+.large[
+R is a powerful programming language for statistics, data science, etc.
 
+You can do all kinds of statistical analyses, from the most basic ones to artificial intelligence.
 
+Using `sf` package, you can (almost) replace GIS applications, such as QGIS or ArcMAP.
 
-class: right, top
-
-#.right[Introduction]
-
-My name is Alison and I am a Data Scientist
-
-# Find me at ...
-Next slide
-
----
-class: right
-
-# Slide with centered content in the top
-Not working really well.
-
----
-# Hi there
-
-I am Bonwoo Koo
-
---
-
-This 2nd
-
---
-
-3rd
-
---
-
-and babies
----
-
-.left-column[
-
-
-
-]
-
-.right-column[
-# Does not seem to work
-
--- 
-
-or does it?
-
--- 
-
-let's see
+It is completely free to use.
 ]
 
 ---
+# What is R?
+.large[
+R makes communicating your data and findings easy through online platforms easy.
 
-```r
-library(tidyverse)
-setwd("D:/Dropbox (GaTech)/Work/Working/School/CP6052/Labs/Lab2")
-df &lt;- read_csv("testdata.csv")
-head(df) %&gt;% 
-  knitr::kable(format = "html")
-```
+You can also create [dashboards](https://shiny.rstudio.com/gallery/india-blood-banks.html), blog posts with interactive maps and charts.
+]
 
-&lt;table&gt;
- &lt;thead&gt;
-  &lt;tr&gt;
-   &lt;th style="text-align:right;"&gt; ...1 &lt;/th&gt;
-   &lt;th style="text-align:left;"&gt; GISJOIN &lt;/th&gt;
-   &lt;th style="text-align:left;"&gt; YEAR &lt;/th&gt;
-   &lt;th style="text-align:left;"&gt; STATE &lt;/th&gt;
-   &lt;th style="text-align:left;"&gt; COUNTY &lt;/th&gt;
-   &lt;th style="text-align:right;"&gt; TRACT &lt;/th&gt;
-   &lt;th style="text-align:right;"&gt; tot_age25 &lt;/th&gt;
-   &lt;th style="text-align:right;"&gt; less_hs &lt;/th&gt;
-   &lt;th style="text-align:right;"&gt; hs &lt;/th&gt;
-   &lt;th style="text-align:right;"&gt; some_college &lt;/th&gt;
-   &lt;th style="text-align:right;"&gt; college &lt;/th&gt;
-   &lt;th style="text-align:right;"&gt; graduate &lt;/th&gt;
-   &lt;th style="text-align:right;"&gt; hinc &lt;/th&gt;
-  &lt;/tr&gt;
- &lt;/thead&gt;
-&lt;tbody&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; G1300630040202 &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; 2013-2017 &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; Georgia &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; Clayton County &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 40202 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1393 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 318 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 581 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 338 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 123 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 33 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 31524 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; G1300630040203 &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; 2013-2017 &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; Georgia &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; Clayton County &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 40203 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2134 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 306 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 688 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 753 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 265 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 122 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 36786 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; G1300630040204 &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; 2013-2017 &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; Georgia &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; Clayton County &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 40204 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2452 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 190 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 877 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 825 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 371 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 189 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 39194 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; G1300630040302 &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; 2013-2017 &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; Georgia &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; Clayton County &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 40302 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3520 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1034 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1347 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 855 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 235 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 49 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 33190 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; G1300630040303 &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; 2013-2017 &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; Georgia &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; Clayton County &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 40303 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4072 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1059 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1319 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1075 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 530 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 89 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 37236 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; G1300630040306 &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; 2013-2017 &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; Georgia &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; Clayton County &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 40306 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1959 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 781 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 430 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 567 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 169 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 12 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 27372 &lt;/td&gt;
-  &lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
+![covid mobility data](https://tilburgsciencehub.com/examples/images/demo_app.png)
+&lt;br&gt;
 
+---
+# What is R studio?
+.large[
+R-Studio is a code editor developed for R. 
+
+R is a language, just like any other language (e.g., English, French etc). You can write R code in any text editor.
+
+e.g., you can write your English report in Notepad, but people usually use MS Word because it provides convenient functions.
+
+]
+
+.center[
+### *R-Studio is like MS Word for R language.*
+]
+
+---
+# Install
+
+.large[
+R language and R-Studio need to be installed separately.
+]
+
+.center[
+  .large[
+  [Click to install R](https://cran.r-project.org/)
+  ]
+  .small[
+  1.Choose your operation system (e.g., Windows, macOS, etc.). 
+  
+  2.Choose base.
+  
+  3.Click "Download R-4.2.1 for [your OS]."
+  
+  4.Install using the downloaded file with all default options selected.
+  ]
+]
+
+&lt;br&gt;
+
+.center[
+  .large[
+  [Click to install R-Studio](https://www.rstudio.com/products/rstudio/download/)
+  ]
+  .small[
+  1.Choose **RStudio Desktop** (free version)
+  
+  2.Choose your operation system and download installation file.
+  
+  3.Install using the downloaded file with all default options selected.
+  ]
+]
+
+---
+# RStudio
+
+![](https://datacarpentry.org/genomics-r-intro/fig/rstudio_session_4pane_layout.png)
+
+---
+# Packages
+.large[
+Packages are extensions to R that provide various functions and datasets that the plain R does not have. 
+]
+
+###.center[It is like apps for your phone.]
+
+.mid[
+**Step 1**: You first need to install a package into your hard drive. Just like installing apps in your phone, you only need to do it once per computer.
+
+**Step 2**: You need to load the package into your R session. This is like opening an app in your phone.
+
+**Step 3**: Now the package is loaded. You can use functions in the package.
+]
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
-<script>var slideshow = remark.create();
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
 if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
   window.dispatchEvent(new Event('resize'));
 });
@@ -281,7 +208,24 @@ if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
       links[i].target = '_blank';
     }
   }
-})();</script>
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
 
 <script>
 slideshow._releaseMath = function(el) {

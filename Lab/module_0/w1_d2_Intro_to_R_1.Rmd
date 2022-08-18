@@ -1,72 +1,137 @@
 ---
-title: "slide - Intro to R - 1"
-author: "Bonwoo Koo"
-date: "2022-08-18"
+title: "Intro to Programming in R - 1 <br>"
+subtitle: ""
+author: "Bon Woo Koo"
+institute: "RStudio, PBC"
+date: "2016/12/12 (updated: `r Sys.Date()`)"
 output:
   xaringan::moon_reader:
-    self_contained: true
+    seal: false
+    css: [my-theme.css]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
 ---
-```{r include=F}
-options(knitr.table.format = "html")
+name:title
+
+class: middle, center, inverse
+
+background-image: url("https://i2.wp.com/files.123freevectors.com/wp-content/original/110712-dark-blue-blurred-background-vector.jpg?w=2000&q=95")
+background-size: cover
+
+# Intro to Programming in R
+<br><br><br><br><br><br>
+
+<font size=4>by</font>
+<br>
+<font size=6> Bon Woo Koo <br> Subhro Guhathakurta </font>
+<br><br>
+<font size=4> Aug 25, 2022</font>
+
+```{r xaringan-themer, include=FALSE, warning=FALSE}
+library(xaringanthemer)
+style_mono_accent(
+  base_color = "#1c5253",
+  header_font_google = google_font("Open Sans"),
+  text_font_google   = google_font("Source Sans Pro", "400", "400i"),
+  code_font_google   = google_font("Fira")
+)
 ```
 
-class: right, top
-
-#.right[Introduction]
-
-My name is Alison and I am a Data Scientist
-
-# Find me at ...
-Next slide
-
 ---
-class: right
+# What is R?
+.large[
+R is a powerful programming language for statistics, data science, etc.
 
-# Slide with centered content in the top
-Not working really well.
+You can do all kinds of statistical analyses, from the most basic ones to artificial intelligence.
 
----
-# Hi there
+Using `sf` package, you can (almost) replace GIS applications, such as QGIS or ArcMAP.
 
-I am Bonwoo Koo
-
---
-
-This 2nd
-
---
-
-3rd
-
---
-
-and babies
----
-
-.left-column[
-
-
-
-]
-
-.right-column[
-# Does not seem to work
-
--- 
-
-or does it?
-
--- 
-
-let's see
+It is completely free to use.
 ]
 
 ---
-```{r message=F}
-library(tidyverse)
-setwd("D:/Dropbox (GaTech)/Work/Working/School/CP6052/Labs/Lab2")
-df <- read_csv("testdata.csv")
-head(df) %>% 
-  knitr::kable(format = "html")
-```
+# What is R?
+.large[
+R makes communicating your data and findings easy through online platforms easy.
 
+You can also create [dashboards](https://shiny.rstudio.com/gallery/india-blood-banks.html), blog posts with interactive maps and charts.
+]
+
+![covid mobility data](https://tilburgsciencehub.com/examples/images/demo_app.png)
+<br>
+
+---
+# What is R studio?
+.large[
+R-Studio is a code editor developed for R. 
+
+R is a language, just like any other language (e.g., English, French etc). You can write R code in any text editor.
+
+e.g., you can write your English report in Notepad, but people usually use MS Word because it provides convenient functions.
+
+]
+
+.center[
+### *R-Studio is like MS Word for R language.*
+]
+
+---
+# Install
+
+.large[
+R language and R-Studio need to be installed separately.
+]
+
+.center[
+  .large[
+  [Click to install R](https://cran.r-project.org/)
+  ]
+  .small[
+  1.Choose your operation system (e.g., Windows, macOS, etc.). 
+  
+  2.Choose base.
+  
+  3.Click "Download R-4.2.1 for [your OS]."
+  
+  4.Install using the downloaded file with all default options selected.
+  ]
+]
+
+<br>
+
+.center[
+  .large[
+  [Click to install R-Studio](https://www.rstudio.com/products/rstudio/download/)
+  ]
+  .small[
+  1.Choose **RStudio Desktop** (free version)
+  
+  2.Choose your operation system and download installation file.
+  
+  3.Install using the downloaded file with all default options selected.
+  ]
+]
+
+---
+# RStudio
+
+![](https://datacarpentry.org/genomics-r-intro/fig/rstudio_session_4pane_layout.png)
+
+---
+# Packages
+.large[
+Packages are extensions to R that provide various functions and datasets that the plain R does not have. 
+]
+
+###.center[It is like apps for your phone.]
+
+.mid[
+**Step 1**: You first need to install a package into your hard drive. Just like installing apps in your phone, you only need to do it once per computer.
+
+**Step 2**: You need to load the package into your R session. This is like opening an app in your phone.
+
+**Step 3**: Now the package is loaded. You can use functions in the package.
+]
