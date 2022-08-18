@@ -1,0 +1,72 @@
+---
+title: "slide - Intro to R - 1"
+author: "Bonwoo Koo"
+date: "2022-08-18"
+output:
+  xaringan::moon_reader:
+    self_contained: true
+---
+```{r include=F}
+options(knitr.table.format = "html")
+```
+
+class: right, top
+
+#.right[Introduction]
+
+My name is Alison and I am a Data Scientist
+
+# Find me at ...
+Next slide
+
+---
+class: right
+
+# Slide with centered content in the top
+Not working really well.
+
+---
+# Hi there
+
+I am Bonwoo Koo
+
+--
+
+This 2nd
+
+--
+
+3rd
+
+--
+
+and babies
+---
+
+.left-column[
+
+
+
+]
+
+.right-column[
+# Does not seem to work
+
+-- 
+
+or does it?
+
+-- 
+
+let's see
+]
+
+---
+```{r message=F}
+library(tidyverse)
+setwd("D:/Dropbox (GaTech)/Work/Working/School/CP6052/Labs/Lab2")
+df <- read_csv("testdata.csv")
+head(df) %>% 
+  knitr::kable(format = "html")
+```
+
