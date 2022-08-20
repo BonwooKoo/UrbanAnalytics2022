@@ -4,7 +4,7 @@
     <title>Intro to Programming in R - 1  </title>
     <meta charset="utf-8" />
     <meta name="author" content="Bon Woo Koo" />
-    <script src="libs/header-attrs/header-attrs.js"></script>
+    <script src="libs/header-attrs-2.15/header-attrs.js"></script>
     <link rel="stylesheet" href="my-theme.css" type="text/css" />
   </head>
   <body>
@@ -30,19 +30,17 @@ background-size: cover
 
 ---
 # What is R?
-.large[
-R is a powerful programming language for statistics, data science, etc.
+.mid[R is a powerful programming language for statistics, data science, etc.
 
 You can do all kinds of statistical analyses, from the most basic ones to artificial intelligence.
 
 Using `sf` package, you can (almost) replace GIS applications, such as QGIS or ArcMAP.
 
-It is completely free to use.
-]
+It is completely free to use.]
 
 ---
 # What is R?
-.large[
+.mid[
 R makes communicating your data and findings easy through online platforms easy.
 
 You can also create [dashboards](https://shiny.rstudio.com/gallery/india-blood-banks.html), blog posts with interactive maps and charts.
@@ -53,13 +51,12 @@ You can also create [dashboards](https://shiny.rstudio.com/gallery/india-blood-b
 
 ---
 # What is R studio?
-.large[
+.mid[
 R-Studio is a code editor developed for R. 
 
 R is a language, just like any other language (e.g., English, French etc). You can write R code in any text editor.
 
 e.g., you can write your English report in Notepad, but people usually use MS Word because it provides convenient functions.
-
 ]
 
 .center[
@@ -69,48 +66,53 @@ e.g., you can write your English report in Notepad, but people usually use MS Wo
 ---
 # Install
 
-.large[
+.mid[
 R language and R-Studio need to be installed separately.
 ]
 
-.center[
-  .large[
-  [Click to install R](https://cran.r-project.org/)
-  ]
-  .small[
-  1.Choose your operation system (e.g., Windows, macOS, etc.). 
   
-  2.Choose base.
-  
-  3.Click "Download R-4.2.1 for [your OS]."
-  
-  4.Install using the downloaded file with all default options selected.
-  ]
+.left-column[
+###[Click to install R](https://cran.r-project.org/)
+
+&lt;br&gt;&lt;br&gt;
+
+###[Click to install R-Studio](https://www.rstudio.com/products/rstudio/download/)
+
 ]
 
-&lt;br&gt;
+.right-column[
+1.Choose your operation system (e.g., Windows, macOS, etc.). 
 
-.center[
-  .large[
-  [Click to install R-Studio](https://www.rstudio.com/products/rstudio/download/)
-  ]
-  .small[
-  1.Choose **RStudio Desktop** (free version)
-  
-  2.Choose your operation system and download installation file.
-  
-  3.Install using the downloaded file with all default options selected.
-  ]
+2.Choose base.
+
+3.Click "Download R-4.2.1" for your OS.
+
+4.Install using the downloaded file with all default options selected.
 ]
+
+
+
+
+.right-column[
+1.Choose **RStudio Desktop** (free version)
+
+2.Choose your operation system and download installation file.
+
+3.Install using the downloaded file with all default options selected.
+]
+
 
 ---
 # RStudio
 
-![](https://datacarpentry.org/genomics-r-intro/fig/rstudio_session_4pane_layout.png)
+
+
+
+# ![](https://datacarpentry.org/genomics-r-intro/fig/rstudio_session_4pane_layout.png)
 
 ---
 # Packages
-.large[
+.mid[
 Packages are extensions to R that provide various functions and datasets that the plain R does not have. 
 ]
 
@@ -123,6 +125,77 @@ Packages are extensions to R that provide various functions and datasets that th
 
 **Step 3**: Now the package is loaded. You can use functions in the package.
 ]
+
+---
+# Setting Environment
+
+.mid[
+When we start writing a R script, we usually call libraries and set the working directory (WD).
+
+In R Markdown, WD is where the RMD file is located. This usually works fine. 
+
+For a plain R script, WD is usually somewhere like *C:/Users/Bonwoo/Documents*.
+]
+
+.mid[.center[
+**We need to use different strategies depending on &lt;br&gt; whether you are working on a RMarkdown or a plain R script.**
+]]
+
+.pull-left[
+**On Plain R script**
+
+```r
+setwd("path-to-your-wd")
+```
+]
+
+.pull-right[
+**In R Markdown**
+
+```r
+knitr::opts_knit$set(
+  roo.dir = "path-to-your-wd")
+```
+]
+
+---
+# Reading data
+
+In urban analytics for planning, the file formats we usually deal with include (but not limited to) **.CSV**, **.SHP**, **.JSON**, and **.GEOJSON**.
+
+We need different packages to import these data formats. 
+
+Sample data: [CSV](), SHP, JSON
+
+
+
+```r
+# CSV files
+library(tidyverse)
+df &lt;- read_csv("file-name.csv") # or
+df &lt;- read.csv("file-name.csv")
+
+# SHP &amp; GEOJSON files
+library(sf)
+df &lt;- st_read("file-name.shp")
+df &lt;- st_read("file-name.geojson")
+
+# JSON files
+library(jsonlite)
+df &lt;- fromJSON("file-name.json") %&gt;% 
+  as.data.frame()
+```
+
+---
+# Basic verbs of dplyr
+.mid[
+Assuming tabular data (e.g., like an Excel file), there is a set of operations we routinely perform. 
+
+The package `dplyr`, combined with the **pipe (%&gt;%)**, makes this data wrangling very intuitive.
+]
+
+
+
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
