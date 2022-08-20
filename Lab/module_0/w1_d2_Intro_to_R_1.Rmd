@@ -14,8 +14,6 @@ output:
       highlightLines: true
       countIncrementalSlides: false
 ---
-name:title
-
 class: middle, center, inverse
 
 background-image: url("https://i2.wp.com/files.123freevectors.com/wp-content/original/110712-dark-blue-blurred-background-vector.jpg?w=2000&q=95")
@@ -38,9 +36,26 @@ style_mono_accent(
   text_font_google   = google_font("Source Sans Pro", "400", "400i"),
   code_font_google   = google_font("Fira")
 )
+
+nice_table <- function(df, height){
+  return(
+    df %>% kable() %>% 
+      kable_styling(latex_options="scale_down", font_size=12) %>% 
+      scroll_box(width = "100%", height = height)
+    )
+}
 ```
 
 ---
+```{r, include=F}
+library(xaringanthemer)
+library(sf)
+library(tidyverse)
+library(leaflet)
+library(tmap)
+```
+
+
 # What is R?
 .mid[R is a powerful programming language for statistics, data science, etc.
 
@@ -117,7 +132,7 @@ R language and R-Studio need to be installed separately.
 ---
 # RStudio
 
-```{r include=F, out.height='50%'}
+```{r, include=F, out.height='30%'}
 knitr::include_graphics("https://datacarpentry.org/genomics-r-intro/fig/rstudio_session_4pane_layout.png")
 ```
 
@@ -177,35 +192,103 @@ In urban analytics for planning, the file formats we usually deal with include (
 
 We need different packages to import these data formats. 
 
-Sample data: [CSV](), SHP, JSON
+Sample data: [CSV](https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.csv), SHP(), [JSON](https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.json)
 
 
 ```{r eval=F}
 # CSV files
 library(tidyverse)
-df <- read_csv("file-name.csv") # or
-df <- read.csv("file-name.csv")
+df <- readr::read_csv("file-name.csv") # or
+df <- readr::read_csv("file-name.csv")
 
 # SHP & GEOJSON files
-library(sf)
-df <- st_read("file-name.shp")
-df <- st_read("file-name.geojson")
+df <- sf::st_read("file-name.shp")
+df <- sf::st_read("file-name.geojson")
 
 # JSON files
-library(jsonlite)
-df <- fromJSON("file-name.json") %>% 
+df <- jsonlite::fromJSON("file-name.json") %>% 
   as.data.frame()
 ```
 
 ---
 # Basic verbs of dplyr
-.mid[
 Assuming tabular data (e.g., like an Excel file), there is a set of operations we routinely perform. 
 
 The package `dplyr`, combined with the **pipe (%>%)**, makes this data wrangling very intuitive.
-]
 
-```{r}
-
+```{r, message=F}
+my_df <- read_csv("https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.csv")
+my_df %>% nice_table("200px")
 ```
 
+---
+# dplyr basics
+
+#### select, filter, arrange, mutate, group_by + summarise
+
+All verbs work similarly: <font size=2px, color='grey'>(Wickham & Grolemund (2016))</font>
+
+* The first argument of the verbs is a data frame.
+* The subsequent arguments describe what to do with the data frame
+* The result is a new data frame.
+
+--
+
+e.g., `filter()` picks observations (i.e., rows of a DF) by their values.
+
+```{r}
+filter(my_df, # specifies which data.frame
+       COUNTY == "DeKalb County") %>%  # conditional statement  #<<
+  nice_table("150px") # ignore this nice_table() for now.
+```
+
+---
+# BTW, %>% is called the **pipe**.
+.center[.mid[
+It takes whatever is passed from **before** the pipe and 
+
+inserts it as **the first argument** of the following function.
+]]
+
+```{r eval=F}
+filter(my_df, COUNTY == "DeKalb County") %>%  
+  nice_table("150px")
+```
+
+is equivalent to
+
+```{r}
+my_df %>% filter(COUNTY == "DeKalb County") %>% 
+  nice_table("150px")
+```
+
+---
+# Back to dplyr basics
+
+.pull-left[
+* **select()** can pick **variable(s)** by their names.
+
+```{r}
+my_df %>% 
+  select(COUNTY,tot_age25) %>% #<<
+  nice_table("150px")
+```
+]
+
+.pull-right[
+* **arrange()** can reorder **rows**.
+```{r}
+my_df %>% 
+  select(COUNTY,tot_age25) %>% 
+  arrange(tot_age25) %>% #<<
+  nice_table("150px")
+```
+
+.center[
+**Notice that %>% connects multiple dplyr verbs down the line.**
+
+**This is why pipe is so useful!**
+]
+]
+
+---

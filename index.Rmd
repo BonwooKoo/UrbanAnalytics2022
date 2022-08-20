@@ -98,7 +98,8 @@ topic_col <- c(
 )
 
 reading_col <- c(
-  "[1](https://journals.sagepub.com/doi/full/10.1177/2399808319839494)",# 1
+  "[TU](https://journals.sagepub.com/doi/full/10.1177/2399808319839494) <br> 
+  [TH-1](https://r4ds.had.co.nz/workflow-basics.html), [TH-2](https://r4ds.had.co.nz/transform.html)",# 1
   "",# 2
   "",# 3
   "",# 4 
@@ -160,9 +161,11 @@ weeks %>%
   kable_styling(bootstrap_options = c("condensed")) %>%
   collapse_rows(columns = 1:2, valign = "top") 
 ```
-*NOTE 1: Slide - presentation format; RMD - R Markdown format*
+*NOTE 1: Slide = lecture slide & RMD = R Markdown document*
 
 *NOTE 2: The links to the class material will be updated each week.*
+
+*NOTE 3: For readings, TU = readings for Tuesday & TH = readings for Thursday*
 
 
 # How to succeed in this class
