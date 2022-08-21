@@ -1,0 +1,102 @@
+---
+title: "Data for Urban Analytics"
+subtitle: ""
+author: "Bon Woo Koo"
+institute: "RStudio, PBC"
+date: "2016/12/12 (updated: `r Sys.Date()`)"
+output:
+  xaringan::moon_reader:
+    seal: false
+    css: [my-theme.css]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+class: middle, center, inverse
+
+background-image: url("https://i2.wp.com/files.123freevectors.com/wp-content/original/110712-dark-blue-blurred-background-vector.jpg?w=2000&q=95")
+background-size: cover
+
+# Urban Analytics
+<br><br><br><br><br><br>
+
+<font size=4>by</font>
+<br>
+<font size=6> Bon Woo Koo <br> Subhro Guhathakurta </font>
+<br><br>
+<font size=4> Aug 25, 2022</font>
+
+```{r xaringan-themer, include=FALSE, warning=FALSE}
+library(xaringanthemer)
+style_mono_accent(
+  base_color = "#1c5253",
+  header_font_google = google_font("Open Sans"),
+  text_font_google   = google_font("Source Sans Pro", "400", "400i"),
+  code_font_google   = google_font("Fira")
+)
+
+nice_table <- function(df, height="150px"){
+  return(
+    df %>% kable() %>% 
+      kable_styling(latex_options="scale_down", font_size=12) %>% 
+      scroll_box(width = "100%", height = height)
+    )
+}
+```
+
+---
+```{r, include=F}
+library(xaringanthemer)
+library(sf)
+library(tidyverse)
+library(leaflet)
+library(tmap)
+library(kableExtra)
+```
+
+
+# Data for Urban Analytics
+
+.mid[
+**Big data is not just about size.** If the size was all that makes a data big, then there is nothing new about big data; we've had it for a long time. For example,
+
+* National Decennial Census <br> <font size=5px, color="grey">(which technically covers the entire population; hundreds of millions)</font>
+* Survey response for electoral predictions <br> 
+  <font size=5px, color="grey">
+    (e.g., The famous 2.4 million survey responses by Literary Digest in 1936, which, despite the size, miserably failed)
+  </font>
+]
+.center[
+
+### What gave rise to urban analytics is <br> more complex.
+
+]
+---
+# Characteristics of Big Data
+
+.mid[
+Kitchin (2014) details that big data can be characterized by: 
+]
+
+.mid[
+* **Volume**, consisting of terabytes or petabytes of data;
+
+* **Velocity**, being created in or near real-time;
+
+* **Variety**, being structured and unstructured in nature;
+
+And goes on to include:
+]
+
+* **Exhaustive** in scope, striving to capture entire populations or systems (n=all);
+
+* fine-grained in **resolution**;
+
+* **relational** in nature, containing common fields that can join different data sets;
+
+* **flexible** (can add new fields easily) and **scaleability** (can expand in size rapidly).
+
+---
+# 

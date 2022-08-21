@@ -79,7 +79,7 @@ weeks <- tibble(
 ```{r, echo=FALSE}
 topic_col <- c(
   "Intro to Urban Analytics in R (Slide), <br> Intro to R - 1 (RMD)",# 1
-  "Modern VS. conventional data (Slide), <br> Intro to R - 2 (RMD), Guest lecture",# 2
+  "Data for Urban Analytics (Slide), <br> Intro to R - 2 (RMD), Guest lecture",# 2
   "Accessing data (Slide), Census API (RMD), <br> Yelp API (RMD)",# 3
   "Tidy data (Slide), <br> Data wrangling (RMD)",# 4
   "First statistical insights from your data (Slide), <br> Hands-on (RMD)",# 5
