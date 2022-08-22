@@ -240,7 +240,7 @@ e.g., `filter()` picks observations (i.e., rows of a DF) by their values.
 
 ```{r}
 filter(my_df, # specifies which data.frame
-       COUNTY == "DeKalb County") %>%  # conditional statement  
+       county == "DeKalb county") %>%  # conditional statement  
   nice_table() # ignore this nice_table() for now.
 ```
 
@@ -253,14 +253,14 @@ inserts it as **the first argument** of the following function.
 ]]
 
 ```{r eval=F}
-filter(my_df, COUNTY == "DeKalb County") %>%  
+filter(my_df, county == "DeKalb county") %>%  
   nice_table("150px")
 ```
 
 is equivalent to
 
 ```{r}
-my_df %>% filter(COUNTY == "DeKalb County") %>% 
+my_df %>% filter(county == "DeKalb county") %>% 
   nice_table("150px")
 ```
 
@@ -272,7 +272,7 @@ my_df %>% filter(COUNTY == "DeKalb County") %>%
 
 ```{r}
 my_df %>% 
-  select(COUNTY,tot_age25) %>% #<<
+  select(county,race.white) %>% #<<
   nice_table()
 ```
 ]
@@ -281,8 +281,8 @@ my_df %>%
 * **arrange()** can reorder **rows**.
 ```{r}
 my_df %>% 
-  select(COUNTY,tot_age25) %>% 
-  arrange(tot_age25) %>% #<<
+  select(county,race.white) %>% 
+  arrange(race.white) %>% #<<
   nice_table()
 ```
 
@@ -299,8 +299,8 @@ my_df %>%
 **mutate()** can create a new columns using existing columns.
 ```{r}
 my_df %>% 
-  mutate(pct_less_hs = less_hs / tot_age25) %>% #<<
-  select(2:4, tot_age25, less_hs, pct_less_hs) %>% nice_table()
+  mutate(pct_white = race.white / race.tot) %>% #<<
+  select(2:4, race.tot, race.white, pct_white) %>% nice_table()
 ```
 
 Notice that **select()** can take either variable names or the index of columns.
@@ -309,34 +309,64 @@ Because `2:4` in R is the same as `c(2,3,4)`, we select not only tot_age25, less
 
 ---
 # dplyr basics
-**group_by()** creates a grouping across observations (i.e., rows). <br> With the grouping, **summarise()** can do summarization (e.g., taking average) for each group.
+**group_by()** creates a grouping across observations (i.e., rows). With the grouping, **summarise()** can do summarization (e.g., taking average) for each group.
 
-As the return, we get data table with **the grouping variable** (i.e., COUNTY) and whatever we create in **summarise()** function.
+In plain English, this code says "Take **my_df** and calculate the mean of **pct_white** and the median of **hhincome** for each county." It returns a new data table.
+
+```{r}
+my_df %>% mutate(pct_white = race.white / race.tot) %>%
+  group_by(county) %>% # creating grouping by county.  #<<
+  summarise(avg.pct_white = mean(pct_white), # mean for each county
+            med.hhincome = median(hhincome)) %>% nice_table("160px")
+```
+
+.mid[.center[**Notice that there are NaN and NA here and there.**]]
+
+---
+# NAs and NaNs
+NaN stands for **Not a Number.** This results from numerical operation that outputs undefined results. Try `0/0` in your console.
+NA stands for **Not available.** This generally means missing value.
+
+Let's see why this happened.
+
+```{r}
+my_df %>% select(-GEOID, -tract, -county, -state) %>% summary() 
+```
+
+.center[Notice that hhincome has 5 missing values (NAs). race.tot has at least one 0]
+
+---
+# Dropping NaN and NA
+
 
 ```{r}
 my_df %>% 
-  group_by(COUNTY) %>% # creating grouping by county.  #<<
-  summarise(avg.pop25 = mean(tot_age25), # mean for each county
-            med.hinc = median(hinc)) %>% nice_table("160px")
+  filter(race.tot > 0 & !is.na(hhincome)) %>% #<<
+  mutate(pct_white = race.white / race.tot) %>%
+  group_by(county) %>% # creating grouping by county.  
+  summarise(avg.pct_white = mean(pct_white), # mean for each county
+            med.hhincome = median(hhincome)) %>% nice_table("160px")
 ```
-
-In plain English, this code says "Take **my_df** and calculate the mean of **tot_age25** and the median of **hinc** for each county."
 
 ---
 # Reading SHP and JSON
-.mid[
-Reading SHP and JSON files are no different, except you need some packages.
-]
+Reading SHP and JSON files are no different, except you need some packages. Notice below that we are reading GEOJSON rather than SHP -- they are essentially the same data in different formats.
 
-Notice that we are reading GEOJSON rather than SHP -- they are essentially the same data in different formats.
-
-```{r}
-library(sf)
-shp <- sf::st_read("https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.geojson") 
+```{r include=F}
+shp <- sf::st_read("https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.geojson")
 ```
 
 
+```{r message=FALSE, eval=F}
+library(sf)
+shp <- sf::st_read("https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.geojson") 
+```
+```{r}
+shp %>% nice_table()
+```
 
+---
+# 
 
 
 
