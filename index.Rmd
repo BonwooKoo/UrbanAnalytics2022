@@ -103,19 +103,20 @@ reading_col <- c(
   "",# 2
   "",# 3
   "",# 4 
-  # [1]https://r4ds.had.co.nz/tidy-data.html, [2](https://r4ds.had.co.nz/transform.html)
+        # [1]https://r4ds.had.co.nz/tidy-data.html, [2](https://r4ds.had.co.nz/transform.html)
   "",# 5
   "",# 6
   "",# 7
   "",# 8
   "",# 9
-  # https://www.sciencedirect.com/science/article/pii/S0264275119308443?casa_token=ttj9fEoFey4AAAAA:nR_Wf8tJHv8vfLv93cIlRHlsIqGdUMWByA3AyXcP_zWEYwJAPGKaxZ9TsdwiZlfX1-L8Z0Y7ag
+        # https://www.sciencedirect.com/science/article/pii/S0264275119308443?casa_token=ttj9fEoFey4AAAAA:nR_Wf8tJHv8vfLv93cIlRHlsIqGdUMWByA3AyXcP_zWEYwJAPGKaxZ9TsdwiZlfX1-L8Z0Y7ag
   "",# 10
-  # https://www.sciencedirect.com/science/article/pii/S2211335519300440
+        # https://www.sciencedirect.com/science/article/pii/S2211335519300440
   "", # 11
-  # https://ascpt.onlinelibrary.wiley.com/doi/pdf/10.1111/cts.12178
-  # https://ojs.aaai.org/index.php/ICWSM/article/view/14168
-  # https://journalofbigdata.springeropen.com/articles/10.1186/s40537-021-00525-8
+        # https://ascpt.onlinelibrary.wiley.com/doi/pdf/10.1111/cts.12178
+        # https://ojs.aaai.org/index.php/ICWSM/article/view/14168
+        # https://journalofbigdata.springeropen.com/articles/10.1186/s40537-021-00525-8
+        # https://dl.acm.org/doi/pdf/10.1145/2001269.2001297
   "",# 12
   "",# 13
   "",# 14
@@ -132,11 +133,12 @@ assignment_col <- c(
   "[Survey](https://forms.gle/4BBtMfrvr5yJLebK9)",# 1
   "",# 2
   "Mini",# 3
-  "Mini",# 4
+  "Mini",# 4 # add 
   "Mini",# 5
   "Mini",# 6
   "",# 7
-  "Major",# 8 # Chicago GTFS feed http://www.transitchicago.com/downloads/sch_data/google_transit.zip
+  "Major",# 8 
+        # Chicago GTFS feed http://www.transitchicago.com/downloads/sch_data/google_transit.zip
   "",# 9
   "Major",# 10
   "",# 11
@@ -155,7 +157,7 @@ assignment_col <- c(
 weeks %>%
   cbind("Topic" = topic_col) %>%
   cbind("Reading" = reading_col) %>% 
-  cbind("Assignment" = assignment_col) %>% 
+  cbind("To do" = assignment_col) %>% 
   kbl(escape = F) %>%
   column_spec(1, width = "12em") %>% 
   kable_styling(bootstrap_options = c("condensed")) %>%
@@ -181,8 +183,8 @@ Only three out of the four major assignments will be counted towards the final g
 Same applies to the mini assignments.
 
 ```{r echo=F}
-data.frame('Assignment Type' = c("Final project", 'Major assignment', 'Mini assignment'),
-           'Percent' = c("25%", "45% (15% each x 3)", "30% (10% each x 3)")) %>% 
+data.frame('Assignment Type' = c("Final project", 'Major assignment', 'Mini assignment', "Participation"),
+           'Percent' = c("20%", "45% (15% each x 3)", "30% (10% each x 3)", "5%")) %>% 
   kbl() %>% 
   kable_styling(bootstrap_options = c("condensed", "responsive"))
 
