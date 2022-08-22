@@ -240,7 +240,7 @@ e.g., `filter()` picks observations (i.e., rows of a DF) by their values.
 
 ```{r}
 filter(my_df, # specifies which data.frame
-       county == "DeKalb county") %>%  # conditional statement  
+       county == "DeKalb County") %>%  # conditional statement  
   nice_table() # ignore this nice_table() for now.
 ```
 
@@ -253,14 +253,14 @@ inserts it as **the first argument** of the following function.
 ]]
 
 ```{r eval=F}
-filter(my_df, county == "DeKalb county") %>%  
+filter(my_df, county == "DeKalb County") %>%  
   nice_table("150px")
 ```
 
 is equivalent to
 
 ```{r}
-my_df %>% filter(county == "DeKalb county") %>% 
+my_df %>% filter(county == "DeKalb County") %>% 
   nice_table("150px")
 ```
 
@@ -337,7 +337,7 @@ my_df %>% select(-GEOID, -tract, -county, -state) %>% summary()
 
 ---
 # Dropping NaN and NA
-
+We need to filter 
 
 ```{r}
 my_df %>% 
@@ -368,14 +368,15 @@ shp %>% nice_table()
 ---
 # 
 
+```{r out.width="100%", out.height="50%"}
+library(leaflet)
+pal <- colorNumeric(palette = "Reds", domain = shp$hhincome)
 
-
-
-
-
-
-
-
+leaflet() %>% 
+  addProviderTiles(providers$CartoDB.Positron) %>% 
+  addPolygons(data = shp, fillColor = ~pal(hhincome), fillOpacity = 0.8, weight = 1, color = "white", popup = paste0("Household Income: ", shp$hhincome)) %>% 
+  addLegend(position = "bottomright", pal = pal, values = shp$hhincome)
+```
 
 
 ---
