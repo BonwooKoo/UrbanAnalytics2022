@@ -193,7 +193,8 @@ In urban analytics for planning, the file formats we usually deal with include (
 
 We need different packages to import these data formats. 
 
-Sample data: [CSV](https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.csv), SHP(https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.geojson), [JSON](https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.json)
+Sample data: <font size=3px color="grey"> (you can copy the link adress instead of downloading them) </font> <br>
+[CSV](https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.csv), [SHP](https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.geojson), [JSON](https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.json)
 
 
 ```{r eval=F}
@@ -320,6 +321,32 @@ my_df %>%
 ```
 
 In plain English, this code says "Take **my_df** and calculate the mean of **tot_age25** and the median of **hinc** for each county."
+
+---
+# Reading SHP and JSON
+.mid[
+Reading SHP and JSON files are no different, except you need some packages.
+]
+
+Notice that we are reading GEOJSON rather than SHP -- they are essentially the same data in different formats.
+
+```{r}
+library(sf)
+shp <- sf::st_read("https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.geojson") 
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ---
 # More resources
