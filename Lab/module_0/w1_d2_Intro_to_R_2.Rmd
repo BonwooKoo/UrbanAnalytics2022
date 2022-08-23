@@ -19,7 +19,7 @@ class: middle, center, inverse
 background-image: url("https://i2.wp.com/files.123freevectors.com/wp-content/original/110712-dark-blue-blurred-background-vector.jpg?w=2000&q=95")
 background-size: cover
 
-# Urban Analytics
+# Intro to R - 2
 <br><br><br><br><br><br>
 
 <font size=4>by</font>
@@ -46,7 +46,6 @@ nice_table <- function(df, height="150px"){
 }
 ```
 
----
 ```{r, include=F}
 library(xaringanthemer)
 library(sf)
@@ -56,5 +55,124 @@ library(tmap)
 library(kableExtra)
 ```
 
+---
+# Content
 
-# Intro to R - 2
+.large[
+We will go through:
+]
+.mid[
+* Handling geospatial data in R 
+* Loops and apply
+* R Markdown + Rpubs
+]
+
+---
+class: center, middle
+![](./sf/sf-03.jpg)
+
+---
+class: center, middle
+![](./sf/sf-04.jpg)
+
+---
+class: center, middle
+![](./sf/sf-05.jpg)
+---
+class: center, middle
+![](./sf/sf-06.jpg)
+
+---
+class: center, middle
+![](./sf/sf-07.jpg)
+
+---
+class: center, middle
+![](./sf/sf-08.jpg)
+
+---
+class: center, middle
+![](./sf/sf-09.jpg)
+
+---
+class: center, middle
+![](./sf/sf-10.jpg)
+
+---
+class: center, middle
+![](./sf/sf-11.jpg)
+
+---
+class: center, middle
+![](./sf/sf-12.jpg)
+
+
+---
+class: inverse, center, middle
+
+# Hands on
+
+---
+
+## Get data
+
+```{r, eval=F}
+library(sf)
+mysf <- sf::st_read("https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.geojson")
+```
+
+```{r message=F, include=F}
+mysf <- sf::st_read("https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.geojson")
+```
+
+```{r}
+mysf %>% print()
+```
+---
+class: center, middle
+![](./sf/sf-14.jpg)
+
+---
+class: center, middle
+![](./sf/sf-15.jpg)
+
+---
+class: center, middle
+![](./sf/sf-16.jpg)
+
+---
+class: center, middle
+![](./sf/sf-17.jpg)
+
+---
+class: center, middle
+![](./sf/sf-18.jpg)
+
+---
+class: center, middle
+![](./sf/sf-19.jpg)
+
+---
+class: center, middle
+![](./sf/sf-20.jpg)
+
+---
+class: center, middle
+![](./sf/sf-21.jpg)
+
+---
+class: center, middle
+![](./sf/sf-21.jpg)
+```
+
+
+
+
+
+
+
+
+
+
+
+

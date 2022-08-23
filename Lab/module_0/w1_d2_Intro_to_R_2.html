@@ -4,7 +4,7 @@
     <title>Data for Urban Analytics</title>
     <meta charset="utf-8" />
     <meta name="author" content="Bon Woo Koo" />
-    <script src="libs/header-attrs-2.15/header-attrs.js"></script>
+    <script src="libs/header-attrs-2.14/header-attrs.js"></script>
     <link rel="stylesheet" href="my-theme.css" type="text/css" />
   </head>
   <body>
@@ -15,7 +15,7 @@ class: middle, center, inverse
 background-image: url("https://i2.wp.com/files.123freevectors.com/wp-content/original/110712-dark-blue-blurred-background-vector.jpg?w=2000&amp;q=95")
 background-size: cover
 
-# Urban Analytics
+# Intro to R - 2
 &lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;
 
 &lt;font size=4&gt;by&lt;/font&gt;
@@ -26,11 +26,149 @@ background-size: cover
 
 
 
+
+
+---
+# Content
+
+.large[
+We will go through:
+]
+.mid[
+* Handling geospatial data in R 
+* Loops and apply
+* R Markdown + Rpubs
+]
+
+---
+class: center, middle
+![](./sf/sf-03.jpg)
+
+---
+class: center, middle
+![](./sf/sf-04.jpg)
+
+---
+class: center, middle
+![](./sf/sf-05.jpg)
+---
+class: center, middle
+![](./sf/sf-06.jpg)
+
+---
+class: center, middle
+![](./sf/sf-07.jpg)
+
+---
+class: center, middle
+![](./sf/sf-08.jpg)
+
+---
+class: center, middle
+![](./sf/sf-09.jpg)
+
+---
+class: center, middle
+![](./sf/sf-10.jpg)
+
+---
+class: center, middle
+![](./sf/sf-11.jpg)
+
+---
+class: center, middle
+![](./sf/sf-12.jpg)
+
+
+---
+class: inverse, center, middle
+
+# Hands on
+
 ---
 
+## Get data
 
 
-# Intro to R - 2
+```r
+library(sf)
+mysf &lt;- sf::st_read("https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.geojson")
+```
+
+
+
+
+```r
+mysf %&gt;% print()
+```
+
+```
+## Simple feature collection with 519 features and 8 fields
+## Geometry type: MULTIPOLYGON
+## Dimension:     XY
+## Bounding box:  xmin: -84.85071 ymin: 33.35246 xmax: -84.02371 ymax: 34.18629
+## Geodetic CRS:  NAD83
+## First 10 features:
+##          GEOID               tract         county   state hhincome race.tot race.white race.black                       geometry
+## 1  13063040307 Census Tract 403.07 Clayton County Georgia    37064     4939       1442       1784 MULTIPOLYGON (((-84.37445 3...
+## 2  13063040512 Census Tract 405.12 Clayton County Georgia    36414     5478        351       4996 MULTIPOLYGON (((-84.44869 3...
+## 3  13063040519 Census Tract 405.19 Clayton County Georgia    32568     4380         35       4178 MULTIPOLYGON (((-84.42895 3...
+## 4  13063040617 Census Tract 406.17 Clayton County Georgia    33182     1418        941        147 MULTIPOLYGON (((-84.27173 3...
+## 5  13067030224 Census Tract 302.24    Cobb County Georgia    73061     6318       4019       1262 MULTIPOLYGON (((-84.65095 3...
+## 6  13067030235 Census Tract 302.35    Cobb County Georgia   104265     4862       3904        682 MULTIPOLYGON (((-84.70304 3...
+## 7  13067030313 Census Tract 303.13    Cobb County Georgia    93817     9073       6391       1416 MULTIPOLYGON (((-84.55734 3...
+## 8  13067030412 Census Tract 304.12    Cobb County Georgia    38668     5018       2221       2165 MULTIPOLYGON (((-84.5101 33...
+## 9  13067031002 Census Tract 310.02    Cobb County Georgia    33037     9787       3286       2853 MULTIPOLYGON (((-84.58191 3...
+## 10 13089020200    Census Tract 202  DeKalb County Georgia    87889     2045       1704        187 MULTIPOLYGON (((-84.34896 3...
+```
+---
+class: center, middle
+![](./sf/sf-14.jpg)
+
+---
+class: center, middle
+![](./sf/sf-15.jpg)
+
+---
+class: center, middle
+![](./sf/sf-16.jpg)
+
+---
+class: center, middle
+![](./sf/sf-17.jpg)
+
+---
+class: center, middle
+![](./sf/sf-18.jpg)
+
+---
+class: center, middle
+![](./sf/sf-19.jpg)
+
+---
+class: center, middle
+![](./sf/sf-20.jpg)
+
+---
+class: center, middle
+![](./sf/sf-21.jpg)
+
+---
+class: center, middle
+![](./sf/sf-21.jpg)
+```
+
+
+
+
+
+
+
+
+
+
+
+
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
