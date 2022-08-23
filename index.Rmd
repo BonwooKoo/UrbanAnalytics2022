@@ -80,20 +80,20 @@ weeks <- tibble(
 topic_col <- c(
   "Intro to Urban Analytics in R (Slide), <br> Data ethics (Slide)",# 1
   "Data for Urban Analytics (Slide), <br> Intro to R (RMD)",# 2
-  "<b>Mini-presentation (Slide)</b>, Accessing data (Slide), <br> Census & Yelp API (RMD)",# 3
+  "<b>Mini-presentation (Slide)</b>, <br> Accessing data (Slide), <br> Census & Yelp API (RMD)",# 3
   "Tidy data (Slide), <br> Data wrangling (RMD)",# 4
   "First statistical insights from your data (Slide), <br> Hands-on (RMD)",# 5
   "Interactive visualization (Slide), <br> Hands-on (RMD)",# 6
-  "<b>Mini-presentation (Slide)</b>, General Transit Feed Specification (Slide), <br> GTFS and equity (RMD)",# 7 # [GTFS and equity (RMD)](./Lab/module_2/1_GTFS.html)
+  "<b>Mini-presentation (Slide)</b>, <br> General Transit Feed Specification (Slide), <br> GTFS and equity (RMD)",# 7 # [GTFS and equity (RMD)](./Lab/module_2/1_GTFS.html)
   "Open Street Map (Slide), <br> OSM as a graph (RMD)",# 8 # [OSM as a graph (RMD)](./Lab/module_2/2_OSM.html)
   "<b>Mini-presentation (Slide)</b>, Urban images and computer vision (Slide), <br> Yolo in R (RMD)",# 9
   "Many ways of viewing your city (Slide), <br> Sampling images and using Vision API (RMD)",# 10
-  "<b>Mini-presentation (Slide)</b>, User-generated text data - Twitter (Slide), <br> Getting live feeds from Twitter (RMD)",# 11
+  "<b>Mini-presentation (Slide)</b>, <br> User-generated text data - Twitter (Slide), <br> Getting live feeds from Twitter (RMD)",# 11
   "Preprocessing texts (Slide), <br> Sentiment analysis (RMD)",# 12
-  "<b>Mini-presentation (Slide)</b>, Storytelling with data - 1",# 13
+  "<b>Mini-presentation (Slide)</b>, <br> Storytelling with data - 1",# 13
   "Storytelling with data - 2",# 14
-  "Student presentations",# 15
-  "Student presentations - continued",# 16
+  "<b>Student presentations</b>",# 15
+  "<b>Student presentations - continued</b>",# 16
   "Wrap up"# 17
 )
 
@@ -130,7 +130,7 @@ reading_col <- c(
 # devtools::install_github(repo="haozhu233/kableExtra", ref="a6af5c0")
 
 assignment_col <- c(
-  "[Survey](https://forms.gle/4BBtMfrvr5yJLebK9)<br>[Group](https://forms.gle/sGVfDgLR6yLLmb4S8)",# 1
+  "[Survey](https://forms.gle/4BBtMfrvr5yJLebK9),<br>[Group](https://forms.gle/sGVfDgLR6yLLmb4S8)",# 1
   "",# 2
   "Mini",# 3
   "Mini",# 4 # add 
