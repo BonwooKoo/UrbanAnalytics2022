@@ -2,8 +2,8 @@
 title: "GTFS, OSM, and Equity - 1"
 author: "Bon Woo Koo & Subhrajit Guhathakurta"
 date: '2022-07-14'
-output: 
-  rmdformats:: %>% downcute:
+output:
+  rmdformats::downcute:
     downcute_theme: "chaos"
     code_folding: show
 ---
@@ -298,6 +298,7 @@ leaflet() %>%
 # Overlaying GTFS with Census
 ```{r message=FALSE, warning=FALSE, echo=FALSE, results='hide'}
 # Get American Community Survey
+tidycensus::census_api_key(Sys.getenv('census_api'))
 acs2020 <- tidycensus::get_acs(geography = "tract",
                    variables = c("hhinc" = 'B19013_001',
                                  "r_tot" = "B02001_001",

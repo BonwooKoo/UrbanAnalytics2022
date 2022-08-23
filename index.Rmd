@@ -183,8 +183,14 @@ Only three out of the four major assignments will be counted towards the final g
 Same applies to the mini assignments.
 
 ```{r echo=F}
-data.frame('Assignment Type' = c("Final project", 'Major assignment', 'Mini assignment', "Participation"),
-           'Percent' = c("20%", "45% (15% each x 3)", "30% (10% each x 3)", "5%")) %>% 
+data.frame('Assignment Type' = c("Final Project Presentation", 
+                                 'Major Assignment', 
+                                 'Mini Assignment', 
+                                 "Participation (Mini Presentation)"),
+           'Percent' = c("20%", 
+                         "45% (15% each x 3)", 
+                         "30% (10% each x 3)", 
+                         "5%")) %>% 
   kbl() %>% 
   kable_styling(bootstrap_options = c("condensed", "responsive"))
 

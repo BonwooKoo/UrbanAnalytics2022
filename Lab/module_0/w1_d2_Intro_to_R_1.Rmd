@@ -6,8 +6,9 @@ institute: "RStudio, PBC"
 date: "2016/12/12 (updated: `r Sys.Date()`)"
 output:
   xaringan::moon_reader:
+    self_contained: true
     seal: false
-    css: [my-theme.css]
+    css: ['my-theme.css']
     lib_dir: libs
     nature:
       highlightStyle: github
@@ -57,7 +58,7 @@ library(kableExtra)
 ```
 
 
-# What is R?
+## What is R?
 .mid[R is a powerful programming language for statistics, data science, etc.
 
 You can do all kinds of statistical analyses, from the most basic ones to artificial intelligence.
@@ -67,7 +68,7 @@ Using `sf` package, you can (almost) replace GIS applications, such as QGIS or A
 It is completely free to use.]
 
 ---
-# What is R?
+## What is R?
 .mid[
 R makes communicating your data and findings easy through online platforms easy.
 
@@ -78,7 +79,7 @@ You can also create [dashboards](https://shiny.rstudio.com/gallery/india-blood-b
 <br>
 
 ---
-# What is R studio?
+## What is R studio?
 .mid[
 R-Studio is a code editor developed for R. 
 
@@ -92,7 +93,8 @@ e.g., you can write your English report in Notepad, but people usually use MS Wo
 ]
 
 ---
-# Installation
+<!-- INSTALL -->
+## Installation
 
 .mid[
 R language and R-Studio need to be installed separately.
@@ -129,6 +131,22 @@ R language and R-Studio need to be installed separately.
 3.Install using the downloaded file with all default options selected.
 ]
 
+---
+## Using virtual machine
+
+.mid[
+However, we have set up virtual machines (VMs) specifically for this class, in which *most of the required packages and applications are pre-installed*.
+
+Unless you've installed required packages before the class, we encourage you to use VM in class at https://mycloud.gatech.edu.
+]
+
+```{r echo=F}
+knitr::include_graphics("mycloud.jpg")
+```
+
+.center[
+#### Please be careful when you install something other than what this class tells you to, <br> unless you know what you are doing very well
+]
 
 ---
 # RStudio
@@ -141,7 +159,7 @@ knitr::include_graphics("https://datacarpentry.org/genomics-r-intro/fig/rstudio_
 # ![](https://datacarpentry.org/genomics-r-intro/fig/rstudio_session_4pane_layout.png)
 
 ---
-# Packages
+## Packages
 .mid[
 Packages are extensions to R that provide various functions and datasets that the plain R does not have. 
 ]
@@ -157,7 +175,56 @@ Packages are extensions to R that provide various functions and datasets that th
 ]
 
 ---
-# Setting Environment
+class: inverse, middle, center
+
+## Let's write some code.
+
+---
+class: inverse, middle, center
+
+# (Very) Basics
+
+---
+## R as a calculator
+I actually use R this way very often.
+
+```{r}
+(33 + 43) / 4
+
+exp(2.3) # de-logging natural log
+
+a <- 23 + 21
+b <- pi # 3.141593...
+a / b
+```
+
+---
+## R is case sensitive
+In R, a and A are not the same. Sounds really simple, but I've seen people pulling their hair out because they couldn't find a small typo.
+
+For example, the following code will throw an error. Imagine you are looking for that *capital C* in a script with hundreds of lines of code.
+
+```{r eval=F}
+location <- "paris"
+loCation
+
+#> Error: object 'loCation' not found
+```
+
+
+---
+## Indexing
+We can access values in a vector (or any other data structures) through indexing. We use extract operator `[]` to specify which values we'd like to extract or replace.
+
+```{r}
+my_vec <- c(5,4,3,2,1)
+my_vec[c(3,4)]
+```
+
+
+---
+<!-- dplyr -->
+## Setting Environment
 
 .mid[
 When we start writing a R script, we usually call libraries and set the working directory (WD).
@@ -187,7 +254,7 @@ knitr::opts_knit$set(
 ]
 
 ---
-# Reading data
+## Reading data
 
 In urban analytics for planning, the file formats we usually deal with include (but not limited to) **.CSV**, **.SHP**, **.JSON**, and **.GEOJSON**.
 
@@ -213,18 +280,19 @@ df <- jsonlite::fromJSON("file-name.json") %>%
 ```
 
 ---
-# Basic verbs of dplyr
+## Basic verbs of dplyr
 Assuming tabular data (e.g., like an Excel file), there is a set of operations we routinely perform, such as filtering rows, creating new variables, etc.
 
-The package `dplyr`, combined with the **pipe (%>%)**, makes this data wrangling very intuitive.
+Let's try some of the common used verbs.
 
 ```{r, message=F}
+# Need data first...
 my_df <- read_csv("https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.csv")
 my_df %>% nice_table("200px")
 ```
 
 ---
-# dplyr basics
+## dplyr basics
 
 #### select, filter, arrange, mutate, group_by + summarise
 
@@ -245,7 +313,7 @@ filter(my_df, # specifies which data.frame
 ```
 
 ---
-# BTW, %>% is called the **pipe**.
+## BTW, %>% is called the **pipe**.
 .center[.mid[
 It takes whatever is passed from **before** the pipe and 
 
@@ -265,7 +333,7 @@ my_df %>% filter(county == "DeKalb County") %>%
 ```
 
 ---
-# Back to dplyr basics
+## Back to dplyr basics
 
 .pull-left[
 * **select()** can pick **variable(s)** by their names.
@@ -294,7 +362,7 @@ my_df %>%
 ]
 
 ---
-# dplyr basics
+## dplyr basics
 
 **mutate()** can create a new columns using existing columns.
 ```{r}
@@ -308,7 +376,7 @@ Notice that **select()** can take either variable names or the index of columns.
 Because `2:4` in R is the same as `c(2,3,4)`, we select not only tot_age25, less_hs, and pct_less_hs, but also the second, third, and fourth columns **of the data table that were passed to select()**.
 
 ---
-# dplyr basics
+## dplyr basics
 **group_by()** creates a grouping across observations (i.e., rows). With the grouping, **summarise()** can do summarization (e.g., taking average) for each group.
 
 In plain English, this code says "Take **my_df** and calculate the mean of **pct_white** and the median of **hhincome** for each county." It returns a new data table.
@@ -323,8 +391,9 @@ my_df %>% mutate(pct_white = race.white / race.tot) %>%
 .mid[.center[**Notice that there are NaN and NA here and there.**]]
 
 ---
-# NAs and NaNs
+##  NAs and NaNs
 NaN stands for **Not a Number.** This results from numerical operation that outputs undefined results. Try `0/0` in your console.
+
 NA stands for **Not available.** This generally means missing value.
 
 Let's see why this happened.
@@ -336,8 +405,12 @@ my_df %>% select(-GEOID, -tract, -county, -state) %>% summary()
 .center[Notice that hhincome has 5 missing values (NAs). race.tot has at least one 0]
 
 ---
-# Dropping NaN and NA
-We need to filter 
+## Dropping NaN and NA
+We need to filter out from both race.tot and hhincome. 
+
+The logical *and* (&) operator for a set of boolean operands (i.e., condition) will be true if and only if all the operands are true. For logical *or* operator, R uses |. 
+
+Also notice the exclamation mark (**!**) and **is.na()**. **!** negates logical boolean operands. For example `!TRUE` is `FALSE`. So, !is.na(hhincome) is a vector consisting of TRUEs and FALSEs where it is TRUE where hhincome has NA values.
 
 ```{r}
 my_df %>% 
@@ -358,8 +431,8 @@ shp <- sf::st_read("https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics20
 
 
 ```{r message=FALSE, eval=F}
-library(sf)
 shp <- sf::st_read("https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.geojson") 
+js <- jsonlite::fromJSON("https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.json", flatten = TRUE)
 ```
 ```{r}
 shp %>% nice_table()
@@ -375,7 +448,7 @@ pal <- colorNumeric(palette = "Reds", domain = shp$hhincome)
 leaflet() %>% 
   addProviderTiles(providers$CartoDB.Positron) %>% 
   addPolygons(data = shp, fillColor = ~pal(hhincome), fillOpacity = 0.8, weight = 1, color = "white", popup = paste0("Household Income: ", shp$hhincome)) %>% 
-  addLegend(position = "bottomright", pal = pal, values = shp$hhincome)
+  addLegend(position = "topright", pal = pal, values = shp$hhincome, title = "Annual Household Income", bins = 6)
 ```
 
 
