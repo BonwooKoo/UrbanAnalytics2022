@@ -3,52 +3,41 @@
   <head>
     <title>Data for Urban Analytics</title>
     <meta charset="utf-8" />
-    <meta name="author" content="Bon Woo Koo" />
-    <script src="libs/header-attrs-2.14/header-attrs.js"></script>
-    <link rel="stylesheet" href="my-theme.css" type="text/css" />
+    <meta name="author" content="Bon Woo Koo &amp; Subhro Guhathakurta" />
+    <script src="libs/header-attrs-2.15/header-attrs.js"></script>
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link rel="stylesheet" href="assets/sydney-fonts.css" type="text/css" />
+    <link rel="stylesheet" href="assets/sydney.css" type="text/css" />
   </head>
   <body>
     <textarea id="source">
 
-class: middle, center, inverse
-
-background-image: url("https://i2.wp.com/files.123freevectors.com/wp-content/original/110712-dark-blue-blurred-background-vector.jpg?w=2000&amp;q=95")
-background-size: cover
+class: inverse, middle
 
 # Intro to R - 2
-&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;
-
-&lt;font size=4&gt;by&lt;/font&gt;
-&lt;br&gt;
-&lt;font size=6&gt; Bon Woo Koo &lt;br&gt; Subhro Guhathakurta &lt;/font&gt;
-&lt;br&gt;&lt;br&gt;
-&lt;font size=4&gt; Aug 25, 2022&lt;/font&gt;
 
 
+.font100[
+Bon Woo Koo &amp; Subhro Guhathakurta
 
+8/30/2022
+]
 
 
 ---
-# Content
 
-.large[
+##.green[Content]
+
 We will go through:
-]
+
 .mid[
-* Handling geospatial data in R 
+* Handling geospatial data in R using sf package
 * Loops and apply
 * R Markdown + Rpubs
 ]
 
 ---
-class: center, middle
-![](./sf/sf-03.jpg)
 
----
-class: center, middle
-![](./sf/sf-04.jpg)
-
----
 class: center, middle
 ![](./sf/sf-05.jpg)
 ---
@@ -58,10 +47,25 @@ class: center, middle
 ---
 class: center, middle
 ![](./sf/sf-07.jpg)
-
 ---
-class: center, middle
-![](./sf/sf-08.jpg)
+
+.font180[.green[sf package in R]]
+
+The **sf** stands simple features. 
+
+**"Simple features are a standardized way of encoding spatial vector data (points, lines, polygons) in computers" (Pebesma, 2018, 439).**
+
+.font90[
+* *Feature* can be thought of as "things" or objects that have a spatial location or extent (e.g., building or political state).
+* *Feature geometry* refers to the spatial properties (location or extent) of a feature.
+* *Feature attributes* refers to other properties that features have, such as name, some measured quantity, etc.
+* *Simple feature access* is an international standard for representing and encoding spatial data
+]
+
+
+.footnote[
+This content is adopted from Pedesma (2018) [Read](https://journal.r-project.org/archive/2018/RJ-2018-009/RJ-2018-009.pdf)
+]
 
 ---
 class: center, middle
@@ -81,13 +85,7 @@ class: center, middle
 
 
 ---
-class: inverse, center, middle
-
-# Hands on
-
----
-
-## Get data
+## Let's do some coding
 
 
 ```r
@@ -97,6 +95,7 @@ mysf &lt;- sf::st_read("https://raw.githubusercontent.com/BonwooKoo/UrbanAnalyti
 
 
 
+.scriptsize[
 
 ```r
 mysf %&gt;% print()
@@ -121,17 +120,58 @@ mysf %&gt;% print()
 ## 9  13067031002 Census Tract 310.02    Cobb County Georgia    33037     9787       3286       2853 MULTIPOLYGON (((-84.58191 3...
 ## 10 13089020200    Census Tract 202  DeKalb County Georgia    87889     2045       1704        187 MULTIPOLYGON (((-84.34896 3...
 ```
+]
+---
+## What's inside geometry column
+.footnotesize[
+.scroll-box-10[
+
+```r
+mysf[['geometry']]
+```
+
+```
+## Geometry set for 519 features 
+## Geometry type: MULTIPOLYGON
+## Dimension:     XY
+## Bounding box:  xmin: -84.85071 ymin: 33.35246 xmax: -84.02371 ymax: 34.18629
+## Geodetic CRS:  NAD83
+## First 5 geometries:
+```
+
+```
+## MULTIPOLYGON (((-84.37445 33.60568, -84.37159 3...
+```
+
+```
+## MULTIPOLYGON (((-84.44869 33.57185, -84.43072 3...
+```
+
+```
+## MULTIPOLYGON (((-84.42895 33.59714, -84.42687 3...
+```
+
+```
+## MULTIPOLYGON (((-84.27173 33.56137, -84.26847 3...
+```
+
+```
+## MULTIPOLYGON (((-84.65095 34.0392, -84.64618 34...
+```
+]
+
+
+```r
+mysf[['geometry']][[1]]
+```
+
+```
+## MULTIPOLYGON (((-84.37445 33.60568, -84.37159 33.6057, -84.3676 33.60381, -84.36577 33.60348, -84.36407 33.6037, -84.36292 33.60384, -84.3618 33.60364, -84.35833 33.60305, -84.35526 33.60328, -84.35525 33.60044, -84.35434 33.59889, -84.35421 33.59881, -84.35341 33.59868, -84.35308 33.59858, -84.35175 33.59784, -84.35098 33.59671, -84.35189 33.59257, -84.35141 33.59153, -84.3511 33.59107, -84.35106 33.58568, -84.35253 33.58715, -84.35303 33.5875, -84.35438 33.58803, -84.35577 33.58829, -84.35834 33.58847, -84.35914 33.58863, -84.36085 33.58917, -84.36346 33.59025, -84.36369 33.59034, -84.36477 33.59064, -84.3659 33.59071, -84.36791 33.59079, -84.37007 33.59086, -84.37082 33.59086, -84.37184 33.59085, -84.37209 33.59306, -84.37328 33.5945, -84.37285 33.59692, -84.37411 33.60111, -84.37473 33.60367, -84.37445 33.60568)))
+```
+]
 ---
 class: center, middle
 ![](./sf/sf-14.jpg)
-
----
-class: center, middle
-![](./sf/sf-15.jpg)
-
----
-class: center, middle
-![](./sf/sf-16.jpg)
 
 ---
 class: center, middle
@@ -153,29 +193,14 @@ class: center, middle
 class: center, middle
 ![](./sf/sf-21.jpg)
 
----
-class: center, middle
-![](./sf/sf-21.jpg)
-```
-
-
-
-
-
-
-
-
-
-
-
-
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
 <script>var slideshow = remark.create({
 "highlightStyle": "github",
 "highlightLines": true,
-"countIncrementalSlides": false
+"countIncrementalSlides": false,
+"ratio": "4:3"
 });
 if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
   window.dispatchEvent(new Event('resize'));

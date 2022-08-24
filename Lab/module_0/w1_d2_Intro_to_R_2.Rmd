@@ -1,50 +1,30 @@
 ---
 title: "Data for Urban Analytics"
 subtitle: ""
-author: "Bon Woo Koo"
-institute: "RStudio, PBC"
-date: "2016/12/12 (updated: `r Sys.Date()`)"
+author: "Bon Woo Koo & Subhro Guhathakurta"
+institute: "Georgia Institute of Technology"
+date: "2022/8/30"
 output:
   xaringan::moon_reader:
+    css: ["default", "assets/sydney-fonts.css", "assets/sydney.css"]
     seal: false
-    css: [my-theme.css]
     lib_dir: libs
     nature:
       highlightStyle: github
       highlightLines: true
       countIncrementalSlides: false
+      ratio: '4:3' # alternatives '16:9' or '4:3' or others e.g. 13:9
 ---
-class: middle, center, inverse
-
-background-image: url("https://i2.wp.com/files.123freevectors.com/wp-content/original/110712-dark-blue-blurred-background-vector.jpg?w=2000&q=95")
-background-size: cover
+class: inverse, middle
 
 # Intro to R - 2
-<br><br><br><br><br><br>
 
-<font size=4>by</font>
-<br>
-<font size=6> Bon Woo Koo <br> Subhro Guhathakurta </font>
-<br><br>
-<font size=4> Aug 25, 2022</font>
 
-```{r xaringan-themer, include=FALSE, warning=FALSE}
-library(xaringanthemer)
-style_mono_accent(
-  base_color = "#1c5253",
-  header_font_google = google_font("Open Sans"),
-  text_font_google   = google_font("Source Sans Pro", "400", "400i"),
-  code_font_google   = google_font("Fira")
-)
+.font100[
+Bon Woo Koo & Subhro Guhathakurta
 
-nice_table <- function(df, height="150px"){
-  return(
-    df %>% kable() %>% 
-      kable_styling(latex_options="scale_down", font_size=12) %>% 
-      scroll_box(width = "100%", height = height)
-    )
-}
-```
+8/30/2022
+]
 
 ```{r, include=F}
 library(xaringanthemer)
@@ -54,28 +34,20 @@ library(leaflet)
 library(tmap)
 library(kableExtra)
 ```
-
 ---
-# Content
 
-.large[
+##.green[Content]
+
 We will go through:
-]
+
 .mid[
-* Handling geospatial data in R 
+* Handling geospatial data in R using sf package
 * Loops and apply
 * R Markdown + Rpubs
 ]
 
 ---
-class: center, middle
-![](./sf/sf-03.jpg)
 
----
-class: center, middle
-![](./sf/sf-04.jpg)
-
----
 class: center, middle
 ![](./sf/sf-05.jpg)
 ---
@@ -85,10 +57,25 @@ class: center, middle
 ---
 class: center, middle
 ![](./sf/sf-07.jpg)
-
 ---
-class: center, middle
-![](./sf/sf-08.jpg)
+
+.font180[.green[sf package in R]]
+
+The **sf** stands simple features. 
+
+**"Simple features are a standardized way of encoding spatial vector data (points, lines, polygons) in computers" (Pebesma, 2018, 439).**
+
+.font90[
+* *Feature* can be thought of as "things" or objects that have a spatial location or extent (e.g., building or political state).
+* *Feature geometry* refers to the spatial properties (location or extent) of a feature.
+* *Feature attributes* refers to other properties that features have, such as name, some measured quantity, etc.
+* *Simple feature access* is an international standard for representing and encoding spatial data
+]
+
+
+.footnote[
+This content is adopted from Pedesma (2018) [Read](https://journal.r-project.org/archive/2018/RJ-2018-009/RJ-2018-009.pdf)
+]
 
 ---
 class: center, middle
@@ -108,13 +95,7 @@ class: center, middle
 
 
 ---
-class: inverse, center, middle
-
-# Hands on
-
----
-
-## Get data
+## Let's do some coding
 
 ```{r, eval=F}
 library(sf)
@@ -125,20 +106,27 @@ mysf <- sf::st_read("https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2
 mysf <- sf::st_read("https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.geojson")
 ```
 
+.scriptsize[
 ```{r}
 mysf %>% print()
 ```
+]
+---
+## What's inside geometry column
+.footnotesize[
+.scroll-box-10[
+```{r}
+mysf[['geometry']]
+```
+]
+
+```{r}
+mysf[['geometry']][[1]]
+```
+]
 ---
 class: center, middle
 ![](./sf/sf-14.jpg)
-
----
-class: center, middle
-![](./sf/sf-15.jpg)
-
----
-class: center, middle
-![](./sf/sf-16.jpg)
 
 ---
 class: center, middle
@@ -159,20 +147,4 @@ class: center, middle
 ---
 class: center, middle
 ![](./sf/sf-21.jpg)
-
----
-class: center, middle
-![](./sf/sf-21.jpg)
-```
-
-
-
-
-
-
-
-
-
-
-
 

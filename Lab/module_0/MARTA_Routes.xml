@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?><metadata>
+<idinfo>
+<citation>
+<citeinfo>
+<title>Map</title>
+</citeinfo>
+</citation>
+<descript>
+<abstract>Data provided by Metropolitan Atlanta Rapid Transit Authority (MARTA) General Transit Feed Specification (GTFS) at https://www.itsmarta.com/app-developer-resources.aspxCity of Sandy Springs translates the stops, shapes, routes and trip files in FME with FME Workbench.   The Stops and Routes are published to ArcGIS online.  General Transit Feed SpecificationThe MARTA GTFS feed is updated approximately four times per year, which is about how often MARTA service changes. It will be published to the same URL with each new update.</abstract>
+<purpose>MARTA bus and train routes</purpose>
+</descript>
+<keywords>
+<theme>
+<themekt>None</themekt>
+<themekey>MARTA</themekey>
+<themekey>bus</themekey>
+<themekey>train</themekey>
+<themekey>routes</themekey>
+<themekey>Sandy Springs</themekey>
+<themekey>transportation</themekey>
+</theme>
+</keywords>
+<accconst>None</accconst>
+<useconst/>
+<datacred>MARTA, Sandy Springs GIS</datacred>
+</idinfo>
+<metainfo>
+<metstdn>FGDC Content Standard for Digital Geospatial Metadata</metstdn>
+<metstdv>FGDC-STD-001-1998</metstdv>
+<mettc>local time</mettc>
+</metainfo>
+</metadata>
