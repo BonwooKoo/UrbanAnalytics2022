@@ -99,16 +99,20 @@ class: center, middle
 
 ```{r, eval=F}
 library(sf)
-mysf <- sf::st_read("https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.geojson")
+poly <- sf::st_read("https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.geojson")
+marta <- sf::st_read("https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/MARTA_Routes.geojson") %>% 
+  st_transform(crs = 4326)
 ```
 
 ```{r message=F, include=F}
-mysf <- sf::st_read("https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.geojson")
+poly <- sf::st_read("https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.geojson")
+marta <- sf::st_read("https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/MARTA_Routes.geojson") %>% 
+  st_transform(crs = 4326)
 ```
 
 .scriptsize[
 ```{r}
-mysf %>% print()
+marta %>% print()
 ```
 ]
 ---
@@ -116,12 +120,12 @@ mysf %>% print()
 .footnotesize[
 .scroll-box-10[
 ```{r}
-mysf[['geometry']]
+marta[['geometry']]
 ```
 ]
 
 ```{r}
-mysf[['geometry']][[1]]
+marta[['geometry']][[1]]
 ```
 ]
 ---
