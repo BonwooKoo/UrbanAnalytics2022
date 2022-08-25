@@ -78,7 +78,7 @@ weeks <- tibble(
 
 ```{r, echo=FALSE}
 topic_col <- c(
-  "Intro to Urban Analytics in R [(Slide)](https://github.gatech.edu/pages/sguhathakurta3/UA-Lecture1/Untitled/LectureONE.html), <br> Data ethics (Slide)",# 1
+  "Intro to Urban Analytics in R [(Slide)](https://github.gatech.edu/pages/sguhathakurta3/UA-Lecture1/Untitled/LectureONE.html), <br> Data ethics [(Slide)](https://github.gatech.edu/pages/sguhathakurta3/UA-Lecture1/Lecture-2/LectureTWO.html)",# 1
   "Data for Urban Analytics (Slide), <br> Intro to R (RMD)",# 2
   "Accessing data (Slide), <br> Census & Yelp API (RMD)",# 3
   "<b>Mini-presentation 1 (Slide)</b>, <br> Tidy data (Slide), <br> Data wrangling (RMD)",# 4

@@ -337,66 +337,17 @@ class: inverse, middle, center
 # Application
 
 ---
-<!-- ## Setting Environment -->
-
-<!-- .mid[ -->
-<!-- When we start writing a R script, we usually call libraries and set the working directory (WD). -->
-
-<!-- In R Markdown, WD is where the RMD file is located. This usually works fine.  -->
-
-<!-- For a plain R script, WD is usually somewhere like *C:/Users/Bonwoo/Documents*. -->
-<!-- ] -->
-
-<!-- .mid[.center[ -->
-<!-- **We need to use different strategies depending on <br> whether you are working on a RMarkdown or a plain R script.** -->
-<!-- ]] -->
-
-<!-- .pull-left[ -->
-<!-- **On Plain R script** -->
-<!-- ```{r eval=F} -->
-<!-- setwd("path-to-your-wd") -->
-<!-- ``` -->
-<!-- ] -->
-
-<!-- .pull-right[ -->
-<!-- **In R Markdown** -->
-<!-- ```{r eval=F} -->
-<!-- knitr::opts_knit$set( -->
-<!--   roo.dir = "path-to-your-wd") -->
-<!-- ``` -->
-<!-- ] -->
-
-<!-- --- -->
-<!-- dplyr -->
-
 ## Setting Environment
+When you open R Studio, R is **in** one of the folders in your computer. It looks for files and saves output in this folder. It's called a **working directory.**
 
-.mid[
-When we start writing a R script, we usually call libraries and set the working directory (WD).
+.center[.font80[
+"An R project enables your work to be bundled in a portable, self-contained folder. Within the project, all the relevant scripts, data files, figures/outputs, and history are stored in sub-folders and importantly - the working directory is the project’s root folder." - [The Epidemiologist R Handbook](https://epirhandbook.com/en/)]]
 
-In R Markdown, WD is where the RMD file is located. This usually works fine. 
+You can create a R project folder by File -> New Project -> New Directory. 
 
-For a plain R script, WD is usually somewhere like *C:/Users/Bonwoo/Documents*.
-]
+![](rproject.png)
 
-.mid[.center[
-**We need to use different strategies depending on <br> whether you are working on a RMarkdown or a plain R script.**
-]]
-
-.pull-left[
-**On Plain R script**
-```{r eval=F}
-setwd("path-to-your-wd")
-```
-]
-
-.pull-right[
-**In R Markdown**
-```{r eval=F}
-knitr::opts_knit$set(
-  roo.dir = "path-to-your-wd")
-```
-]
+That creates a **.Rproj** file in that folder. Next time you continue working on the project, double click the **.Rproj** file.
 
 ---
 ## Reading data
@@ -427,7 +378,7 @@ df <- jsonlite::fromJSON("file-name.json") %>%
 ```
 
 ---
-## Basic verbs of dplyr
+## dplyr basics
 * We just learned indexing using **[ , ]**. 
 
 * With the advent of tidyverse package, we now use what's called **dplyr verbs**.
@@ -441,7 +392,7 @@ my_df %>% nice_table("200px")
 ---
 ## dplyr basics
 
-#### select, filter, arrange, mutate, group_by + summarise
+#### select, filter, arrange, mutate, slice, group_by + summarise
 
 All verbs work similarly: <font size=2px, color='grey'>(Wickham & Grolemund (2016))</font>
 
@@ -536,10 +487,6 @@ my_df %>% mutate(pct_white = race.white / race.tot) %>%
 ```
 
 .mid[.center[**Notice that there are NaN and NA here and there.**]]
----
-```{r echo=F}
-magick::image_read_pdf("https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf", pages=1)
-```
 
 ---
 ##  NAs and NaNs
@@ -571,6 +518,13 @@ my_df %>%
   summarise(avg.pct_white = mean(pct_white), # mean for each county
             med.hhincome = median(hhincome)) %>% nice_table("160px")
 ```
+
+---
+
+```{r echo=F}
+magick::image_read_pdf("https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf", pages=1)
+```
+
 
 ---
 # Reading SHP and JSON
