@@ -1,43 +1,42 @@
 ---
-title: "Intro to Programming in R - 1 <br>"
+title: "Data for Urban Analytics"
 subtitle: ""
-author: "Bon Woo Koo"
-institute: "RStudio, PBC"
-date: "2016/12/12 (updated: `r Sys.Date()`)"
+author: "Bon Woo Koo & Subhro Guhathakurta"
+institute: "Georgia Institute of Technology"
+date: "2022/8/30"
 output:
   xaringan::moon_reader:
-    self_contained: true
+    css: ["default", "assets/sydney-fonts.css", "assets/sydney.css"]
     seal: false
-    css: ['my-theme.css']
     lib_dir: libs
     nature:
       highlightStyle: github
       highlightLines: true
       countIncrementalSlides: false
+      ratio: '4:3' # alternatives '16:9' or '4:3' or others e.g. 13:9
 ---
-class: middle, center, inverse
+class: inverse, middle
 
-background-image: url("https://i2.wp.com/files.123freevectors.com/wp-content/original/110712-dark-blue-blurred-background-vector.jpg?w=2000&q=95")
-background-size: cover
+# Intro to R - 1
 
-# Intro to Programming in R
-<br><br><br><br><br><br>
 
-<font size=4>by</font>
-<br>
-<font size=6> Bon Woo Koo <br> Subhro Guhathakurta </font>
-<br><br>
-<font size=4> Aug 25, 2022</font>
+.font100[
+Bon Woo Koo & Subhro Guhathakurta
 
-```{r xaringan-themer, include=FALSE, warning=FALSE}
+8/30/2022
+]
+
+```{r, include=F}
 library(xaringanthemer)
-style_mono_accent(
-  base_color = "#1c5253",
-  header_font_google = google_font("Open Sans"),
-  text_font_google   = google_font("Source Sans Pro", "400", "400i"),
-  code_font_google   = google_font("Fira")
-)
+library(sf)
+library(tidyverse)
+library(leaflet)
+library(tmap)
+library(kableExtra)
+```
 
+
+```{r include=FALSE, warning=FALSE}
 nice_table <- function(df, height="150px"){
   return(
     df %>% kable() %>% 
@@ -59,34 +58,37 @@ library(kableExtra)
 
 
 ## What is R?
-.mid[R is a powerful programming language for statistics, data science, etc.
+* R is a powerful programming language for statistics, data science, etc.
 
-You can do all kinds of statistical analyses, from the most basic ones to artificial intelligence.
+* You can do all kinds of statistical analyses, from the most basic ones to artificial intelligence.
 
-Using `sf` package, you can (almost) replace GIS applications, such as QGIS or ArcMAP.
+* Using **sf** package, you can (almost) replace GIS applications, such as QGIS or ArcMAP.
 
-It is completely free to use.]
+* It is completely free to use.
+
 
 ---
 ## What is R?
 .mid[
-R makes communicating your data and findings easy through online platforms easy.
+* R makes communicating your data and findings easy through R Markdown, Xaringan slide, etc. 
 
-You can also create [dashboards](https://shiny.rstudio.com/gallery/india-blood-banks.html), blog posts with interactive maps and charts.
+* You can also create [**dashboards**](https://shiny.rstudio.com/gallery/india-blood-banks.html), blog posts with interactive maps and charts.
 ]
+
+* You can easily post your work online with just one click in RStudio.
 
 ![covid mobility data](https://tilburgsciencehub.com/examples/images/demo_app.png)
 <br>
 
 ---
 ## What is R studio?
-.mid[
-R-Studio is a code editor developed for R. 
 
-R is a language, just like any other language (e.g., English, French etc). You can write R code in any text editor.
+* R-Studio is a code editor developed for R. 
 
-e.g., you can write your English report in Notepad, but people usually use MS Word because it provides convenient functions.
-]
+* R is a language, just like any other language (e.g., English, French etc). You can write R code in any text editor.
+
+* E.g., you can write your English report in Windows Notepad, but people usually use MS Word because it provides convenient functions.
+
 
 .center[
 ### *R-Studio is like MS Word for R language.*
@@ -96,21 +98,19 @@ e.g., you can write your English report in Notepad, but people usually use MS Wo
 <!-- INSTALL -->
 ## Installation
 
-.mid[
-R language and R-Studio need to be installed separately.
-]
+In case you want to install them in your machine, R language and R-Studio need to be installed separately, preferably R first.
 
   
 .left-column[
 ###[Click to install R](https://cran.r-project.org/)
 
-<br><br>
+<br>
 
 ###[Click to install R-Studio](https://www.rstudio.com/products/rstudio/download/)
 
 ]
 
-.right-column[
+.right-column[.footnotesize[
 1.Choose your operation system (e.g., Windows, macOS, etc.). 
 
 2.Choose base.
@@ -118,34 +118,32 @@ R language and R-Studio need to be installed separately.
 3.Click "Download R-4.2.1" for your OS.
 
 4.Install using the downloaded file with all default options selected.
-]
 
 
 
+<br><br>
 
-.right-column[
+
 1.Choose **RStudio Desktop** (free version)
 
 2.Choose your operation system and download installation file.
 
 3.Install using the downloaded file with all default options selected.
-]
+]]
 
 ---
 ## Using virtual machine
 
-.mid[
-However, we have set up virtual machines (VMs) specifically for this class, in which *most of the required packages and applications are pre-installed*.
+* However, we have virtual machines (VMs) for this class, in which *most of the required packages and applications are pre-installed*.
 
-Unless you've installed required packages before the class, we encourage you to use VM in class at https://mycloud.gatech.edu.
-]
+* Remember that when you first log-in, (1) set up will take a few minutes and (2) you need to **restart** the machine once.
 
 ```{r echo=F}
 knitr::include_graphics("mycloud.jpg")
 ```
 
 .center[
-#### Please be careful when you install something other than what this class tells you to, <br> unless you know what you are doing very well
+#### Please be careful when you install something other than what this class tells you to, unless you know what you are doing very well
 ]
 
 ---
@@ -177,12 +175,7 @@ Packages are extensions to R that provide various functions and datasets that th
 ---
 class: inverse, middle, center
 
-## Let's write some code.
-
----
-class: inverse, middle, center
-
-# (Very) Basics
+# Basics
 
 ---
 ## R as a calculator
@@ -199,31 +192,183 @@ a / b
 ```
 
 ---
-## R is case sensitive
-In R, a and A are not the same. Sounds really simple, but I've seen people pulling their hair out because they couldn't find a small typo.
+## Operators
 
-For example, the following code will throw an error. Imagine you are looking for that *capital C* in a script with hundreds of lines of code.
+.pull-left[
+**Arithmetic operators**
+```{r, echo=F}
+tribble(
+  ~'Operator', ~'Description',
+  '+', 'Addition',
+  '-', 'Subtraction',
+  '*', "Multiplication",
+  "/", "Division",
+  "^ or **", "Exponentiation",
+  "x %% y", "Modulus",
+  "x %/% y", "Integer division"
+) %>% kable()
+```
+]
+
+.pull-right[
+**Logical operators**
+```{r, echo=F}
+tribble(
+  ~'Operator', ~'Description',
+  '<', 'Less than',
+  '<=', 'Less than or equal to',
+  '==', "Exactly equal to",
+  "!=", "Not equal to",
+  "!", "Negation (e.g., !x is 'not x')",
+  "x | y", "x or y",
+  "x & y", "x and y"
+) %>% kable()
+```
+]
+
+
+---
+## R is case sensitive
+* In R, **a** and **A** are not the same. That sounds really simple, but it can really mess up your code and is really hard to find.
+
+* For example, the following code will throw an error. Imagine you are looking for that *capital C* in a script with hundreds of lines of code.
 
 ```{r eval=F}
-location <- "paris"
-loCation
+city <- "paris"
+City
 
-#> Error: object 'loCation' not found
+#> Error: object 'City' not found
+
 ```
 
+```{r, include=F}
+city <- "paris"
+```
+
+
+Notice that **<-** is assignment operator. This assigns a name (i.e., `city`) a value (i.e., `"paris"`). 
+
+```{r}
+city
+```
+
+---
+## Vector
+.fotenotesize[
+* Vector is a 1-dimensional array that can contain elements of logical, integer, double, complex, character or raw. It can contain only the same data type.
+* A vector with 2 or more elements can be created multiple ways. 
+* e.g., **c()** concatenates multiple elements of the same type into a vector.
+
+```{r}
+a <- seq(1:5)
+a
+
+b <- c(1,2,3,4,5)
+b
+```
+
+```{r eval=F}
+c <- c(1, "two", TRUE) # Try this
+```
+]
 
 ---
 ## Indexing
-We can access values in a vector (or any other data structures) through indexing. We use extract operator `[]` to specify which values we'd like to extract or replace.
+We use extract operator `[]` to specify which values we'd like to extract or replace.
 
 ```{r}
+# Create a vector
 my_vec <- c(5,4,3,2,1)
-my_vec[c(3,4)]
+my_vec
+
+# 2nd element
+my_vec[2]
+# 1,3,5th element
+my_vec[c(1,3,5)]
 ```
 
+---
+## Indexing
+For 2-dimensional data, we have 2 axes or dimension to parse the data.
+
+.center[.red[data][.blue[row index], .green[column index]]]
+
+.small[
+```{r}
+# Create a matrix
+my_matrix <- matrix(c(1,2,3,4,5,6,7,8,9), nrow=3)
+my_matrix
+
+# element in 1st row, 2nd column
+my_matrix[1,2]
+# elements in 1 & 2nd rows, 3rd column
+my_matrix[c(1,2), 3]
+```
+]
+---
+## Indexing
+
+.center[.red[data][.blue[row index], .green[column index]]]
+
+
+.footnotesize[
+```{r}
+# Read data
+my_df <- read.csv("https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.csv") # or
+my_df %>% head() %>% print()
+
+# Subset
+my_df[2,2]
+
+my_df[1:3, "hhincome"]
+```
+
+.scroll-box-12[
+```{r}
+my_df[my_df$hhincome>104265, ]
+```
+]
+]
 
 ---
+
+class: inverse, middle, center
+
+# Application
+
+---
+<!-- ## Setting Environment -->
+
+<!-- .mid[ -->
+<!-- When we start writing a R script, we usually call libraries and set the working directory (WD). -->
+
+<!-- In R Markdown, WD is where the RMD file is located. This usually works fine.  -->
+
+<!-- For a plain R script, WD is usually somewhere like *C:/Users/Bonwoo/Documents*. -->
+<!-- ] -->
+
+<!-- .mid[.center[ -->
+<!-- **We need to use different strategies depending on <br> whether you are working on a RMarkdown or a plain R script.** -->
+<!-- ]] -->
+
+<!-- .pull-left[ -->
+<!-- **On Plain R script** -->
+<!-- ```{r eval=F} -->
+<!-- setwd("path-to-your-wd") -->
+<!-- ``` -->
+<!-- ] -->
+
+<!-- .pull-right[ -->
+<!-- **In R Markdown** -->
+<!-- ```{r eval=F} -->
+<!-- knitr::opts_knit$set( -->
+<!--   roo.dir = "path-to-your-wd") -->
+<!-- ``` -->
+<!-- ] -->
+
+<!-- --- -->
 <!-- dplyr -->
+
 ## Setting Environment
 
 .mid[
@@ -260,8 +405,10 @@ In urban analytics for planning, the file formats we usually deal with include (
 
 We need different packages to import these data formats. 
 
-Sample data: <font size=3px color="grey"> (you can copy the link adress instead of downloading them) </font> <br>
-[CSV](https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.csv), [SHP](https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.geojson), [JSON](https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.json)
+* CSV: .tiny[https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.csv]
+
+* SHP: .tiny[https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.geojson]
+* JSON: .tiny[https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.json]
 
 
 ```{r eval=F}
@@ -281,9 +428,9 @@ df <- jsonlite::fromJSON("file-name.json") %>%
 
 ---
 ## Basic verbs of dplyr
-Assuming tabular data (e.g., like an Excel file), there is a set of operations we routinely perform, such as filtering rows, creating new variables, etc.
+* We just learned indexing using **[ , ]**. 
 
-Let's try some of the common used verbs.
+* With the advent of tidyverse package, we now use what's called **dplyr verbs**.
 
 ```{r, message=F}
 # Need data first...
@@ -389,6 +536,10 @@ my_df %>% mutate(pct_white = race.white / race.tot) %>%
 ```
 
 .mid[.center[**Notice that there are NaN and NA here and there.**]]
+---
+```{r echo=F}
+magick::image_read_pdf("https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf", pages=1)
+```
 
 ---
 ##  NAs and NaNs

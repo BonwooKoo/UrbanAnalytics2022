@@ -80,17 +80,17 @@ weeks <- tibble(
 topic_col <- c(
   "Intro to Urban Analytics in R [(Slide)](https://github.gatech.edu/pages/sguhathakurta3/UA-Lecture1/Untitled/LectureONE.html), <br> Data ethics (Slide)",# 1
   "Data for Urban Analytics (Slide), <br> Intro to R (RMD)",# 2
-  "<b>Mini-presentation (Slide)</b>, <br> Accessing data (Slide), <br> Census & Yelp API (RMD)",# 3
-  "Tidy data (Slide), <br> Data wrangling (RMD)",# 4
+  "Accessing data (Slide), <br> Census & Yelp API (RMD)",# 3
+  "<b>Mini-presentation 1 (Slide)</b>, <br> Tidy data (Slide), <br> Data wrangling (RMD)",# 4
   "First statistical insights from your data (Slide), <br> Hands-on (RMD)",# 5
   "Interactive visualization (Slide), <br> Hands-on (RMD)",# 6
-  "<b>Mini-presentation (Slide)</b>, <br> General Transit Feed Specification (Slide), <br> GTFS and equity (RMD)",# 7 # [GTFS and equity (RMD)](./Lab/module_2/1_GTFS.html)
+  "<b>Mini-presentation 2 (Slide)</b>, <br> General Transit Feed Specification (Slide), <br> GTFS and equity (RMD)",# 7 # [GTFS and equity (RMD)](./Lab/module_2/1_GTFS.html)
   "Open Street Map (Slide), <br> OSM as a graph (RMD)",# 8 # [OSM as a graph (RMD)](./Lab/module_2/2_OSM.html)
-  "<b>Mini-presentation (Slide)</b>, Urban images and computer vision (Slide), <br> Yolo in R (RMD)",# 9
+  "<b>Mini-presentation 3 (Slide)</b>, Urban images and computer vision (Slide), <br> Yolo in R (RMD)",# 9
   "Many ways of viewing your city (Slide), <br> Sampling images and using Vision API (RMD)",# 10
-  "<b>Mini-presentation (Slide)</b>, <br> User-generated text data - Twitter (Slide), <br> Getting live feeds from Twitter (RMD)",# 11
+  "<b>Mini-presentation 4 (Slide)</b>, <br> User-generated text data - Twitter (Slide), <br> Getting live feeds from Twitter (RMD)",# 11
   "Preprocessing texts (Slide), <br> Sentiment analysis (RMD)",# 12
-  "<b>Mini-presentation (Slide)</b>, <br> Storytelling with data - 1",# 13
+  "<b>Mini-presentation 5 (Slide)</b>, <br> Storytelling with data - 1",# 13
   "Storytelling with data - 2",# 14
   "<b>Student presentations</b>",# 15
   "<b>Student presentations - continued</b>",# 16
@@ -98,9 +98,9 @@ topic_col <- c(
 )
 
 reading_col <- c(
-  "[TU](https://journals.sagepub.com/doi/full/10.1177/2399808319839494) <br> 
-  [TH-1](https://r4ds.had.co.nz/workflow-basics.html), [TH-2](https://r4ds.had.co.nz/transform.html)",# 1
-  "",# 2
+  "[TU](https://journals.sagepub.com/doi/full/10.1177/2399808319839494)",# 1
+  "[Tu-1](https://r4ds.had.co.nz/workflow-basics.html), [Tu-2](https://r4ds.had.co.nz/transform.html) <br>
+   [Th-1](https://geocompr.robinlovelace.net/spatial-class.html), [Th-2](https://geocompr.robinlovelace.net/attr.html), [Th-3](https://geocompr.robinlovelace.net/spatial-operations.html), [Th-4](https://rmarkdown.rstudio.com/lesson-1.html)",# 2
   "",# 3
   "",# 4 
         # [1]https://r4ds.had.co.nz/tidy-data.html, [2](https://r4ds.had.co.nz/transform.html)
@@ -168,6 +168,9 @@ weeks %>%
 *NOTE 2: The links to the class material will be updated each week.*
 
 *NOTE 3: For readings, TU = readings for Tuesday & TH = readings for Thursday*
+
+<font size="3px" color="grey">Modification history</font><br>
+<font size="3px" color="grey"> &bull; 8/25/2022: Moved Mini-presentation 1 from week 3 to 4</font>
 
 
 # How to succeed in this class
