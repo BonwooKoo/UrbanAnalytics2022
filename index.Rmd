@@ -98,7 +98,7 @@ topic_col <- c(
 )
 
 reading_col <- c(
-  "[TU](https://journals.sagepub.com/doi/full/10.1177/2399808319839494)",# 1
+  "[Tu](https://journals.sagepub.com/doi/full/10.1177/2399808319839494) <br> [Th-1](https://scholarship.law.gwu.edu/cgi/viewcontent.cgi?article=1159&context=faculty_publications), [Th-2](https://openyls.law.yale.edu/handle/20.500.13051/7808), [Th-3](https://web.stanford.edu/dept/HPS/Design%20AI%20so%20that%20it%27s%20fair.pdf), [Th-4](https://www.nature.com/articles/541458a)",# 1
   "[Tu-1](https://r4ds.had.co.nz/workflow-basics.html), [Tu-2](https://r4ds.had.co.nz/transform.html) <br>
    [Th-1](https://geocompr.robinlovelace.net/spatial-class.html), [Th-2](https://geocompr.robinlovelace.net/attr.html), [Th-3](https://geocompr.robinlovelace.net/spatial-operations.html), [Th-4](https://rmarkdown.rstudio.com/lesson-1.html)",# 2
   "",# 3
