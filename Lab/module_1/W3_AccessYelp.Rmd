@@ -47,6 +47,49 @@ if ("yelpr" %in% installed.packages() == T){
 library(yelpr)
 ```
 
+# New functions introduced in this document
+**From tidycensus**
+* tidycensus::get_acs()
+
+**From sf:**
+* sf::st_bbox()
+* sf::st_point()
+* sf::st_centroid()
+* sf::st_distance()
+* sf::st_geometry()
+* sf::st_transform()
+* sf::st_coordinates()
+* sf::st_set_geometry()
+* sf::st_as_sf()
+* sf::st_join()
+
+**From base R**
+* sapply()
+* min()
+* max()
+* abs()
+* seq()
+* expand.grid()
+* names()
+* paste0()
+* ceiling()
+* ifelse()
+* bind_rows()
+* Sys.getenv()
+* list.files()
+
+**Other packages**
+* units::set_units()
+* osmdata::getbb()
+* yelpr::business_search()
+* jsonlite::flatten()
+* purrr::map_lgl()
+* reshape2::melt()
+
+
+
+
+
 # Downloading Census Track polygons
 
 Due to the limits in Yelp API in terms of how many results (i.e., rows) can be returned per each querry, it is safer to break the querry into smaller bits.

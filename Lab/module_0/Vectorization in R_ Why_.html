@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<!-- saved from url=(0068)https://www.noamross.net/archives/2014-04-16-vectorization-in-r-why/ -->
+<html><link type="text/css" rel="stylesheet" id="dark-mode-custom-link"><link type="text/css" rel="stylesheet" id="dark-mode-general-link"><style lang="en" type="text/css" id="dark-mode-custom-style"></style><style lang="en" type="text/css" id="dark-mode-native-style"></style><style lang="en" type="text/css" id="dark-mode-native-sheet"></style><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vectorization in R: Why?</title>
+  <link rel="canonical" href="https://www.noamross.net/archives/2014-04-16-vectorization-in-r-why/">
+
+  
+  <link rel="stylesheet" href="./Vectorization in R_ Why__files/kube.css">
+  <link rel="stylesheet" href="./Vectorization in R_ Why__files/custom.css">
+  <link rel="stylesheet" href="./Vectorization in R_ Why__files/tufte.css">
+  
+  
+  <link href="./Vectorization in R_ Why__files/css" rel="stylesheet" type="text/css">
+  <link href="./Vectorization in R_ Why__files/css(1)" rel="stylesheet" type="text/css">
+  <link href="./Vectorization in R_ Why__files/css(2)" rel="stylesheet">
+  <link href="./Vectorization in R_ Why__files/css(3)" rel="stylesheet">
+  <link href="./Vectorization in R_ Why__files/style.css" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="./Vectorization in R_ Why__files/hack-subset.css">
+  <link rel="stylesheet" href="./Vectorization in R_ Why__files/academicons.min.css">
+  <link href="./Vectorization in R_ Why__files/all.css" rel="stylesheet">
+  <script type="text/javascript" src="./Vectorization in R_ Why__files/MathJax.js.download"></script>
+
+  
+  <link rel="apple-touch-icon" sizes="180x180" href="https://cdn.jsdelivr.net/gh/noamross/noamross.net@164b105f888b68b0c9036d0b5e020a39ef9f5355/static/assets/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://cdn.jsdelivr.net/gh/noamross/noamross.net@164b105f888b68b0c9036d0b5e020a39ef9f5355/static/assets/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="https://cdn.jsdelivr.net/gh/noamross/noamross.net@164b105f888b68b0c9036d0b5e020a39ef9f5355/static/assets/favicon-16x16.png">
+  <link rel="shortcut icon" type="image/png" sizes="32x32" href="https://cdn.jsdelivr.net/gh/noamross/noamross.net@164b105f888b68b0c9036d0b5e020a39ef9f5355/static/assets/favicon-32x32.png">
+  <link rel="shortcut icon" type="image/png" sizes="16x16" href="https://cdn.jsdelivr.net/gh/noamross/noamross.net@164b105f888b68b0c9036d0b5e020a39ef9f5355/static/assets/favicon-16x16.png">
+  <link rel="manifest" href="https://cdn.jsdelivr.net/gh/noamross/noamross.net@164b105f888b68b0c9036d0b5e020a39ef9f5355/static/assets/site.webmanifest">
+  <link rel="mask-icon" href="https://cdn.jsdelivr.net/gh/noamross/noamross.net@164b105f888b68b0c9036d0b5e020a39ef9f5355/static/assets/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#2b5797">
+  <meta name="theme-color" content="#ffffff">
+
+  
+  
+
+  
+  <meta name="description" content="Here are my notes from a recent talk I gave on vectorization at a Davis R Users’ Group meeting. Thanks to Vince Buffalo, John Myles White, and Hadley Wickham for their input as I was preparing this. Feedback welcome!
+Beginning R users are often told to “vectorize” their code. Here, I try to explain why vectorization can be advantageous in R by showing how R works under the hood.
+Now, remember, premature optimization is the root of all evil (Knuth).
+">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:url" content="https://www.noamross.net/archives/2014-04-16-vectorization-in-r-why/">
+  <meta name="twitter:title" content="Vectorization in R: Why?">
+  <meta name="twitter:description" content="Here are my notes from a recent talk I gave on vectorization at a Davis R Users’ Group meeting. Thanks to Vince Buffalo, John Myles White, and Hadley Wickham for their input as I was preparing this. Feedback welcome!
+Beginning R users are often told to “vectorize” their code. Here, I try to explain why vectorization can be advantageous in R by showing how R works under the hood.
+Now, remember, premature optimization is the root of all evil (Knuth).">
+  <meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/noamross/noamross.net@164b105f888b68b0c9036d0b5e020a39ef9f5355/static/assets/img/nr.png">
+  <meta name="twitter:site" content="noamross.net">
+  <meta name="twitter:creator" content="@noamross">
+
+  <meta property="og:title" content="Vectorization in R: Why?">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:site_name" content="noamross.net">
+  <meta property="og:description" content="  Here are my notes from a recent talk I gave on vectorization at a Davis R Users’ Group meeting. Thanks to Vince Buffalo, John Myles White, and Hadley Wickham for their input as I was preparing this. Feedback welcome!
+Beginning R users are often told to “vectorize” their code. Here, I try to explain why vectorization can be advantageous in R by showing how R works under the hood.
+Now, remember, premature optimization is the root of all evil (Knuth).">
+  <meta property="og:url" content="https://www.noamross.net/archives/2014-04-16-vectorization-in-r-why/">
+  <script type="application/ld+json">
+    {"@type":"WebSite","url":"https:\/\/www.noamross.net\/archives\/2014-04-16-vectorization-in-r-why\/","headline":"Vectorization in R: Why?", "name":"noamross.net","description":"Here are my notes from a recent talk I gave on vectorization at a Davis R Users’ Group meeting. Thanks to Vince Buffalo, John Myles White, and Hadley Wickham for their input as I was preparing this. Feedback welcome!\nBeginning R users are often told to “vectorize” their code. Here, I try to explain why vectorization can be advantageous in R by showing how R works under the hood.\nNow, remember, premature optimization is the root of all evil (Knuth).","@context":"http://schema.org"}
+  </script>
+
+  
+  
+<style type="text/css">.MathJax_Hover_Frame {border-radius: .25em; -webkit-border-radius: .25em; -moz-border-radius: .25em; -khtml-border-radius: .25em; box-shadow: 0px 0px 15px #83A; -webkit-box-shadow: 0px 0px 15px #83A; -moz-box-shadow: 0px 0px 15px #83A; -khtml-box-shadow: 0px 0px 15px #83A; border: 1px solid #A6D ! important; display: inline-block; position: absolute}
+.MathJax_Menu_Button .MathJax_Hover_Arrow {position: absolute; cursor: pointer; display: inline-block; border: 2px solid #AAA; border-radius: 4px; -webkit-border-radius: 4px; -moz-border-radius: 4px; -khtml-border-radius: 4px; font-family: 'Courier New',Courier; font-size: 9px; color: #F0F0F0}
+.MathJax_Menu_Button .MathJax_Hover_Arrow span {display: block; background-color: #AAA; border: 1px solid; border-radius: 3px; line-height: 0; padding: 4px}
+.MathJax_Hover_Arrow:hover {color: white!important; border: 2px solid #CCC!important}
+.MathJax_Hover_Arrow:hover span {background-color: #CCC!important}
+</style><style type="text/css">#MathJax_About {position: fixed; left: 50%; width: auto; text-align: center; border: 3px outset; padding: 1em 2em; background-color: #DDDDDD; color: black; cursor: default; font-family: message-box; font-size: 120%; font-style: normal; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; z-index: 201; border-radius: 15px; -webkit-border-radius: 15px; -moz-border-radius: 15px; -khtml-border-radius: 15px; box-shadow: 0px 10px 20px #808080; -webkit-box-shadow: 0px 10px 20px #808080; -moz-box-shadow: 0px 10px 20px #808080; -khtml-box-shadow: 0px 10px 20px #808080; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+#MathJax_About.MathJax_MousePost {outline: none}
+.MathJax_Menu {position: absolute; background-color: white; color: black; width: auto; padding: 2px; border: 1px solid #CCCCCC; margin: 0; cursor: default; font: menu; text-align: left; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; z-index: 201; box-shadow: 0px 10px 20px #808080; -webkit-box-shadow: 0px 10px 20px #808080; -moz-box-shadow: 0px 10px 20px #808080; -khtml-box-shadow: 0px 10px 20px #808080; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+.MathJax_MenuItem {padding: 2px 2em; background: transparent}
+.MathJax_MenuArrow {position: absolute; right: .5em; padding-top: .25em; color: #666666; font-size: .75em}
+.MathJax_MenuActive .MathJax_MenuArrow {color: white}
+.MathJax_MenuArrow.RTL {left: .5em; right: auto}
+.MathJax_MenuCheck {position: absolute; left: .7em}
+.MathJax_MenuCheck.RTL {right: .7em; left: auto}
+.MathJax_MenuRadioCheck {position: absolute; left: 1em}
+.MathJax_MenuRadioCheck.RTL {right: 1em; left: auto}
+.MathJax_MenuLabel {padding: 2px 2em 4px 1.33em; font-style: italic}
+.MathJax_MenuRule {border-top: 1px solid #CCCCCC; margin: 4px 1px 0px}
+.MathJax_MenuDisabled {color: GrayText}
+.MathJax_MenuActive {background-color: Highlight; color: HighlightText}
+.MathJax_MenuDisabled:focus, .MathJax_MenuLabel:focus {background-color: #E8E8E8}
+.MathJax_ContextMenu:focus {outline: none}
+.MathJax_ContextMenu .MathJax_MenuItem:focus {outline: none}
+#MathJax_AboutClose {top: .2em; right: .2em}
+.MathJax_Menu .MathJax_MenuClose {top: -10px; left: -10px}
+.MathJax_MenuClose {position: absolute; cursor: pointer; display: inline-block; border: 2px solid #AAA; border-radius: 18px; -webkit-border-radius: 18px; -moz-border-radius: 18px; -khtml-border-radius: 18px; font-family: 'Courier New',Courier; font-size: 24px; color: #F0F0F0}
+.MathJax_MenuClose span {display: block; background-color: #AAA; border: 1.5px solid; border-radius: 18px; -webkit-border-radius: 18px; -moz-border-radius: 18px; -khtml-border-radius: 18px; line-height: 0; padding: 8px 0 6px}
+.MathJax_MenuClose:hover {color: white!important; border: 2px solid #CCC!important}
+.MathJax_MenuClose:hover span {background-color: #CCC!important}
+.MathJax_MenuClose:hover:focus {outline: none}
+</style><style type="text/css">.MathJax_Preview .MJXf-math {color: inherit!important}
+</style><style type="text/css">.MJX_Assistive_MathML {position: absolute!important; top: 0; left: 0; clip: rect(1px, 1px, 1px, 1px); padding: 1px 0 0 0!important; border: 0!important; height: 1px!important; width: 1px!important; overflow: hidden!important; display: block!important; -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none}
+.MJX_Assistive_MathML.MJX_Assistive_MathML_Block {width: 100%!important}
+</style><style type="text/css">#MathJax_Zoom {position: absolute; background-color: #F0F0F0; overflow: auto; display: block; z-index: 301; padding: .5em; border: 1px solid black; margin: 0; font-weight: normal; font-style: normal; text-align: left; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; -webkit-box-sizing: content-box; -moz-box-sizing: content-box; box-sizing: content-box; box-shadow: 5px 5px 15px #AAAAAA; -webkit-box-shadow: 5px 5px 15px #AAAAAA; -moz-box-shadow: 5px 5px 15px #AAAAAA; -khtml-box-shadow: 5px 5px 15px #AAAAAA; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+#MathJax_ZoomOverlay {position: absolute; left: 0; top: 0; z-index: 300; display: inline-block; width: 100%; height: 100%; border: 0; padding: 0; margin: 0; background-color: white; opacity: 0; filter: alpha(opacity=0)}
+#MathJax_ZoomFrame {position: relative; display: inline-block; height: 0; width: 0}
+#MathJax_ZoomEventTrap {position: absolute; left: 0; top: 0; z-index: 302; display: inline-block; border: 0; padding: 0; margin: 0; background-color: white; opacity: 0; filter: alpha(opacity=0)}
+</style><style type="text/css">.MathJax_Preview {color: #888}
+#MathJax_Message {position: fixed; left: 1em; bottom: 1.5em; background-color: #E6E6E6; border: 1px solid #959595; margin: 0px; padding: 2px 8px; z-index: 102; color: black; font-size: 80%; width: auto; white-space: nowrap}
+#MathJax_MSIE_Frame {position: absolute; top: 0; left: 0; width: 0px; z-index: 101; border: 0px; margin: 0px; padding: 0px}
+.MathJax_Error {color: #CC0000; font-style: italic}
+</style><style type="text/css">.MJXp-script {font-size: .8em}
+.MJXp-right {-webkit-transform-origin: right; -moz-transform-origin: right; -ms-transform-origin: right; -o-transform-origin: right; transform-origin: right}
+.MJXp-bold {font-weight: bold}
+.MJXp-italic {font-style: italic}
+.MJXp-scr {font-family: MathJax_Script,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-frak {font-family: MathJax_Fraktur,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-sf {font-family: MathJax_SansSerif,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-cal {font-family: MathJax_Caligraphic,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-mono {font-family: MathJax_Typewriter,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-largeop {font-size: 150%}
+.MJXp-largeop.MJXp-int {vertical-align: -.2em}
+.MJXp-math {display: inline-block; line-height: 1.2; text-indent: 0; font-family: 'Times New Roman',Times,STIXGeneral,serif; white-space: nowrap; border-collapse: collapse}
+.MJXp-display {display: block; text-align: center; margin: 1em 0}
+.MJXp-math span {display: inline-block}
+.MJXp-box {display: block!important; text-align: center}
+.MJXp-box:after {content: " "}
+.MJXp-rule {display: block!important; margin-top: .1em}
+.MJXp-char {display: block!important}
+.MJXp-mo {margin: 0 .15em}
+.MJXp-mfrac {margin: 0 .125em; vertical-align: .25em}
+.MJXp-denom {display: inline-table!important; width: 100%}
+.MJXp-denom > * {display: table-row!important}
+.MJXp-surd {vertical-align: top}
+.MJXp-surd > * {display: block!important}
+.MJXp-script-box > *  {display: table!important; height: 50%}
+.MJXp-script-box > * > * {display: table-cell!important; vertical-align: top}
+.MJXp-script-box > *:last-child > * {vertical-align: bottom}
+.MJXp-script-box > * > * > * {display: block!important}
+.MJXp-mphantom {visibility: hidden}
+.MJXp-munderover {display: inline-table!important}
+.MJXp-over {display: inline-block!important; text-align: center}
+.MJXp-over > * {display: block!important}
+.MJXp-munderover > * {display: table-row!important}
+.MJXp-mtable {vertical-align: .25em; margin: 0 .125em}
+.MJXp-mtable > * {display: inline-table!important; vertical-align: middle}
+.MJXp-mtr {display: table-row!important}
+.MJXp-mtd {display: table-cell!important; text-align: center; padding: .5em 0 0 .5em}
+.MJXp-mtr > .MJXp-mtd:first-child {padding-left: 0}
+.MJXp-mtr:first-child > .MJXp-mtd {padding-top: 0}
+.MJXp-mlabeledtr {display: table-row!important}
+.MJXp-mlabeledtr > .MJXp-mtd:first-child {padding-left: 0}
+.MJXp-mlabeledtr:first-child > .MJXp-mtd {padding-top: 0}
+.MJXp-merror {background-color: #FFFF88; color: #CC0000; border: 1px solid #CC0000; padding: 1px 3px; font-style: normal; font-size: 90%}
+.MJXp-scale0 {-webkit-transform: scaleX(.0); -moz-transform: scaleX(.0); -ms-transform: scaleX(.0); -o-transform: scaleX(.0); transform: scaleX(.0)}
+.MJXp-scale1 {-webkit-transform: scaleX(.1); -moz-transform: scaleX(.1); -ms-transform: scaleX(.1); -o-transform: scaleX(.1); transform: scaleX(.1)}
+.MJXp-scale2 {-webkit-transform: scaleX(.2); -moz-transform: scaleX(.2); -ms-transform: scaleX(.2); -o-transform: scaleX(.2); transform: scaleX(.2)}
+.MJXp-scale3 {-webkit-transform: scaleX(.3); -moz-transform: scaleX(.3); -ms-transform: scaleX(.3); -o-transform: scaleX(.3); transform: scaleX(.3)}
+.MJXp-scale4 {-webkit-transform: scaleX(.4); -moz-transform: scaleX(.4); -ms-transform: scaleX(.4); -o-transform: scaleX(.4); transform: scaleX(.4)}
+.MJXp-scale5 {-webkit-transform: scaleX(.5); -moz-transform: scaleX(.5); -ms-transform: scaleX(.5); -o-transform: scaleX(.5); transform: scaleX(.5)}
+.MJXp-scale6 {-webkit-transform: scaleX(.6); -moz-transform: scaleX(.6); -ms-transform: scaleX(.6); -o-transform: scaleX(.6); transform: scaleX(.6)}
+.MJXp-scale7 {-webkit-transform: scaleX(.7); -moz-transform: scaleX(.7); -ms-transform: scaleX(.7); -o-transform: scaleX(.7); transform: scaleX(.7)}
+.MJXp-scale8 {-webkit-transform: scaleX(.8); -moz-transform: scaleX(.8); -ms-transform: scaleX(.8); -o-transform: scaleX(.8); transform: scaleX(.8)}
+.MJXp-scale9 {-webkit-transform: scaleX(.9); -moz-transform: scaleX(.9); -ms-transform: scaleX(.9); -o-transform: scaleX(.9); transform: scaleX(.9)}
+.MathJax_PHTML .noError {vertical-align: ; font-size: 90%; text-align: left; color: black; padding: 1px 3px; border: 1px solid}
+</style><style type="text/css">.MathJax_Display {text-align: center; margin: 1em 0em; position: relative; display: block!important; text-indent: 0; max-width: none; max-height: none; min-width: 0; min-height: 0; width: 100%}
+.MathJax .merror {background-color: #FFFF88; color: #CC0000; border: 1px solid #CC0000; padding: 1px 3px; font-style: normal; font-size: 90%}
+.MathJax .MJX-monospace {font-family: monospace}
+.MathJax .MJX-sans-serif {font-family: sans-serif}
+#MathJax_Tooltip {background-color: InfoBackground; color: InfoText; border: 1px solid black; box-shadow: 2px 2px 5px #AAAAAA; -webkit-box-shadow: 2px 2px 5px #AAAAAA; -moz-box-shadow: 2px 2px 5px #AAAAAA; -khtml-box-shadow: 2px 2px 5px #AAAAAA; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true'); padding: 3px 4px; z-index: 401; position: absolute; left: 0; top: 0; width: auto; height: auto; display: none}
+.MathJax {display: inline; font-style: normal; font-weight: normal; line-height: normal; font-size: 100%; font-size-adjust: none; text-indent: 0; text-align: left; text-transform: none; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; direction: ltr; max-width: none; max-height: none; min-width: 0; min-height: 0; border: 0; padding: 0; margin: 0}
+.MathJax:focus, body :focus .MathJax {display: inline-table}
+.MathJax.MathJax_FullWidth {text-align: center; display: table-cell!important; width: 10000em!important}
+.MathJax img, .MathJax nobr, .MathJax a {border: 0; padding: 0; margin: 0; max-width: none; max-height: none; min-width: 0; min-height: 0; vertical-align: 0; line-height: normal; text-decoration: none}
+img.MathJax_strut {border: 0!important; padding: 0!important; margin: 0!important; vertical-align: 0!important}
+.MathJax span {display: inline; position: static; border: 0; padding: 0; margin: 0; vertical-align: 0; line-height: normal; text-decoration: none}
+.MathJax nobr {white-space: nowrap!important}
+.MathJax img {display: inline!important; float: none!important}
+.MathJax * {transition: none; -webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none}
+.MathJax_Processing {visibility: hidden; position: fixed; width: 0; height: 0; overflow: hidden}
+.MathJax_Processed {display: none!important}
+.MathJax_ExBox {display: block!important; overflow: hidden; width: 1px; height: 60ex; min-height: 0; max-height: none}
+.MathJax .MathJax_EmBox {display: block!important; overflow: hidden; width: 1px; height: 60em; min-height: 0; max-height: none}
+.MathJax_LineBox {display: table!important}
+.MathJax_LineBox span {display: table-cell!important; width: 10000em!important; min-width: 0; max-width: none; padding: 0; border: 0; margin: 0}
+.MathJax .MathJax_HitBox {cursor: text; background: white; opacity: 0; filter: alpha(opacity=0)}
+.MathJax .MathJax_HitBox * {filter: none; opacity: 1; background: transparent}
+#MathJax_Tooltip * {filter: none; opacity: 1; background: transparent}
+@font-face {font-family: MathJax_Main; src: url('https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/fonts/HTML-CSS/TeX/woff/MathJax_Main-Regular.woff?V=2.7.1') format('woff'), url('https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/fonts/HTML-CSS/TeX/otf/MathJax_Main-Regular.otf?V=2.7.1') format('opentype')}
+@font-face {font-family: MathJax_Main-bold; src: url('https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/fonts/HTML-CSS/TeX/woff/MathJax_Main-Bold.woff?V=2.7.1') format('woff'), url('https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/fonts/HTML-CSS/TeX/otf/MathJax_Main-Bold.otf?V=2.7.1') format('opentype')}
+@font-face {font-family: MathJax_Main-italic; src: url('https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/fonts/HTML-CSS/TeX/woff/MathJax_Main-Italic.woff?V=2.7.1') format('woff'), url('https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/fonts/HTML-CSS/TeX/otf/MathJax_Main-Italic.otf?V=2.7.1') format('opentype')}
+@font-face {font-family: MathJax_Math-italic; src: url('https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/fonts/HTML-CSS/TeX/woff/MathJax_Math-Italic.woff?V=2.7.1') format('woff'), url('https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/fonts/HTML-CSS/TeX/otf/MathJax_Math-Italic.otf?V=2.7.1') format('opentype')}
+@font-face {font-family: MathJax_Caligraphic; src: url('https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/fonts/HTML-CSS/TeX/woff/MathJax_Caligraphic-Regular.woff?V=2.7.1') format('woff'), url('https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/fonts/HTML-CSS/TeX/otf/MathJax_Caligraphic-Regular.otf?V=2.7.1') format('opentype')}
+@font-face {font-family: MathJax_Size1; src: url('https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/fonts/HTML-CSS/TeX/woff/MathJax_Size1-Regular.woff?V=2.7.1') format('woff'), url('https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/fonts/HTML-CSS/TeX/otf/MathJax_Size1-Regular.otf?V=2.7.1') format('opentype')}
+@font-face {font-family: MathJax_Size2; src: url('https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/fonts/HTML-CSS/TeX/woff/MathJax_Size2-Regular.woff?V=2.7.1') format('woff'), url('https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/fonts/HTML-CSS/TeX/otf/MathJax_Size2-Regular.otf?V=2.7.1') format('opentype')}
+@font-face {font-family: MathJax_Size3; src: url('https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/fonts/HTML-CSS/TeX/woff/MathJax_Size3-Regular.woff?V=2.7.1') format('woff'), url('https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/fonts/HTML-CSS/TeX/otf/MathJax_Size3-Regular.otf?V=2.7.1') format('opentype')}
+@font-face {font-family: MathJax_Size4; src: url('https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/fonts/HTML-CSS/TeX/woff/MathJax_Size4-Regular.woff?V=2.7.1') format('woff'), url('https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/fonts/HTML-CSS/TeX/otf/MathJax_Size4-Regular.otf?V=2.7.1') format('opentype')}
+.MathJax .noError {vertical-align: ; font-size: 90%; text-align: left; color: black; padding: 1px 3px; border: 1px solid}
+</style></head>
+
+<body><div style="visibility: hidden; overflow: hidden; position: absolute; top: 0px; height: 1px; width: auto; padding: 0px; border: 0px; margin: 0px; text-align: left; text-indent: 0px; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal;"><div id="MathJax_Hidden"></div></div><div id="MathJax_Message" style="display: none;"></div>
+
+<div id="topbar" class="is-hidden-print">
+	<div class="wrapper">
+		<header>
+			<div class="is-navbar-container">
+				<nav>
+				<div class="is-brand">
+					<a class="logo" href="https://www.noamross.net/"><i>NR</i></a>
+					<a href="https://www.noamross.net/archives/2014-04-16-vectorization-in-r-why/#" class="is-push-right-mobile is-shown-mobile icon-kube-menu" data-kube="toggle" data-target="#navbar-main" data-loaded="true"></a>
+				</div>
+				</nav>
+				<div id="navbar-main" class="is-navbar is-hidden-mobile is-center-mobile">
+					<nav>
+						<ul>
+							<li><a href="https://www.noamross.net/musings">Musings</a></li>
+						
+							<li><a href="https://www.noamross.net/vitae">Vitae</a></li>
+							<li><a href="https://www.noamross.net/archives/2014-04-16-vectorization-in-r-why/#connect">Connect</a></li>
+						</ul>
+					</nav>
+					<nav class="is-push-right is-left-mobile">
+						<form method="get" action="https://duckduckgo.com/">
+      <input type="search" name="q" maxlength="255" placeholder="Search noamross.net">
+      <input type="hidden" name="sites" value="www.noamross.net">
+      <input type="hidden" name="ka" value="Alegreya">
+      <input type="hidden" name="k7" value="#faf8f8">
+      <input type="hidden" name="kj" value="#b33">
+      <input type="hidden" name="ky" value="#fafafa">
+      <input type="hidden" name="kx" value="b">
+      <input type="hidden" name="ko" value="-1">
+      <input type="hidden" name="k1" value="-1">
+      <input type="hidden" name="kt" value="Alegreya Sans">
+</form>
+					</nav>
+				</div>
+			</div>
+		</header>
+	</div>
+</div>
+
+
+<div class="wrapper">
+  <div class="is-row is-stack-20">
+    <div class="is-col is-10">&nbsp;</div>
+    <div class="is-col is-60">
+    <h1 class="is-text-center"><a href="https://www.noamross.net/archives/2014-04-16-vectorization-in-r-why/">Vectorization in R: Why?</a></h1>
+    <h4 class="is-bigger is-text-center">April 16, 2014</h4>
+    </div>
+    <div class="is-col is-30">&nbsp;</div>
+  </div>
+  <div class="is-row is-stack-20">
+  </div>
+  <div class="is-row is-stack-20">
+    <div class="is-col is-10 dateblock is-stack-20">
+    </div>
+    <div class="is-col is-60">
+      <div class="story">
+      <p><em>Here are my notes from a recent talk I gave on vectorization at a <a href="http://www.noamross.net/davis-r-users-group.html">Davis R Users’ Group</a> meeting. Thanks to <a href="https://twitter.com/vsbuffalo">Vince Buffalo</a>, <a href="http://twitter.com/johnmyleswhite">John Myles White</a>, and <a href="http://twitter.com/hadleywickham">Hadley Wickham</a> for their input as I was preparing this. Feedback welcome!</em></p>
+<p>Beginning R users are often told to “vectorize” their code. Here, I try to explain <em>why</em> vectorization can be advantageous in R by showing how R works under the hood.</p>
+<p>Now, remember, <a href="http://c2.com/cgi/wiki?PrematureOptimization">premature optimization is the root of all evil (Knuth)</a>. Don’t start re-writing your code unless the time saved is going to be worth the time invested. <a href="http://www.noamross.net/blog/2013/4/25/faster-talk.html">Other approaches, like finding a bigger machine or parallelization</a>, could give you more bang for the buck in terms of programming time. But if you understand the nuts and bolts of vectorization in R, it may help you write shorter, simpler, safer, and yes, faster code in the first place.</p>
+<p>First, let’s acknowledge that vectorization can seem like voodoo. Consider a two math problems, one vectorized, and one not:</p>
+<div>
+<span class="math display"><span class="MathJax_Preview" style="color: inherit; display: none;"></span><div class="MathJax_Display" style="text-align: center;"><span class="MathJax" id="MathJax-Element-1-Frame" tabindex="0" data-mathml="&lt;math xmlns=&quot;http://www.w3.org/1998/Math/MathML&quot; display=&quot;block&quot;&gt;&lt;mrow&gt;&lt;mo&gt;[&lt;/mo&gt;&lt;mtable rowspacing=&quot;4pt&quot; columnspacing=&quot;1em&quot;&gt;&lt;mtr&gt;&lt;mtd&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;/mtd&gt;&lt;/mtr&gt;&lt;mtr&gt;&lt;mtd&gt;&lt;mn&gt;2&lt;/mn&gt;&lt;/mtd&gt;&lt;/mtr&gt;&lt;mtr&gt;&lt;mtd&gt;&lt;mn&gt;3&lt;/mn&gt;&lt;/mtd&gt;&lt;/mtr&gt;&lt;/mtable&gt;&lt;mo&gt;]&lt;/mo&gt;&lt;/mrow&gt;&lt;mo&gt;+&lt;/mo&gt;&lt;mrow&gt;&lt;mo&gt;[&lt;/mo&gt;&lt;mtable rowspacing=&quot;4pt&quot; columnspacing=&quot;1em&quot;&gt;&lt;mtr&gt;&lt;mtd&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;/mtd&gt;&lt;/mtr&gt;&lt;mtr&gt;&lt;mtd&gt;&lt;mn&gt;2&lt;/mn&gt;&lt;/mtd&gt;&lt;/mtr&gt;&lt;mtr&gt;&lt;mtd&gt;&lt;mn&gt;3&lt;/mn&gt;&lt;/mtd&gt;&lt;/mtr&gt;&lt;/mtable&gt;&lt;mo&gt;]&lt;/mo&gt;&lt;/mrow&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mrow&gt;&lt;mo&gt;[&lt;/mo&gt;&lt;mtable rowspacing=&quot;4pt&quot; columnspacing=&quot;1em&quot;&gt;&lt;mtr&gt;&lt;mtd&gt;&lt;mn&gt;2&lt;/mn&gt;&lt;/mtd&gt;&lt;/mtr&gt;&lt;mtr&gt;&lt;mtd&gt;&lt;mn&gt;4&lt;/mn&gt;&lt;/mtd&gt;&lt;/mtr&gt;&lt;mtr&gt;&lt;mtd&gt;&lt;mn&gt;6&lt;/mn&gt;&lt;/mtd&gt;&lt;/mtr&gt;&lt;/mtable&gt;&lt;mo&gt;]&lt;/mo&gt;&lt;/mrow&gt;&lt;/math&gt;" role="presentation" style="text-align: center; position: relative;"><nobr aria-hidden="true"><span class="math" id="MathJax-Span-1" style="width: 9.733em; display: inline-block;"><span style="display: inline-block; position: relative; width: 9.332em; height: 0px; font-size: 104%;"><span style="position: absolute; clip: rect(2.178em, 1008.99em, 6.356em, -999.997em); top: -4.519em; left: 0em;"><span class="mrow" id="MathJax-Span-2"><span class="mrow" id="MathJax-Span-3"><span class="mo" id="MathJax-Span-4" style="vertical-align: 2.178em;"><span style="display: inline-block; position: relative; width: 0.69em; height: 0px;"><span style="position: absolute; font-family: MathJax_Size4; top: -2.859em; left: 0em;">⎡<span style="display: inline-block; width: 0px; height: 4.009em;"></span></span><span style="position: absolute; font-family: MathJax_Size4; top: -0.856em; left: 0em;">⎣<span style="display: inline-block; width: 0px; height: 4.009em;"></span></span><span style="font-family: MathJax_Size4; position: absolute; top: -1.829em; left: 0em;">⎢<span style="display: inline-block; width: 0px; height: 4.009em;"></span></span></span></span><span class="mtable" id="MathJax-Span-5" style="padding-right: 0.175em; padding-left: 0.175em;"><span style="display: inline-block; position: relative; width: 0.518em; height: 0px;"><span style="position: absolute; clip: rect(2.292em, 1000.46em, 6.127em, -999.997em); top: -4.461em; left: 0em;"><span style="display: inline-block; position: relative; width: 0.518em; height: 0px;"><span style="position: absolute; clip: rect(3.151em, 1000.4em, 4.181em, -999.997em); top: -5.377em; left: 50%; margin-left: -0.226em;"><span class="mtd" id="MathJax-Span-6"><span class="mrow" id="MathJax-Span-7"><span class="mn" id="MathJax-Span-8" style="font-family: MathJax_Main;">1</span></span></span><span style="display: inline-block; width: 0px; height: 4.009em;"></span></span><span style="position: absolute; clip: rect(3.151em, 1000.46em, 4.181em, -999.997em); top: -3.946em; left: 50%; margin-left: -0.226em;"><span class="mtd" id="MathJax-Span-9"><span class="mrow" id="MathJax-Span-10"><span class="mn" id="MathJax-Span-11" style="font-family: MathJax_Main;">2</span></span></span><span style="display: inline-block; width: 0px; height: 4.009em;"></span></span><span style="position: absolute; clip: rect(3.151em, 1000.46em, 4.181em, -999.997em); top: -2.573em; left: 50%; margin-left: -0.226em;"><span class="mtd" id="MathJax-Span-12"><span class="mrow" id="MathJax-Span-13"><span class="mn" id="MathJax-Span-14" style="font-family: MathJax_Main;">3</span></span></span><span style="display: inline-block; width: 0px; height: 4.009em;"></span></span></span><span style="display: inline-block; width: 0px; height: 4.467em;"></span></span></span></span><span class="mo" id="MathJax-Span-15" style="vertical-align: 2.178em;"><span style="display: inline-block; position: relative; width: 0.69em; height: 0px;"><span style="position: absolute; font-family: MathJax_Size4; top: -2.859em; left: 0em;">⎤<span style="display: inline-block; width: 0px; height: 4.009em;"></span></span><span style="position: absolute; font-family: MathJax_Size4; top: -0.856em; left: 0em;">⎦<span style="display: inline-block; width: 0px; height: 4.009em;"></span></span><span style="font-family: MathJax_Size4; position: absolute; top: -1.829em; left: 0em;">⎥<span style="display: inline-block; width: 0px; height: 4.009em;"></span></span></span></span></span><span class="mo" id="MathJax-Span-16" style="font-family: MathJax_Main; padding-left: 0.232em;">+</span><span class="mrow" id="MathJax-Span-17" style="padding-left: 0.232em;"><span class="mo" id="MathJax-Span-18" style="vertical-align: 2.178em;"><span style="display: inline-block; position: relative; width: 0.69em; height: 0px;"><span style="position: absolute; font-family: MathJax_Size4; top: -2.859em; left: 0em;">⎡<span style="display: inline-block; width: 0px; height: 4.009em;"></span></span><span style="position: absolute; font-family: MathJax_Size4; top: -0.856em; left: 0em;">⎣<span style="display: inline-block; width: 0px; height: 4.009em;"></span></span><span style="font-family: MathJax_Size4; position: absolute; top: -1.829em; left: 0em;">⎢<span style="display: inline-block; width: 0px; height: 4.009em;"></span></span></span></span><span class="mtable" id="MathJax-Span-19" style="padding-right: 0.175em; padding-left: 0.175em;"><span style="display: inline-block; position: relative; width: 0.518em; height: 0px;"><span style="position: absolute; clip: rect(2.292em, 1000.46em, 6.127em, -999.997em); top: -4.461em; left: 0em;"><span style="display: inline-block; position: relative; width: 0.518em; height: 0px;"><span style="position: absolute; clip: rect(3.151em, 1000.4em, 4.181em, -999.997em); top: -5.377em; left: 50%; margin-left: -0.226em;"><span class="mtd" id="MathJax-Span-20"><span class="mrow" id="MathJax-Span-21"><span class="mn" id="MathJax-Span-22" style="font-family: MathJax_Main;">1</span></span></span><span style="display: inline-block; width: 0px; height: 4.009em;"></span></span><span style="position: absolute; clip: rect(3.151em, 1000.46em, 4.181em, -999.997em); top: -3.946em; left: 50%; margin-left: -0.226em;"><span class="mtd" id="MathJax-Span-23"><span class="mrow" id="MathJax-Span-24"><span class="mn" id="MathJax-Span-25" style="font-family: MathJax_Main;">2</span></span></span><span style="display: inline-block; width: 0px; height: 4.009em;"></span></span><span style="position: absolute; clip: rect(3.151em, 1000.46em, 4.181em, -999.997em); top: -2.573em; left: 50%; margin-left: -0.226em;"><span class="mtd" id="MathJax-Span-26"><span class="mrow" id="MathJax-Span-27"><span class="mn" id="MathJax-Span-28" style="font-family: MathJax_Main;">3</span></span></span><span style="display: inline-block; width: 0px; height: 4.009em;"></span></span></span><span style="display: inline-block; width: 0px; height: 4.467em;"></span></span></span></span><span class="mo" id="MathJax-Span-29" style="vertical-align: 2.178em;"><span style="display: inline-block; position: relative; width: 0.69em; height: 0px;"><span style="position: absolute; font-family: MathJax_Size4; top: -2.859em; left: 0em;">⎤<span style="display: inline-block; width: 0px; height: 4.009em;"></span></span><span style="position: absolute; font-family: MathJax_Size4; top: -0.856em; left: 0em;">⎦<span style="display: inline-block; width: 0px; height: 4.009em;"></span></span><span style="font-family: MathJax_Size4; position: absolute; top: -1.829em; left: 0em;">⎥<span style="display: inline-block; width: 0px; height: 4.009em;"></span></span></span></span></span><span class="mo" id="MathJax-Span-30" style="font-family: MathJax_Main; padding-left: 0.289em;">=</span><span class="mrow" id="MathJax-Span-31" style="padding-left: 0.289em;"><span class="mo" id="MathJax-Span-32" style="vertical-align: 2.178em;"><span style="display: inline-block; position: relative; width: 0.69em; height: 0px;"><span style="position: absolute; font-family: MathJax_Size4; top: -2.859em; left: 0em;">⎡<span style="display: inline-block; width: 0px; height: 4.009em;"></span></span><span style="position: absolute; font-family: MathJax_Size4; top: -0.856em; left: 0em;">⎣<span style="display: inline-block; width: 0px; height: 4.009em;"></span></span><span style="font-family: MathJax_Size4; position: absolute; top: -1.829em; left: 0em;">⎢<span style="display: inline-block; width: 0px; height: 4.009em;"></span></span></span></span><span class="mtable" id="MathJax-Span-33" style="padding-right: 0.175em; padding-left: 0.175em;"><span style="display: inline-block; position: relative; width: 0.518em; height: 0px;"><span style="position: absolute; clip: rect(2.292em, 1000.46em, 6.127em, -999.997em); top: -4.461em; left: 0em;"><span style="display: inline-block; position: relative; width: 0.518em; height: 0px;"><span style="position: absolute; clip: rect(3.151em, 1000.46em, 4.181em, -999.997em); top: -5.377em; left: 50%; margin-left: -0.226em;"><span class="mtd" id="MathJax-Span-34"><span class="mrow" id="MathJax-Span-35"><span class="mn" id="MathJax-Span-36" style="font-family: MathJax_Main;">2</span></span></span><span style="display: inline-block; width: 0px; height: 4.009em;"></span></span><span style="position: absolute; clip: rect(3.151em, 1000.46em, 4.181em, -999.997em); top: -3.946em; left: 50%; margin-left: -0.226em;"><span class="mtd" id="MathJax-Span-37"><span class="mrow" id="MathJax-Span-38"><span class="mn" id="MathJax-Span-39" style="font-family: MathJax_Main;">4</span></span></span><span style="display: inline-block; width: 0px; height: 4.009em;"></span></span><span style="position: absolute; clip: rect(3.151em, 1000.46em, 4.181em, -999.997em); top: -2.573em; left: 50%; margin-left: -0.226em;"><span class="mtd" id="MathJax-Span-40"><span class="mrow" id="MathJax-Span-41"><span class="mn" id="MathJax-Span-42" style="font-family: MathJax_Main;">6</span></span></span><span style="display: inline-block; width: 0px; height: 4.009em;"></span></span></span><span style="display: inline-block; width: 0px; height: 4.467em;"></span></span></span></span><span class="mo" id="MathJax-Span-43" style="vertical-align: 2.178em;"><span style="display: inline-block; position: relative; width: 0.69em; height: 0px;"><span style="position: absolute; font-family: MathJax_Size4; top: -2.859em; left: 0em;">⎤<span style="display: inline-block; width: 0px; height: 4.009em;"></span></span><span style="position: absolute; font-family: MathJax_Size4; top: -0.856em; left: 0em;">⎦<span style="display: inline-block; width: 0px; height: 4.009em;"></span></span><span style="font-family: MathJax_Size4; position: absolute; top: -1.829em; left: 0em;">⎥<span style="display: inline-block; width: 0px; height: 4.009em;"></span></span></span></span></span></span><span style="display: inline-block; width: 0px; height: 4.524em;"></span></span></span><span style="display: inline-block; overflow: hidden; vertical-align: -1.783em; border-left: 0px solid; width: 0px; height: 4.051em;"></span></span></nobr><span class="MJX_Assistive_MathML MJX_Assistive_MathML_Block" role="presentation"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mo>[</mo><mtable rowspacing="4pt" columnspacing="1em"><mtr><mtd><mn>1</mn></mtd></mtr><mtr><mtd><mn>2</mn></mtd></mtr><mtr><mtd><mn>3</mn></mtd></mtr></mtable><mo>]</mo></mrow><mo>+</mo><mrow><mo>[</mo><mtable rowspacing="4pt" columnspacing="1em"><mtr><mtd><mn>1</mn></mtd></mtr><mtr><mtd><mn>2</mn></mtd></mtr><mtr><mtd><mn>3</mn></mtd></mtr></mtable><mo>]</mo></mrow><mo>=</mo><mrow><mo>[</mo><mtable rowspacing="4pt" columnspacing="1em"><mtr><mtd><mn>2</mn></mtd></mtr><mtr><mtd><mn>4</mn></mtd></mtr><mtr><mtd><mn>6</mn></mtd></mtr></mtable><mo>]</mo></mrow></math></span></span></div><script type="math/tex; mode=display" id="MathJax-Element-1">\begin{bmatrix} 1 \\ 2 \\ 3 \end{bmatrix} + 
+\begin{bmatrix} 1 \\ 2 \\ 3 \end{bmatrix} =
+\begin{bmatrix} 2 \\ 4 \\ 6 \end{bmatrix}</script></span>
+</div>
+<div>
+<span class="math display"><span class="MathJax_Preview" style="color: inherit; display: none;"></span><div class="MathJax_Display" style="text-align: center;"><span class="MathJax" id="MathJax-Element-2-Frame" tabindex="0" data-mathml="&lt;math xmlns=&quot;http://www.w3.org/1998/Math/MathML&quot; display=&quot;block&quot;&gt;&lt;mtable columnalign=&quot;right left right left right left right left right left right left&quot; rowspacing=&quot;3pt&quot; columnspacing=&quot;0em 2em 0em 2em 0em 2em 0em 2em 0em 2em 0em&quot; displaystyle=&quot;true&quot;&gt;&lt;mtr&gt;&lt;mtd&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;mo&gt;+&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mn&gt;2&lt;/mn&gt;&lt;/mtd&gt;&lt;/mtr&gt;&lt;mtr&gt;&lt;mtd&gt;&lt;mn&gt;2&lt;/mn&gt;&lt;mo&gt;+&lt;/mo&gt;&lt;mn&gt;2&lt;/mn&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mn&gt;4&lt;/mn&gt;&lt;/mtd&gt;&lt;/mtr&gt;&lt;mtr&gt;&lt;mtd&gt;&lt;mn&gt;3&lt;/mn&gt;&lt;mo&gt;+&lt;/mo&gt;&lt;mn&gt;3&lt;/mn&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mn&gt;6&lt;/mn&gt;&lt;/mtd&gt;&lt;/mtr&gt;&lt;/mtable&gt;&lt;/math&gt;" role="presentation" style="text-align: center; position: relative;"><nobr aria-hidden="true"><span class="math" id="MathJax-Span-44" style="width: 4.639em; display: inline-block;"><span style="display: inline-block; position: relative; width: 4.467em; height: 0px; font-size: 104%;"><span style="position: absolute; clip: rect(0.117em, 1004.24em, 4.067em, -999.997em); top: -2.344em; left: 0em;"><span class="mrow" id="MathJax-Span-45"><span class="mtable" id="MathJax-Span-46" style="padding-right: 0.175em; padding-left: 0.175em;"><span style="display: inline-block; position: relative; width: 4.124em; height: 0px;"><span style="position: absolute; clip: rect(2.292em, 1004.07em, 5.955em, -999.997em); top: -4.347em; left: 0em;"><span style="display: inline-block; position: relative; width: 4.124em; height: 0px;"><span style="position: absolute; clip: rect(3.151em, 1004.07em, 4.238em, -999.997em); top: -5.263em; right: 0em;"><span class="mtd" id="MathJax-Span-47"><span class="mrow" id="MathJax-Span-48"><span class="mn" id="MathJax-Span-49" style="font-family: MathJax_Main;">1</span><span class="mo" id="MathJax-Span-50" style="font-family: MathJax_Main; padding-left: 0.232em;">+</span><span class="mn" id="MathJax-Span-51" style="font-family: MathJax_Main; padding-left: 0.232em;">1</span><span class="mo" id="MathJax-Span-52" style="font-family: MathJax_Main; padding-left: 0.289em;">=</span><span class="mn" id="MathJax-Span-53" style="font-family: MathJax_Main; padding-left: 0.289em;">2</span></span></span><span style="display: inline-block; width: 0px; height: 4.009em;"></span></span><span style="position: absolute; clip: rect(3.151em, 1004.07em, 4.238em, -999.997em); top: -3.946em; right: 0em;"><span class="mtd" id="MathJax-Span-54"><span class="mrow" id="MathJax-Span-55"><span class="mn" id="MathJax-Span-56" style="font-family: MathJax_Main;">2</span><span class="mo" id="MathJax-Span-57" style="font-family: MathJax_Main; padding-left: 0.232em;">+</span><span class="mn" id="MathJax-Span-58" style="font-family: MathJax_Main; padding-left: 0.232em;">2</span><span class="mo" id="MathJax-Span-59" style="font-family: MathJax_Main; padding-left: 0.289em;">=</span><span class="mn" id="MathJax-Span-60" style="font-family: MathJax_Main; padding-left: 0.289em;">4</span></span></span><span style="display: inline-block; width: 0px; height: 4.009em;"></span></span><span style="position: absolute; clip: rect(3.151em, 1004.07em, 4.238em, -999.997em); top: -2.63em; right: 0em;"><span class="mtd" id="MathJax-Span-61"><span class="mrow" id="MathJax-Span-62"><span class="mn" id="MathJax-Span-63" style="font-family: MathJax_Main;">3</span><span class="mo" id="MathJax-Span-64" style="font-family: MathJax_Main; padding-left: 0.232em;">+</span><span class="mn" id="MathJax-Span-65" style="font-family: MathJax_Main; padding-left: 0.232em;">3</span><span class="mo" id="MathJax-Span-66" style="font-family: MathJax_Main; padding-left: 0.289em;">=</span><span class="mn" id="MathJax-Span-67" style="font-family: MathJax_Main; padding-left: 0.289em;">6</span></span></span><span style="display: inline-block; width: 0px; height: 4.009em;"></span></span></span><span style="display: inline-block; width: 0px; height: 4.353em;"></span></span></span></span></span><span style="display: inline-block; width: 0px; height: 2.349em;"></span></span></span><span style="display: inline-block; overflow: hidden; vertical-align: -1.664em; border-left: 0px solid; width: 0px; height: 3.872em;"></span></span></nobr><span class="MJX_Assistive_MathML MJX_Assistive_MathML_Block" role="presentation"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mtable columnalign="right left right left right left right left right left right left" rowspacing="3pt" columnspacing="0em 2em 0em 2em 0em 2em 0em 2em 0em 2em 0em" displaystyle="true"><mtr><mtd><mn>1</mn><mo>+</mo><mn>1</mn><mo>=</mo><mn>2</mn></mtd></mtr><mtr><mtd><mn>2</mn><mo>+</mo><mn>2</mn><mo>=</mo><mn>4</mn></mtd></mtr><mtr><mtd><mn>3</mn><mo>+</mo><mn>3</mn><mo>=</mo><mn>6</mn></mtd></mtr></mtable></math></span></span></div><script type="math/tex; mode=display" id="MathJax-Element-2">\begin{aligned}
+1 + 1 = 2 \\
+2 + 2 = 4 \\
+3 + 3 = 6
+\end{aligned}</script></span>
+</div>
+<p>Why on earth should these take a different amount of time to calculate? Linear algebra isn’t magic. In both cases there are three addition operations to perform. So what’s up?</p>
+<h2 id="what-on-earth-is-r-actually-doing">1. What on earth is R actually doing?</h2>
+<p>R is a <em>high-level</em>, <em>interpreted</em> computer language. This means that R takes care of a lot of basic computer tasks for you. For instance, when you type</p>
+<pre><code>    i &lt;- 5.0</code></pre>
+<p>you <em>don’t</em> have to tell your computer:</p>
+<ul>
+<li>That “5.0” is a floating-point number</li>
+<li>That “i” should store numeric-type data</li>
+<li>To find a place in memory for to put “5”</li>
+<li>To register “i” as a pointer to that place in memory</li>
+</ul>
+<p>You also don’t have to convert <code>i &lt;- 5.0</code> to binary code. That’s done automatically when you hit ‘Enter’.</p>
+<p>When you then type</p>
+<pre><code>i &lt;- "foo"</code></pre>
+<p>you don’t have to tell the computer that <code>i</code> no longer stores an integer but a series of characters that form a <em>string</em>, to store “f”, “o”, and “o”, consecutively, etc.</p>
+<p>R figures these things on it’s own, on the fly, as you type commands or source them from a file. This means that running a command in R takes a <em>relatively</em> longer time than it might in a lower-level language, such as C. If I am writing in C, I might write</p>
+<pre><code>int i
+i = 5</code></pre>
+<p>This tells the computer the <code>i</code> will store data of the type <code>int</code> (integers), and assign the value 5 to it. If I try to assign 5.5 to it, something will go wrong. Depending on my set-up, it might throw an error, or just silently assign 5 to <code>i</code>. But C doesn’t have to figure out what type of data is is represented by <code>i</code> and this is part of what makes it faster.</p>
+<p>Here’s another example. If, in R, you type:</p>
+<pre><code>2L + 3.5</code></pre>
+<p>The computer asks:</p>
+<blockquote>
+<p>“OK, what’s the first thing?”</p>
+<p>“An integer”</p>
+<p>“The second thing?”</p>
+<p>“A a floating-point number”</p>
+<p>“Do we have a way to deal with adding an integer and a floating-point number?”</p>
+<p>“Yes! Convert the integer to a floating-point number, then add the two floating point numbers”</p>
+<p>[converts integer]</p>
+<p>[finds a place in memory for the answer]</p>
+<p>etc.</p>
+</blockquote>
+<p>If R were a <em>compiled</em> computer language, like C or FORTRAN, much of this “figuring out” would be accomplished during the compilation step, not when the program was run. Compiled programs are translated into binary computer language after they are written, but before they are run, and this occurs over the <em>whole program</em>, rather than line-by-line. This allows the compiler to organize the binary machine code in an optimal way for the computer to interpret.</p>
+<p>What does this have to do with vectorization in R? Well, <strong>many R functions are actually written in a a compiled language</strong>, such as C, C++, and FORTRAN, and have a small R “wrapper”. For instance, when you inspect the code for <code>fft</code>, the fast Fourier transform, you see</p>
+<pre><code>&gt; fft
+function (z, inverse = FALSE) 
+.Call(C_fft, z, inverse)
+&lt;bytecode: 0x7fc261e1b910&gt;
+&lt;environment: namespace:stats&gt;</code></pre>
+<p>R is passing the data onto a C function called <code>C_fft</code>. You’ll see this in many R functions. If you look at their source code, it will include <code>.C()</code>, <code>.Call()</code>, or sometimes <code>.Internal()</code> or <code>.Primitive()</code>. These means R is calling a C, C++, or FORTRAN program to carry out operations. However, R still has to interpret the input of the function before passing it to the compiled code. In <code>fft()</code> the compiled code runs only <em>after</em> R figures out the data type in <code>z</code>, and also whether to use the default value of <code>inverse</code>. The compiled code is able to run faster than code written in pure R, because the “figuring out” stuff is done first, and it can zoom ahead without the “translation” steps that R needs.</p>
+<p>If you need to run a function over all the values in a vector, you could pass a whole vector through the R function to the compiled code, or you could call the R function repeatedly for each value. If you do the latter, R has to do the “figuring out” stuff, as well as the translation, <em>each time</em>. But if you call it once, with a vector, the “figuring out” part happens just once.</p>
+<p>Inside the C or FORTRAN code, vectors are actually processed using loops or a similar construct. This is inevitable; somehow the computer is going to need to operate on each element of your vector. Since this occurs in the compiled code, though, without the overhead of R functions, this is much faster.</p>
+<p>Another important component of the speed of vectorized operations is that vectors in R are <em>typed</em>. Despite all of its flexibility, R does have some restrictions on what we can do. All elements of a vector must be the same data type. If I try to do this</p>
+<pre><code>a &lt;- c(1, 2, FALSE, "hello")</code></pre>
+<p>I get</p>
+<pre><code>&gt; a
+[1] "1"     "2"     "FALSE" "hello"
+&gt; class(a)
+[1] "character"</code></pre>
+<p>R converts all my data to characters. It can’t handle a vector with different data types.</p>
+<p>So when R needs to perform an operation like</p>
+<pre><code>c(1, 2, 3) + c(1, 2, 3)</code></pre>
+<p>R only has to ask what types of data are in <em>each vector</em> (2) rather than <em>each element</em> (6).</p>
+<p>One consequence of all this is that fast R code is short. If you can express what you want to do in R in a line or two, with just a few function calls that are actually calling compiled code, it’ll be more efficient than if you write long program, with the added overhead of many function calls. This is not the case in all other languages. Often, in compiled languages, you want to stick with lots of very simple statements, because that allows the compiler to figure out the most efficient translation of the code.</p>
+<h2 id="everything-is-a-vector">2. Everything is a vector</h2>
+<p>In R <em>everything</em> is a vector. To quote Tim Smith in <a href="http://tim-smith.us/arrgh/">“aRrgh: a newcomer’s (angry) guide to R”</a></p>
+<blockquote>
+<p>All naked numbers are double-width floating-point atomic vectors of length one. You’re welcome.</p>
+</blockquote>
+<p>This means that, in R, typing “6” tells R something like</p>
+<pre><code>&lt;start vector, type=numeric, length=1&gt;6&lt;end vector&gt;</code></pre>
+<p>While in other languages, “6” might just be</p>
+<pre><code>&lt;numeric&gt;6</code></pre>
+<p>So, while in other languages, it might be more efficient to express something as a single number rather than a length-one vector, in R this is impossible. There’s no <em>advantage</em> to NOT organizing your data as vector. In other languages, short vectors might be better expressed as scalars.</p>
+<h2 id="linear-algebra-is-a-special-case">3. Linear algebra is a special case</h2>
+<p>Linear algebra is one of the core functions of a lot of computing, so there are highly optimized programs for linear algebra. Such a program is called a BLAS - basic linear algebra system. R, and a lot of other software, relies on these specialized programs and outsources linear algebra to them. A BLAS is generally designed to be highly efficient and has things like built-in parallel processing, hardware-specific implementation, and a host of other tricks. So if your calculations can be expressed in actual linear algebra terms, such as matrix multiplication, than it is almost certainly faster to vectorize them because the BLAS will be doing most of the heavy lifting.</p>
+<p>There are faster and slower linear algebra libraries, and you can install new ones on your computer and tell R to use them instead of the defaults. This used to be like putting a new engine in your car, but <a href="http://moderntoolmaking.blogspot.com/2013/07/for-faster-r-on-mac-use-veclib.html">it’s gotten considerably easier</a>. For certain problems, a shiny new BLAS can considerably speed up code, but results vary depending on the specific linear algebra operations you are using.</p>
+<h2 id="functionals-pre-allocating-memory-avoiding-side-effects.">4. Functionals: Pre-allocating memory, avoiding side effects.</h2>
+<p>There are a whole family of functions in R called <em>functionals</em>, or <code>apply</code> functions, which take vectors (or matrices, or lists) of values and apply arbitrary functions to each. Because these can use <em>arbitrary</em> functions, they are NOT compiled. Functionals mostly are written in pure R, and they speed up code only in certain cases.</p>
+<p>One operation that is slow in R, and somewhat slow in all languages, is memory allocation. So one of the slower ways to write a <code>for</code> loop is to resize a vector repeatedly, so that R has to re-allocate memory repeatedly, like this:</p>
+<pre><code>j &lt;- 1
+for (i in 1:10) {
+    j[i] = 10
+}</code></pre>
+<p>Here, in each repetition of the <code>for</code> loop, R has to re-size the vector and re-allocate memory. It has to find the vector in memory, create a new vector that will fit more data, copy the old data over, insert the new data, and erase the old vector. This can get very slow as vectors get big.</p>
+<p>If one pre-allocates a vector that fits all the values, R doesn’t have to re-allocate memory each iteration, and the results can be much faster. Here’s how you’d do that for the above case:</p>
+<pre><code>j &lt;- rep(NA, 10)
+for (i in 1:10) {
+    j[i] = 10
+}</code></pre>
+<p>The <code>apply</code> or <code>plyr::*ply</code> functions all actually have <code>for</code> loops inside, but they automatically do things like pre-allocating vector size so you don’t screw it up. This is the main reason that they can be faster.</p>
+<p>Another thing that “ply” functions help with is avoiding what are known as <em>side effects</em>. When you run a <em>ply</em> function, everything happens inside that function, and nothing changes in your working environment (this is known as “functional programming”). In a <code>for</code> loop, on the other hand, when you do something like <code>for(i in 1:10)</code>, you get the leftover <code>i</code> in your environment. This is considered bad practice sometimes. Having a bunch of temporary variables like <code>i</code> lying around could cause problems in your code, especially if you use <code>i</code> for something else later.</p>
+<p>I’ve seen arguments that <code>ply</code> functions make for more expressive, easier to read code, but I’ve seen the same argument for <code>for</code> loops. Once you are used to writing vectorized code in general, though, <code>for</code> loops in R will can seem odd.</p>
+<h2 id="so-when-might-for-loops-make-sense-over-vectorization">So when might <code>for</code> loops make sense over vectorization?</h2>
+<p>There are still situations that it may make sense to use <code>for</code> loops instead of vectorized functions, though. These include:</p>
+<ul>
+<li>Using functions that don’t take vector arguments</li>
+<li>Loops where each iteration is dependent on the results of previous iterations</li>
+</ul>
+<p>Note that the second case is tricky. In some cases where the <em>obvious</em> implementation of an algorithm uses a <code>for</code> loop, there’s a vectorized way around it. For instance, <a href="https://www.stat.auckland.ac.nz/~ihaka/downloads/Taupo-handouts.pdf">here is a good example of implementing a random walk using vectorized code</a>. In these cases, you often want to call functions that are essentially C/FORTRAN implementations of loop operations to avoid the loop in R. Examples of such functions include <code>cumsum</code> (cumulative sums), <code>rle</code> (counting number of repeated value), and <code>ifelse</code> (vectorized if…else statements).</p>
+<p>Your performance penalty for using a <code>for</code> loop instead a vector will be small if the number of iterations is relatively small, and the functions called <em>inside</em> your for loop are slow. In these cases, looping and overhead from function calls make up a small fraction of your computational time. It may make sense to use a <code>for</code> loop in such cases, especially if they are more intuitive or easier to read <em>for you</em>.</p>
+<h2 id="some-resources-on-vectorization">Some resources on vectorization</h2>
+<ul>
+<li>Good discussion in a couple of <a href="http://www.johnmyleswhite.com/notebook/2013/01/24/writing-better-statistical-programs-in-r/">blog</a> <a href="http://www.johnmyleswhite.com/notebook/2013/12/22/the-relationship-between-vectorized-and-devectorized-code/">posts</a> by John Myles White.</li>
+<li>Some relevant chapters of Hadley Wickham’s Advanced R book: <a href="http://adv-r.had.co.nz/Functionals.html">Functionals</a> and <a href="http://adv-r.had.co.nz/Profiling.html#vectorise">code profiling</a></li>
+<li>Vectorization is covered in chapters 3 and 4 of the classic text on R’s idiosyncrasies - <a href="http://www.burns-stat.com/pages/Tutor/R_inferno.pdf">The R Inferno</a>, by Patrick Burns</li>
+<li>Here are a bunch of assorted blog posts with good examples of speeding up code with vectorization
+<ul>
+<li><a href="http://www.r-bloggers.com/how-to-use-vectorization-to-streamline-simulations/" class="uri">http://www.r-bloggers.com/how-to-use-vectorization-to-streamline-simulations/</a></li>
+<li><a href="http://nesterko.com/blog/2011/04/29/drastic-r-speed-ups-via-vectorization-and-bug-fixes/" class="uri">http://nesterko.com/blog/2011/04/29/drastic-r-speed-ups-via-vectorization-and-bug-fixes/</a></li>
+<li><a href="http://blog.revolutionanalytics.com/2014/04/a-look-a-r-vectorization-through-the-collatz-conjecture.html" class="uri">http://blog.revolutionanalytics.com/2014/04/a-look-a-r-vectorization-through-the-collatz-conjecture.html</a></li>
+<li><a href="http://rpubs.com/daspringate/vectorisation" class="uri">http://rpubs.com/daspringate/vectorisation</a></li>
+<li><a href="http://quanttrader.info/public/FasterRCode.pdf" class="uri">http://quanttrader.info/public/FasterRCode.pdf</a></li>
+</ul></li>
+</ul>
+
+      </div>
+      <hr>
+      
+      <a href="https://www.noamross.net/archives/2014-02-27-esaab/"> ←&nbsp;ESA 2014 Abstract: Modeling forest disease using a macroparasite framework</a> |
+      
+      <a href="https://www.noamross.net//musings/#2014">All posts</a>
+      
+      | <a href="https://www.noamross.net/archives/2014-07-24-esacorpuscompare/">What shall we talk about at ESA?&nbsp;→</a>
+      
+    </div>
+    <div class="is-col is-30"></div>
+
+  </div>
+</div>
+
+
+
+  
+
+<footer id="footer" class="is-hidden-print">
+  <div class="wrapper">
+    <div class="is-row .is-small is-muted">
+      <div class="is-col is-33">
+        <h3>About</h3>
+        <em>
+          <p>This is my personal website. Nothing here is endorsed by my employers, funders, or any organizations I am part of.</p>
+          <p>Content on this site is provided under a
+            <a href="https://creativecommons.org/licenses/by/4.0/legalcode">Creative Commons (CC-BY) 4.0 license.</a>
+            You may re-use this content as long as you indicate my authorship and provide a link back to the original material.
+            Source code of the site is provided under the <a href="https://opensource.org/licenses/MIT">MIT license</a>
+            and may be reused without restriction.</p>
+          <p>This site is gratefully built using a variety of open-source resources and inspirations. See <a href="https://www.noamross.net/2019/08/09/a-new-website/">here</a> for more about them and <a href="https://github.com/noamross/noamross.net">here</a> for the source code.</p>
+        </em>
+      </div>
+      <div class="is-col is-33">
+        <h3 id="connect">Connect</h3>
+        <ul class="fa-ul">
+          <li><i class="fa-li fas fa-briefcase fa-fw"></i>I work at <a href="https://www.ecohealthalliance.org/">EcoHealth Alliance</a>, 460 W 34th St., Ste. 1701, New York, NY 10001.</li>
+          <li><i class="fa-li fas fa-envelope fa-fw"></i>Email me at <a href="mailto:ross@ecohealthalliance.org">ross@ecohealthalliance.org</a>.</li>
+          <li><a href="https://keybase.io/noamross"><i class="fa-li fas fa-key fa-fw"></i></a>Contact me securely via <a href="https://keybase.io/noamross">keybase.io/noamross</a>. Here is my <a href="https://www.noamross.net/noamross.key.txt">public key.</a></li>
+          <li><a href="https://orcid.org/0000-0002-2136-0000"><i class="fa-li ai ai-orcid"></i></a>Track my scholarly work at <a href="https://orcid.org/0000-0002-2136-0000">ORCiD:0000-0002-2136-0000</a>.</li>
+          <li><a href="https://scholar.google.com/citations?user=bxoOuzoAAAAJ&amp;hl=en"><i class="fa-li ai ai-google-scholar"></i></a>Or on <a href="https://scholar.google.com/citations?user=bxoOuzoAAAAJ">Google Scholar</a>.</li>
+          <li><a href="https://twitter.com/noamross"><i class="fa-li fab fa-twitter fa-fw"></i></a>Follow me on twitter at <a href="https://twitter.com/noamross">@noamross</a>.</li>
+          <li><a href="https://github.com/noamross"><i class="fa-li fab fa-github fa-fw"></i></a>See my open-source code projects at <a href="https://github.com/noamross">github.com/noamross</a>.
+          </li><li><a href="https://www.noamross.net/index.xml"><i class="fa-li fas fa-rss fa-fw"></i></a>Follow new posts on this site via the <a href="https://www.noamross.net/index.xml">RSS Feed</a></li>.
+        </ul>
+      </div>
+      <div class="is-col is-33">
+        <h3 id="connect">Support</h3>
+        <em><p>Some of my work is funded, other work is volunteer.  In lieu of supporting my volunteer or open-source work, please consider donating to these organizations that I work with or are close to my heart.</p></em>
+        <ul class="fa-ul">
+          <li><i class="fa-li fas fa-heart fa-fw"></i><a href="https://ropensci.org/donate/">rOpenSci</a> builds tools and community for open science.</li>
+          <li><i class="fa-li fas fa-heart fa-fw"></i><a href="https://www.ecohealthalliance.org/donate">EcoHealth Alliance</a> works for wildlife health and pandemic prevention.</li>
+          <li><i class="fa-li fas fa-heart fa-fw"></i>The <a href="https://nwlc.org/times-up-legal-defense-fund/">Time's Up Legal Defense Fund</a> fights sexual harassment.</li>
+          <li><i class="fa-li fas fa-heart fa-fw"></i><a href="https://www.hias.org/">HIAS</a> protects and supports refugees.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script type="text/javascript" src="./Vectorization in R_ Why__files/kube.js.download"></script>
+<script>
+  $K.dom(window).on('load', $K.init);
+</script>
+
+
+
+
+<div style="position: absolute; width: 0px; height: 0px; overflow: hidden; padding: 0px; border: 0px; margin: 0px;"><div id="MathJax_Font_Test" style="position: absolute; visibility: hidden; top: 0px; left: 0px; width: auto; padding: 0px; border: 0px; margin: 0px; white-space: nowrap; text-align: left; text-indent: 0px; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; font-size: 40px; font-weight: normal; font-style: normal; font-family: MathJax_Size4, sans-serif;"></div></div></body></html>
