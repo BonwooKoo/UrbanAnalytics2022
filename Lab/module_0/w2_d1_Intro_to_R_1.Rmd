@@ -138,9 +138,8 @@ In case you want to install them in your machine, R language and R-Studio need t
 
 * Remember that when you first log-in, (1) set up will take a few minutes and (2) you need to **restart** the machine once.
 
-```{r echo=F}
-knitr::include_graphics("mycloud.jpg")
-```
+![](mycloud.jpg)
+
 
 .center[
 #### Please be careful when you install something other than what this class tells you to, unless you know what you are doing very well
@@ -483,10 +482,12 @@ Because `2:4` in R is the same as `c(2,3,4)`, we select not only race.tot, race.
 In plain English, this code says "Take **my_df** and calculate the mean of **pct_white** and the median of **hhincome** for each county." It returns a new data table.
 
 ```{r}
-my_df %>% mutate(pct_white = race.white / race.tot) %>%
+my_df %>% 
   group_by(county) %>% # creating grouping by county.  #<<
-  summarise(avg.pct_white = mean(pct_white), # mean for each county
-            med.hhincome = median(hhincome)) %>% nice_table("160px")
+  summarise(sum_white = sum(race.white), 
+            sum_race.tot = sum(race.tot),
+            med.hhincome = median(hhincome)) %>% 
+  mutate(pct_white = sum_white/sum_race.tot) %>% nice_table("160px") 
 ```
 
 .mid[.center[**Notice that there are NaN and NA here and there.**]]

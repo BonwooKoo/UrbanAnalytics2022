@@ -14,7 +14,10 @@ library(gt)
 library(tidyverse)
 library(kableExtra)
 ```
-
+<br>
+**Office hours**  
+Bon Woo Koo: Wed 10AM - 12PM  
+Subhrajit Guhathakurta: Tue 11AM-12PM
 <br>
 <br>
 
