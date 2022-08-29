@@ -1,7 +1,7 @@
 ---
-title: "UA2022-Yelp"
+title: "Census & Yelp API"
 author: "Bonwoo Koo & Subhrajit Guhathakurta"
-date: '2022-06-30'
+date: '2022-09-06'
 output:
   rmdformats::downcute:
     downcute_theme: "chaos"
@@ -11,7 +11,17 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Yelp
+## Getting data through API
+In this document, we will use API(application programming interface) to acquire data from the Census Bureau & from Yelp Fusion API. According to Wiki, "An API is a way for two or more computer programs to communicate with each other." To use API, we generally need to connect to the API's endpoints that usually looks something like `https://api.yelp.com/v3`. We then append other parameters to complete the call. For example, the following is requesting **business search** service using a keyword **delis** for the location latitude of 37.787 and longitude of -122.399.
+
+> `https://api.yelp.com/v3/businesses/search?term=delis&latitude=37.786882&longitude=-122.399972`
+
+We would use e.g., `GET()` function in **httr package** to send API request to the server, and the server would return something like the following to the authenticated requests.
+
+![](json_response_eg.JPG)
+
+
+
 
 ```{r cars}
 library(tidycensus)
@@ -48,43 +58,39 @@ library(yelpr)
 ```
 
 # New functions introduced in this document
-**From tidycensus**
-* tidycensus::get_acs()
 
-**From sf:**
-* sf::st_bbox()
-* sf::st_point()
-* sf::st_centroid()
-* sf::st_distance()
-* sf::st_geometry()
-* sf::st_transform()
-* sf::st_coordinates()
-* sf::st_set_geometry()
-* sf::st_as_sf()
-* sf::st_join()
-
-**From base R**
-* sapply()
-* min()
-* max()
-* abs()
-* seq()
-* expand.grid()
-* names()
-* paste0()
-* ceiling()
-* ifelse()
-* bind_rows()
-* Sys.getenv()
-* list.files()
-
-**Other packages**
-* units::set_units()
-* osmdata::getbb()
-* yelpr::business_search()
-* jsonlite::flatten()
-* purrr::map_lgl()
-* reshape2::melt()
+Function                  |
+--------------------------|
+* tidycensus::get_acs()   | Downloads ACS data
+* sf::st_bbox() | Get the bounding box 
+* sf::st_point() | Create POINT simple feature geometry
+* sf::st_centroid() | Get the centroid of a geometry
+* sf::st_distance() | Calculate Euclidian distance between pairs of geometries
+* sf::st_geometry | Get geometry from an sf object
+* sf::st_transform() | Transform coordinates of sf object
+* sf::st_coordinates() | Get coordinates in matrix form
+* sf::st_set_geometry() | Set geometry of an sf object
+* sf::st_as_sf() | Convert foreign object to an sf object
+* sf::st_join() | Spatial join
+* sapply() | Apply a function over a list or vector
+* min() | Return the minima of the input values
+* max() | Return the minima of the input values
+* abs() | 
+* seq() | 
+* expand.grid() | 
+* names() | 
+* paste0() | 
+* ceiling() | 
+* ifelse() | 
+* bind_rows() | 
+* Sys.getenv() | 
+* list.files() | 
+* units::set_units() | 
+* osmdata::getbb() | 
+* yelpr::business_search() | 
+* jsonlite::flatten() | 
+* purrr::map_lgl() | 
+* reshape2::melt() | 
 
 
 
@@ -435,8 +441,8 @@ result.census <- result.sf %>%
 ```
 
 ```{r}
-# Visualize the map
-tmap_mode('view')
-tm_shape(result.census) + tm_dots(col = "hhincome")
+# # Visualize the map
+# tmap_mode('view')
+# tm_shape(result.census) + tm_dots(col = "hhincome")
 ```
 
