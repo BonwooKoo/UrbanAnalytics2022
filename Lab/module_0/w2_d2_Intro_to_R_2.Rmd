@@ -333,15 +333,12 @@ In GIS, "**predicates are Boolean functions** that return TRUE if a comparison m
 Try **?st_intersects** in your console.
 ]
 
-
-
-```{r echo=F, out.width="80%"}
-knitr::include_graphics("predicates.jpg", dpi=50)
-```
+![](predicates.jpg)
+ 
 ---
 
 .footnotesize[
-```{r echo=F}
+```{r}
 pred_within <- census[five_point, , op = st_within]
 pred_disjoint <- census[five_point, , op = st_disjoint]
 pred_is_within_distance <- census[five_point, , op = st_is_within_distance,dist=10000]

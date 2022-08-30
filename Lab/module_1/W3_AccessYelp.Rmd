@@ -21,8 +21,6 @@ We would use e.g., `GET()` function in **httr package** to send API request to t
 ![](json_response_eg.JPG)
 
 
-
-
 ```{r cars}
 library(tidycensus)
 library(sf)
@@ -59,8 +57,8 @@ library(yelpr)
 
 # New functions introduced in this document
 
-Function                  |
---------------------------|
+Function                    Description
+--------------------------  ---------------
 * tidycensus::get_acs()   | Downloads ACS data
 * sf::st_bbox() | Get the bounding box 
 * sf::st_point() | Create POINT simple feature geometry
@@ -92,6 +90,12 @@ Function                  |
 * purrr::map_lgl() | 
 * reshape2::melt() | 
 
+```{r}
+new_functions <- data.frame(
+  f = c("tidycensus::get_acs", "sf::st_bbox", "sf::st_point", "sf::st_centroid", "sf::st_distance", "sf::st_geometry", "sf::st_transform", "sf::st_coordinates", "sf::st_set_geometry", "sf::st_as_sf", "sf::st_join", "sapply", "min", "max", "abs", "seq", "expand.grid", "names", "paste0", "ceiling", "ifelse", "bind_rows", "Sys.getenv", "list.files", "units::set_units", "osmdata::getbb", "yelpr::business_search", "jsonlite::flatten", "purrr::map_lgl", "reshape2::melt"),
+  d = c("Download ACS data", "Get the bounding box", "Create POINT")
+)
+```
 
 
 
