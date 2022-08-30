@@ -46,7 +46,7 @@ nice_table <- function(df, height="150px"){
 }
 ```
 
----
+
 ```{r, include=F}
 library(xaringanthemer)
 library(sf)
@@ -56,6 +56,8 @@ library(tmap)
 library(kableExtra)
 ```
 
+---
+exclude: true
 
 ## What is R?
 * R is a powerful programming language for statistics, data science, etc.
@@ -68,7 +70,12 @@ library(kableExtra)
 
 
 ---
+exclude: true
+
+
 ## What is R?
+
+
 .mid[
 * R makes communicating your data and findings easy through R Markdown, Xaringan slide, etc. 
 
@@ -81,6 +88,9 @@ library(kableExtra)
 <br>
 
 ---
+exclude: true
+
+
 ## What is R studio?
 
 * R-Studio is a code editor developed for R. 
@@ -95,6 +105,9 @@ library(kableExtra)
 ]
 
 ---
+exclude: true
+
+
 <!-- INSTALL -->
 ## Installation
 
@@ -134,7 +147,7 @@ In case you want to install them in your machine, R language and R-Studio need t
 ---
 ## Using virtual machine
 
-* However, we have virtual machines (VMs) for this class, in which *most of the required packages and applications are pre-installed*.
+* We have virtual machines (VMs) for this class, in which *most of the required packages and applications are pre-installed*.
 
 * Remember that when you first log-in, (1) set up will take a few minutes and (2) you need to **restart** the machine once.
 
@@ -156,6 +169,8 @@ knitr::include_graphics("https://datacarpentry.org/genomics-r-intro/fig/rstudio_
 # ![](https://datacarpentry.org/genomics-r-intro/fig/rstudio_session_4pane_layout.png)
 
 ---
+exclude: true
+
 ## Packages
 .mid[
 Packages are extensions to R that provide various functions and datasets that the plain R does not have. 
@@ -340,16 +355,74 @@ class: inverse, middle, center
 
 ---
 ## Setting Environment
-When you open R Studio, R is **in** one of the folders in your computer. It looks for files and saves output in this folder. It's called a **working directory.**
+R has a concept of **working directory (WD).** R is **looking at** WD when it searches for and save files. .red[I recommend NOT using **setwd().**]  
 
-.center[.font80[
-"An R project enables your work to be bundled in a portable, self-contained folder. Within the project, all the relevant scripts, data files, figures/outputs, and history are stored in sub-folders and importantly - the working directory is the project’s root folder." - [The Epidemiologist R Handbook](https://epirhandbook.com/en/)]]
+The best practice is to create a R project folder by **File -> New Project -> New Directory**, and organize all your files related to this project within this folder. 
 
-You can create a R project folder by File -> New Project -> New Directory. 
+That creates a **.Rproj** file in that folder. Next time you continue working on the project, double click the **.Rproj** file.
+
 
 ![](rproject.png)
 
-That creates a **.Rproj** file in that folder. Next time you continue working on the project, double click the **.Rproj** file.
+---
+Let's say you've created a folder called UA_module1. **Store everything related with module 1 here.** An example folder structure would look like:
+.footnotesize[
+
+```
+UA_module1
+|--data
+    |--mtcars.csv
+|--figs
+    |--mpg_hp.png
+|--rmd
+    |--01_read_data.Rmd
+    |--01_read_data.pdf
+|--scripts
+    |--read_data.R
+|--UA_module1.Rproj 
+```
+]
+
+Notice **UA_module1_Rproj**. Opening .Rproj file will give you a clean R environment. The working directory is where .Rproj file is. 
+
+---
+## Setting Environment
+After creating .Rproj and opening R with it, call **library(here)**. From now on, you can use relative path for everything using **here()** function that works cross-platform.
+
+**The relative path should start from where .Rproj is located.**
+
+.left-column[
+.footnotesize[
+
+```
+UA_module1
+|--data
+    |--mtcars.csv
+|--figs
+    |--mpg_hp.png
+|--rmd
+    |--01_read_data.Rmd
+    |--01_read_data.pdf
+|--scripts
+    |--read_data.R
+|--UA_module1.Rproj 
+```
+]
+]
+
+.right-column[
+Let's say you are working on **/rmd/01_read_data.Rmd** and want to read **/data/mtcars.csv**:
+```{r eval=F}
+# Reading
+library(here)
+read.csv(here("data", "mtcars.csv"))
+```
+
+Let's say you created a plot using **ggplot2** and want to save it in the **figs** folder:
+```{r eval=F}
+ggsave(here("figs", "mpg_hp.png"))
+```
+]
 
 ---
 ## Reading data

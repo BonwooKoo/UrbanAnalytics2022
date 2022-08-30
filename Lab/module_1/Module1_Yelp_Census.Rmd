@@ -11,98 +11,70 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Getting data through API
-In this document, we will use API(application programming interface) to acquire data from the Census Bureau & from Yelp Fusion API. According to Wiki, "An API is a way for two or more computer programs to communicate with each other." To use API, we generally need to connect to the API's endpoints that usually looks something like `https://api.yelp.com/v3`. We then append other parameters to complete the call. For example, the following is requesting **business search** service using a keyword **delis** for the location latitude of 37.787 and longitude of -122.399.
+# Getting data through API
+In this document, we will use API (application programming interface) to acquire data from the Census Bureau & from Yelp Fusion API. According to Wiki, "An API is a way for two or more computer programs to communicate with each other." To use API, we generally need to connect to the endpoint of API server, which often looks something like `https://api.yelp.com/v3`. We then append other parameters to complete it. 
+
+For example, the following is requesting **business search** service using a keyword **delis** for the location latitude of 37.787 and longitude of -122.399.
 
 > `https://api.yelp.com/v3/businesses/search?term=delis&latitude=37.786882&longitude=-122.399972`
 
-We would use e.g., `GET()` function in **httr package** to send API request to the server, and the server would return something like the following to the authenticated requests.
+In our everyday terms, think of this as a data request application form. Once this 'form' is created, we need to send this 'form' to the server (i.e., the data provider). We would use e.g., `GET()` function in **httr package** to send API request to the server, and the server would return something like the following to the authenticated requests.
 
 ![](json_response_eg.JPG)
 
+This JSON format can be reformatted into a data.frame format using e.g., **jsonlite** and **reshape2** packages. 
 
-```{r cars}
-library(tidycensus)
-library(sf)
-library(tmap)
-library(jsonlite)
-library(tictoc)
-library(tidyverse)
-library(magrittr)
-library(httr)
-library(jsonlite)
-library(reshape2)
-
-setwd(eval(file.path(Sys.getenv('setwd'), 'Work/Working/School/UA_2022/external/Lab/module_1')))
-```
-
-```{r}
-# Installing yelpr package requires devtools package
-if ("yelpr" %in% installed.packages() == T){
-  # If yelpr is already installed
-  library(yelpr)
-} else {
-  # yelpr needs to be installed
-  if ("devtools" %in% installed.packages() == F){
-    # devtools is missing 
-    install.packages("devtools", dependencies = T)  
-  } 
-    # install yelpr and load it
-    devtools::install_github("OmaymaS/yelpr")
-}
-  
-
-library(yelpr)
-```
 
 # New functions introduced in this document
 
-Function                    Description
---------------------------  ---------------
-* tidycensus::get_acs()   | Downloads ACS data
-* sf::st_bbox() | Get the bounding box 
-* sf::st_point() | Create POINT simple feature geometry
-* sf::st_centroid() | Get the centroid of a geometry
-* sf::st_distance() | Calculate Euclidian distance between pairs of geometries
-* sf::st_geometry | Get geometry from an sf object
-* sf::st_transform() | Transform coordinates of sf object
-* sf::st_coordinates() | Get coordinates in matrix form
-* sf::st_set_geometry() | Set geometry of an sf object
-* sf::st_as_sf() | Convert foreign object to an sf object
-* sf::st_join() | Spatial join
-* sapply() | Apply a function over a list or vector
-* min() | Return the minima of the input values
-* max() | Return the minima of the input values
-* abs() | 
-* seq() | 
-* expand.grid() | 
-* names() | 
-* paste0() | 
-* ceiling() | 
-* ifelse() | 
-* bind_rows() | 
-* Sys.getenv() | 
-* list.files() | 
-* units::set_units() | 
-* osmdata::getbb() | 
-* yelpr::business_search() | 
-* jsonlite::flatten() | 
-* purrr::map_lgl() | 
-* reshape2::melt() | 
+Function                  Description
+-----------------------   ---------------
+tidycensus::get_acs()     Downloads ACS data
+sf::st_bbox()             Get the bounding box 
+sf::st_point()            Create POINT simple feature geometry
+sf::st_centroid()         Get the centroid of a geometry
+sf::st_distance()         Calculate Euclidian distance between pairs of geometries
+sf::st_geometry           Get geometry from an sf object
+sf::st_transform()        Transform coordinates of sf object
+sf::st_coordinates()      Get coordinates in matrix form
+sf::st_set_geometry()     Set geometry of an sf object
+sf::st_as_sf()            Convert foreign object to an sf object
+sf::st_join()             Spatial join
+sapply()                  Apply a function over a list or vector
+min()                     Return the minima of the input values
+max()                     Return the minima of the input values
+abs()                     Return absolute valueof the input value
+seq()                     Generate a regular sequences
+expand.grid()             Create a data.frame from all combinations of supplied vectors or factors.
+names()                   Get (or set) the names of an object
+paste0()                  Concatenate vectors after converting to character
+ceiling()                 Returns a numeric vector containing the smallest integers not less than x
+bind_rows()               Binding rows of data.frames into one.
+Sys.getenv()              Access the values of the environment variables              
+list.files()              Returns a character vector of the names of files or folder in the named folder.
+units::set_units()        Creates object of class units 
+osmdata::getbb()          Uses the free Nominatim API provided by OpenStreetMap to find the bounding box (bb) associated with place names.
+yelpr::business_search()  Search bussiness on Yelp using Yelp Fusion API's business search endpoint
+jsonlite::flatten()       Flattens nested data frame (i.e., data frames with one or more columns consisting of another data frame)
+purrr::map_lgl()          Funtional that returns a logical vector
 
-```{r}
-new_functions <- data.frame(
-  f = c("tidycensus::get_acs", "sf::st_bbox", "sf::st_point", "sf::st_centroid", "sf::st_distance", "sf::st_geometry", "sf::st_transform", "sf::st_coordinates", "sf::st_set_geometry", "sf::st_as_sf", "sf::st_join", "sapply", "min", "max", "abs", "seq", "expand.grid", "names", "paste0", "ceiling", "ifelse", "bind_rows", "Sys.getenv", "list.files", "units::set_units", "osmdata::getbb", "yelpr::business_search", "jsonlite::flatten", "purrr::map_lgl", "reshape2::melt"),
-  d = c("Download ACS data", "Get the bounding box", "Create POINT")
-)
-```
+# Understanding Yelp Business Search
+Remember that all APIs are different. Being familiar with Yelp Fusion API does not tell you anything about how Google Street View API is structured. So the first thing you need to do is to [**READ THE DOCUMENTATION OF YELP FUSION API**](https://www.yelp.com/developers/documentation/v3/get_started).
+
+Yelp Fusion API has various endpoints: Business Search, Phone Search, Transaction Search, Business Details etc. You will notice that for everyting except **Business Search**, you need to have some information about the business you are looking for (e.g., business id, phone number, exact location, etc). Business Search allows us to search business by keywords (e.g., Ray's), catergories (e.g., cafe), location (e.g., coordinates), etc. **This is what we need.**
 
 
 
+
+
+
+
+> **There is [Yelp Open Dataset](https://www.yelp.com/dataset). Why not use this instead?** <br> It is a subset of our businesses, reviews, and user data for use in personal, educational, and academic purposes, containing 6,990,280 reviews and 150,346 businesses from 11 metropolitan areas. However, I do not know whether this data is a sample or not. If it is a sample, we would need to know the sampling method, when the sampling was done, when the update will be made, etc. In other words, we don't have information on velocity and exhaustivity of the data.
 
 # Downloading Census Track polygons
+An important limitation of the Business Search in Yelp Fusion API is **it returns up to 1,000 businesses based on the provided search criteria**. It means if you request Yelp to return all restaurants in Atlatna using one search criteria, you may not get all the restaurants in Atlanta if there are more than 1000 of them in Atlanta. If we narrow down the search scope
 
-Due to the limits in Yelp API in terms of how many results (i.e., rows) can be returned per each querry, it is safer to break the querry into smaller bits.
+that Due to the limits in Yelp API in terms of how many results (i.e., rows) can be returned per each querry, it is safer to break the querry into smaller bits.
 
 There are many strategies for doing that, and I am using Census Tracts as the 'bits'. 
 
@@ -111,6 +83,19 @@ The Census Bearue provides a good API, which was implemented into R through a pa
 To use `get_acs()`, we first need to understand what arguments are needed for this function. Try `?tidycensus::get_acs` in your console to check the documentation for this function.
 
 We will specify the following argument and leave the rest as default: geography, state, county, variables, year, survey, geometry, and output. The returned output from this function is assigned to an R object named `tract`.
+
+```{r message=F}
+library(tidycensus)
+library(sf)
+library(tmap)
+library(jsonlite)
+library(tidyverse)
+library(httr)
+library(jsonlite)
+library(reshape2)
+library(here)
+library(yelpr)
+```
 
 # Add API Key somewhere here
 
