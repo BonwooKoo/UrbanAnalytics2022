@@ -16,8 +16,9 @@ library(kableExtra)
 ```
 <br>
 **Office hours**  
-Bon Woo Koo: Wed 10AM - 12PM  
-Subhrajit Guhathakurta: Tue 11AM-12PM
+* **Bon Woo Koo**: Wed 10AM - 12PM  
+* **Subhrajit Guhathakurta**: Tue 11AM-12PM  
+* **Location**: The Center for Spatial Planning Analytics and Visualization (760 Spring St NW, suite 217).
 <br>
 <br>
 
