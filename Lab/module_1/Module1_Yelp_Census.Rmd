@@ -76,7 +76,7 @@ Yelp Fusion API has various endpoints: Business Search, Phone Search, Transactio
 2. Other important parameters are `limit` and `offset`.
 
   * `limit` parameter: Number of business results to return. For results of more than 50 businesses, Yelp returns results in **multiple pages**. The `limit` parameter determines how many businesses are contained in one page.
-  * `offset` parameter: This parameter defines from which **page** we want the data. For example, with `limit` of 50, the 51th business will be in the second page.
+  * `offset` parameter: This parameter defines the amount by which the returned results are offset. For example, with `limit` of 50, the first request will give us 50 businesses. To get 51th ~ 100th business, we should set `limit = 50`.
 
 An important limitation of the Business Search in Yelp Fusion API is that **it returns up to 1,000 businesses based on the provided search criteria**. It means if you request Yelp to return all restaurants in Atlatna using one search criteria, you may not get all the restaurants in Atlanta if there are more than 1000 of them in Atlanta. **You would need to break your search into smaller bits to ensure that you get less than 1000 hits for each search criteria**.
 
@@ -107,8 +107,7 @@ To use `get_acs()`, we first need to understand what arguments are needed for th
 
 ![](get_acs.JPG)
 
-We will specify the following argument and leave the rest as default: geography, state, county, variables, year, survey, geometry, and output. The returned output from this function is assigned to an R object named `tract`.
-
+We will specify the following argument and leave the rest as default: geography, state, county, variables, year, survey, geometry, and output. 
 Notice that we can also specify **variables** argument. You can provide variable ID to specify the variables you want to download. You can (1) use **load_variables()** function to see all variable ID, (2) go to Census Bureau [website](https://data.census.gov/cedsci/) to see the variable ID, or (3) some other sources. I recommend [NHGIS](https://www.nhgis.org/) for its highly intuitive filtering system.
 
 
@@ -123,73 +122,164 @@ library(jsonlite)
 library(reshape2)
 library(here)
 library(yelpr)
+library(knitr)
+```
+
+```{r results='hide'}
+#### Tract polygons for the Yelp query
+tract <- suppressMessages(
+  get_acs(geography = "tract", # or "block group", "county", "state" etc. 
+          state = "GA",
+          county = c("Fulton", "Dekalb"), 
+          variables = c(hhincome = 'B19019_001',
+                        race.tot = "B02001_001", 
+                        race.white = "B02001_002", 
+                        race.black = 'B02001_003'
+                        ),
+          year = 2019,
+          survey = "acs5", # American Community Survey 5-year estimate
+          geometry = TRUE, # returns sf objects
+          output = "wide") # wide vs. long
+)
+```
+
+<br>
+Running the code above downloads a data.frame with geometry column-list (i.e., sf object). There is `r nrow(tract)` rows and `r ncol(tract)` columns. Also notice that we **two variables** for each variable ID we request, one with E and the other with M. E is the actual estimate and M is the associated margin of error coming from the fact that the ACS is based on sample. Here, we will keep E and discard M for simplicity.
+
+```{r}
+# View the data
+message(sprintf("nrow: %s, ncol: %s", nrow(tract), ncol(tract)))
+tract %>% head() %>% knitr::kable()
 ```
 
 ```{r}
-#### Tract polygons for the center of Yelp querry
-tract <- get_acs(geography = "tract",
-                 state = "GA",
-                 county = c("Fulton", "Dekalb"),
-                 variables = c(hhincome = 'B19019_001',
-                               race.tot = "B02001_001", 
-                               race.white = "B02001_002", 
-                               race.black = 'B02001_003'
-                               ),
-                 year = 2019,
-                 survey = "acs5",
-                 geometry = TRUE,
-                 output = "wide") %>% 
-  select(geo.id = GEOID, 
+# Retaining only those I want.
+# Notice that select function can also change names when it selects columns.
+tract <- tract %>% 
+  select(GEOID, 
          hhincome = hhincomeE,
          race.tot = race.totE,
          race.white = race.whiteE,
          race.black = race.blackE)
 
-# Function: Get tract-wise radius
-get_r <- function(poly){
-  # Get bounding box
-  bb <- st_bbox(poly) 
-  # Get one point of the bb
-  bb_p <- st_point(c(bb[1], bb[2])) 
-  # Get centroid of the bb
-  c <- st_centroid(poly) 
-  # Distance between bb_p and c
-  r <- st_distance(bb_p, c)
-  return(r)
-}
-
-r4all <- tract %>%
-  st_geometry() %>% st_transform(crs = 26967) %>% 
-  sapply(., function(x) get_r(x))
-
-tract$radius <- units::set_units(r4all,m)
-
-tract.c <- st_centroid(tract) %>% st_transform(4326)
-tract.c$x <- st_coordinates(tract.c)[,1]
-tract.c$y <- st_coordinates(tract.c)[,2]
-tract.c <- tract.c %>% st_set_geometry(NULL)
+tmap_mode("view")
+tm_shape(tract) + tm_borders()
 ```
 
-To visualize what `tract.c` means, run the following code.
+## Using Census Tract Boundary for Yelp API
+The plan is:  
 
+1. Pick one Census Tract.  
+2. Calculate its centroid. This will be `latitude` & `longitude` information for Yelp's Business Search.  
+3. Calculate a `radius` X such that a circle with the radius X centered at the `latitude` & `longitude` would completely cover the Census Tract polygon.  
+4. Send an API request for this circle and check if there are less than 1000 business in it.  
+  * If there are more than 1000 businesses, further break the circle into smaller zones.  
+5. Run through the pagination process to collect all businesses within that circle.   
+6. Use a loop to repeat 1 ~ 5 for all other Census Tracts to acquire all businesses within Atlanta.  
+
+Because Step 1 will be done automatically in a for-loop, let's perform step 2 ~ 3 first. **st_centroid()** in sf package gives you the centroid of any sf geometry. For `radius`, we define a function that calculates the `radius` value.
+
+> **Geometric measurements** <br> The sf package has st_area, st_length, and st_distance to measure geometric measures. These functions output measurements in the same unit as the input sf object. If the input has geographic coordinate system (e.g., WGS 84), st_distance will give you distance measured in degree. If you transform it to a projected coordinate system that uses meters, st_distance will return distance in meters. <br><br> There are numerous coordinate reference systems (CRS). EPSG code is a four- or five-digit codes that uniquely identifies different CRS. <br><br>You might want to memorize 4326 and 26967 for this class. 4326 is geographic coordinate system in degree that GPS and Google Earth uses (World Geodetic System 1984). 26967 is North American Datum 1983 for Georgia West in meters.
+
+### Step 2 - Getting centroids
+**st_centroid()** function converts POLYGONs and LINESTRINGs (and their MULTI-counter parts) into POINTs at their centroid location. It affects the geometry column but not other columns. This new sf object is assigned to `tract_center`. For convenience, we can also use st_coordinates() to extract lat/lng coordinates of each centroid and append them in a form of columns to the `tract_center` object.
+
+```{r}
+# st_centroid() converts POLYGON or LINESTRING geometry to POINT.
+tract_center <- st_centroid(tract) %>% st_transform(4326)
+# st_coordinates() returns a matrix of XY coordinates of the points that make up the geometric information
+tract_center$x <- st_coordinates(tract_center)[,1]
+tract_center$y <- st_coordinates(tract_center)[,2]
+
+# View it
+tract_center %>% head %>% kable()
+```
+
+## Step 3 - Calculate radius
+To ensure that we draw a circle that encapsulates a given polygon, we need to figure out the distance between the centroid (which will be the center of the circle) and the furthest point of the polygon. By definition, bounding box of a polygon A is drawn such that all points that make A is inside the bounding box. If we can draw bounding box around each polygon and calculate the distance from the centroid to one of the corners of the bounding box, that will be the radius of the circle.
+
+Here, we need to perform a certain task (i.e., creating a bounding box and calculate distance from centroid) repeatedly to each polygon. We can use a loop or functional to accomplish this. I will show you both methods -- the results will be identical. Let's first define a function for that **certain task**.
+```{r}
+# Function: Get tract-wise radius
+get_r <- function(poly){
+  #---------------------
+  # Takes: a single POLYGON or LINESTRTING
+  # Outputs: distance between the centroid of the boundingbox and a corner of the bounding box
+  #---------------------
+  
+  # Get bounding box of a given polygon
+  bb <- st_bbox(poly) 
+  # Get lat & long coordinates of any one corner of the bounding box.
+  bb_p <- st_point(c(bb[1], bb[2]))
+  # Get centroid of the bb
+  c <- st_centroid(poly) 
+  # Get the distance between bb_p and c
+  r <- st_distance(bb_p, c)
+  # Multiply 1.1 to make the circle a bit larger than the Census Tract.
+  # See the Yelp explanation of their radius parameter to see why we do this.
+  r <- r*1.2
+  return(r)
+}
+```
+
+
+We can apply this function to each polygon, once using a loop and once using a functional. At the end, we subtract the two vectors from loop and functional to see they are the same.
+```{r}
+## Using a loop -----------------------------------------------------------------
+# Creating an empty vector of NA. 
+# Results will fill this vector
+r4all_loop <- rep(NA, nrow(tract))
+
+# Starting a for-loop
+for (i in 1:nrow(tract)){
+  r4all_loop[i] <- tract %>% 
+    st_transform(crs = 26967) %>% 
+    st_geometry() %>% 
+    .[[i]] %>% 
+    get_r()
+}
+
+
+# Using a functional -----------------------------------------------------------
+# We use a functional (sapply) to apply this custom function to each Census Tract.
+r4all_apply <- tract %>%
+  st_geometry() %>% 
+  st_transform(crs = 26967) %>% 
+  sapply(., function(x) get_r(x))
+
+# Check if they generated identical values
+print(sum(r4all_loop - r4all_apply))
+```
+
+
+```{r}
+# Assign the radius as one of the columns of tract_center
+tract_center$radius <- r4all_apply
+```
+
+
+To visualize what we've done, run the following code.
 ```{r}
 tmap_mode('view')
 
-tract.c[1:10,] %>% 
-  st_as_sf(coords = c("x", "y"), crs = 4326) %>%
+# Select the first 10 rows
+tract_center[1:10,] %>% 
+  # Draw a buffer centered at the centroid of Tract polygons.
+  # Radius of the buffer is the radius we just calculated using loop
   st_buffer(., dist = .$radius) %>% 
+  # Display this buffer in red
   tm_shape(.) + tm_polygons(alpha = 0.5, col = 'red') +
-  # Comparison to the original polygon
-  tm_shape(tract[1:10,]) + tm_borders(col= 'blue') 
-
-# Look at geo.id == '13121009502'.
-# Why is the buffer a bit too large than the polygon while other tracts have correctly sized circles?
+  # Display the original polygon in blue
+  tm_shape(tract[1:10,]) + tm_borders(col= 'blue')
 ```
 
-| Quiz: Look at GEOID = 13121009502. You will notice that the radius is slightly too large for the Census Track. Other tracks will display circles that fits the size of Census Tract much better. Why do you think this happened?
+<br><br>
 
+# For fun: Other ways to accomplish similar results
+<div class="alert alert-info">
 
-An alternative way to get a similar result is shown below. To see what the code below does, you can copy the code and run it in the console.
+Using Census Tract is not the only way to break down Atlanta into smaller bits. 
+Can you read the code below and explain what is being done here?
 
 ```{r eval=FALSE}
 # Get bb for two counties
@@ -221,8 +311,150 @@ tm_shape(fishnet %>%
 
 ```
 
+</div>
 
-# Defining function for accessing Yelp API
+<br><br>
+
+# Accessing Yelp API
+
+## Getting Yelp API key
+Just like we did for the Census data, we need to get an API key for Yelp data. Go to [https://www.yelp.com/developers/documentation/v3/business_search](https://www.yelp.com/developers/documentation/v3/business_search) and sign up and log in. Then, click Introduction on the left panel to open up more menus. You will see **Authentication** (see the image below if you can't find it). It will direct you to **Creat App**. Go ahead and fill out required information. Once you're done with the form and email verification process, we will have your API key displayed on the webpage. **KEEP THE KEY TO YOURSELF and DO NOT POST IT ANYWHERE PUBLIC.** I recommend storing it in as the environment variable.
+
+![](yelp_auth.JPG)
+
+## yelpr package
+The beginning of this document, we saw a sample form for API request (e.g., `https://api.yelp.com/v3/businesses/search?term=delis&latitude=37.786882&longitude=-122.399972`). It is possible to create a string like that, send it to Yelp, and receive response in JSON format. **However, there is a package specifically designed to make this process easier: yelpr package.** It has a function called **business_search()**. For a test, let's try this function to acquire data for the first Census Tract.
+
+```{r}
+which_tract <- 1
+test <- business_search(api_key = Sys.getenv('yelp_api'), # like we did for census, store your api key
+                        category = 'restaurant', # return only restaurant businesses
+                        latitude = tract_center$y[which_tract],
+                        longitude = tract_center$x[which_tract],
+                        offset = 0, # 1st page, 1st obs
+                        radius = round(tract_center$radius[which_tract]), # radius requires integer value
+                        limit = 50) # how many business per page
+test %>% head()
+```
+
+
+What we received from just this one request is a lot of information. First of all, `test` object is a list. By running `names(test)`, we can see that it contains (1) businesses, (2) total, and (3) region. **Businesses** contains the main information about restaurants. **Total** tells you that there are `r test$total` restaurants in Yelp's database within the given radius from the Census Tract centroid. **Region** gives us back the center of the search -- the centroid of the first Census Tract.
+
+Looking at the businesses, it is a data frame (you can test is using `is.data.frame(test$businesses)`) with 50 rows and 16 columns (this data frame is actually a nested data frame with list-columns in which one data frame is containing another data frame(s), list(s), etc. We will deal with it later). This 50 is the artifact of setting `limit = 50` above in the previous code chuck. This means that we need to request `r ceiling(test$total/50)` times in total to collect data on all `r test$total` restaurants, because `r test$total`/50 = `r test$total/50`.
+
+
+```{r}
+# See what's inside
+names(test)
+
+# Business
+paste0("is it a data.frame?: ", is.data.frame(test$businesses), ", ",
+       " how many rows?: ", nrow(test$businesses), ", ",
+       " how many columns?: ", ncol(test$businesses))
+
+test$businesses %>% head(2)
+test$total %>% head()
+test$region %>% head()
+```
+
+What this tells us that:   
+
+1. We need to do at least one API request to see how many more we need to make.
+2. You can get up to 50 at a time.
+3. The total number of restaurants is less than 1000.
+
+
+## Defining function for accessing Yelp API for one Census Tract
+Okay, we learned that we need to make multiple requests even for just one Census Tract. We can create another function to make this process automatic. We will design this function such that it takes a row from `census_center`, make the initial API request, calculate how many times more it need to request, complete the remaining request, gather the responses from the multiple requests.
+
+```{r}
+# FUNCTION
+get_yelp <- function(tract, category){
+  # ----------------------------------
+  # Gets one row of tract information (1,) and category name (str),
+  # Outputs a list of business data.frame
+  n <- 1
+  # First request --------------------------------------------------------------
+  resp <- business_search(api_key = Sys.getenv("yelp_api"), 
+                          categories = category, 
+                          latitude = tract$y, 
+                          longitude = tract$x, 
+                          offset = (n - 1) * 50, # = 0
+                          radius = round(tract$radius), 
+                          limit = 50)
+  # Calculate how many requests are needed in total
+  required_n <- ceiling(resp$total/50)
+  
+  # Collector
+  out <- vector("list", required_n)
+  
+  # Create an empty NA data frame to fill in the data
+  out[[n]] <- resp$businesses
+  
+  # add 1 to n
+  n <- n + 1
+  
+  # Now we know required_n -----------------------------------------------------
+  # Starting a loop
+  while(n <= required_n){
+    resp <- business_search(api_key = Sys.getenv("yelp_api"), 
+                            categories = category, 
+                            latitude = tract$y, 
+                            longitude = tract$x, 
+                            offset = (n - 1) * 50, 
+                            radius = round(tract$radius), 
+                            limit = 50)
+    
+    out[[n]] <- resp$businesses
+    
+    n <- n + 1
+  } #<< end of while loop
+  
+  out <- out %>% bind_rows()
+  
+  return(out)
+}
+```
+
+<br>
+The code below applies this function to download Yelp data for the first Census Tract. The output from `yelp_rest` shows that it is a tibble of size 159 x 16, which is what we expected!
+
+```{r}
+# Apply the function for the first Census Tract
+yelp_first_tract <- get_yelp(tract_center[1,], "restaurant") %>% 
+  as_tibble()
+
+# Print
+yelp_first_tract %>% print
+```
+
+## Repeating for all other Census Tracts
+Now that we have a function that successfully downloaded Yelp data for the first Census Tract, we can repeat this process for the rest of the Census Tracts in `tract_center`. We can use a for-loop again (or a functional if you prefer) that loops through each Census Tract and perform what we did above.
+
+```{r}
+# Prepare a collector
+yelp_all_list <- vector("list", nrow(tract_center))
+
+# Looping through all Census Tracts
+for (row in 1:nrow(tract_center)){
+  yelp_all_list[[row]] <- get_yelp(tract_center[row,], "restaurant")
+  if (row %% 50 == 0){
+    print(paste0("Current row: ", row))
+  }
+}
+
+# Collapsing the list into a data.frame
+yelp_all <- yelp_all_list %>% bind_rows() %>% as_tibble()
+
+# print
+yelp_all %>% print
+```
+
+
+
+
+
+
 
 This function below generates a fully-cleaned output. In class, we can provide students with a function that generates raw output (or close to raw) and have them clean it step by step.
 
@@ -357,26 +589,26 @@ result.temp <- data.frame(geo.id = integer(0),
                           lat = integer(0), 
                           lon = integer(0))
 
-# Read yelp.csv if it already exists in your drive
-if ("yelp.csv" %in% list.files(getwd())){
-  yelp <- read.csv("yelp.csv")
-} else {
-  # If the file doesn't exist, get it from the Yelp server
-  for (i in 1:nrow(tract.c)) {
-    temp <- tract.c[i,]
-    lat <- temp$y
-    lon <- temp$x
-    radius <- round(as.numeric(temp$radius))
-    json <- yelp_search(lat, lon, radius, 'restaurant', 
-                        api.key) %>% 
-      mutate(geo.id = temp$geo.id)
-    result.temp <- result.temp %>% rbind(json)
-    print(paste0("Done with ", i))
-  }
-  
-  # rm(i, json, lat, lon, api.key, radius, temp, tract.c, yelp_search)
-  write.csv(result.temp, "yelp.csv")
-}
+# # Read yelp.csv if it already exists in your drive
+# if ("yelp.csv" %in% list.files(getwd())){
+#   yelp <- read.csv("yelp.csv")
+# } else {
+#   # If the file doesn't exist, get it from the Yelp server
+#   for (i in 1:nrow(tract.c)) {
+#     temp <- tract.c[i,]
+#     lat <- temp$y
+#     lon <- temp$x
+#     radius <- round(as.numeric(temp$radius))
+#     json <- yelp_search(lat, lon, radius, 'restaurant', 
+#                         api.key) %>% 
+#       mutate(geo.id = temp$geo.id)
+#     result.temp <- result.temp %>% rbind(json)
+#     print(paste0("Done with ", i))
+#   }
+#   
+#   # rm(i, json, lat, lon, api.key, radius, temp, tract.c, yelp_search)
+#   write.csv(result.temp, "yelp.csv")
+# }
 
 ```
 

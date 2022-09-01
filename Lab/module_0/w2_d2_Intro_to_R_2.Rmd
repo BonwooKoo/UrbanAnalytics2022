@@ -68,6 +68,39 @@ To create a R Markdown file, go to **file > R Markdown.**
 ![](markdown_init.JPG)
 
 ---
+## Basics
+
+* Hash tags for headings.
+# # Heading 1 (h1)
+## ## Heading 2 (h2)
+
+* Nothing for plain text. End the line with two spaces at the end starts a new line.
+
+* Control + Alt + i to create a R code chunk.
+```{r}
+0.1 + 0.2 == 0.3
+```
+
+---
+## Basics
+
+* Press Knit button or Control + Alt + k to render it as HTML (or other formats).
+
+* Wrap text with \*\*\*\* to make it bold, or \*\* to make it italic.
+
+* \[text\]\(url\) to make text a hyperlink.
+
+* \!\[caption\]\(url or file\) to embed an image.
+
+* Start a line with * or - to start a bulleted list and 1. for a numbered list.
+
+* HTML tags work. E.g., `<br>` `<font>` etc. 
+
+<br>
+
+**Go to Help > Cheat Sheets > R Markdown Cheat Sheets** to see more options.
+
+---
 ## Publishing on Rpubs
 ![](rpubs_process.png)
 
@@ -79,7 +112,7 @@ class: inverse, middle, center
 # Loops
 
 ---
-## Loops
+## For-Loops
 Loops are used to repeat a specific task. Ones that I commonly use include for loop, while loop, and apply.
 
 .pull-left[
@@ -95,25 +128,63 @@ for (i in 1:3){
   print(i + 2)
 }
 ```
-
 ]
 
 .pull-right[
-**A while loop** keeps repeating the task as long as a specified condition is true.
 ```{r}
-n <- 0
-while (n < 5){ 
-  # if (n >= 0), it will run forever
-  print(n)
-  n <- n + 1
+a <- letters[1:5]
+for (letter in a){
+  print(letter)
 }
 ```
+
 ]
 
 ---
-## Functional
-Hadley Wickham strongly advocates for *NOT* using loops and advocates functionals, such as **lapply()** or **map()**. 
+.footnotesize[
+```{r}
+my_df <- read_csv("https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.csv")
 
+for (i in 1:10){
+  # Extract row by row
+  row <- my_df[i,]
+  # If Clayton County, print income
+  if (row$county == "Clayton County") print(paste0(row$county,"'s income is: ", row$hhincome))
+  # If Cobb County, print population
+  else if (row$county == "Cobb County") print(paste0(row$county,"'s population is: ", row$race.tot))
+}
+```
+]
+---
+## While-Loop
+
+.footnotesize[
+**A while loop** keeps repeating the task as long as a specified condition is true.
+```{r}
+# this is condition that's 
+# being check each iteration
+n <- 1
+v <- 1
+while (v < 1000){ 
+  # if (n >= 0), it will run forever
+  print(paste0(n, "th iteration -- ,v is ", v))
+  v <- v*2
+  n <- n+1
+}
+print(v)
+```
+
+
+This is useful when you do not know exactly how many iteration is needed ahead of time. 
+
+For example, you'd want to keep calculating some stuff (e.g., stochastic gradient descent) until the output converges to a pre-defined value.
+]
+
+
+---
+## Apply
+
+.footnotesize[
 .pull-left[
 ```{r}
 # Loop
@@ -125,15 +196,38 @@ for (i in 1:3){
 
 .pull-right[
 ```{r}
-# Functional
 add_one <- function(x) x+1
-map_dbl(1:3, add_one)
+print(sapply(1:3, add_one))
+```
+<br><br>
+]]
+
+
+
+.footnotesize[
+Another way to perform a similar task is to use apply family or its variants. The most commonly used ones would be **sapply**, **lapply**, and **apply.**
+
+**sapply** and **lapply** are the same except that one returns a vector and the other returns a list.
+```{r}
+add_one <- function(x) x+1
+lapply(1:3, add_one)
 ```
 ]
 
-In this course, however, I will try to use loops than functionals. I personally think loops are more intuitive for beginners.
-  
-If you want to learn more about it, you can read [this](https://adv-r.hadley.nz/fp.html).
+---
+## Apply 
+Apply takes matrix or data.frame and outputs a list. Because matrix and data.frame has two dimensions, apply takes an additional argument that specifies the dimension to which the function should be applied.
+
+```{r}
+# Example data.frame
+ex <- data.frame(matrix(c(rep(1,3),rep(2,3), rep(3,3)), nrow=3))
+# Apply function across column
+print(apply(ex, 1, mean))
+
+# Apply function across rows
+print(apply(ex, 2, mean))
+```
+
 
 ---
 class: inverse, middle, center
@@ -390,6 +484,25 @@ class: inverse, center, middle
 #If we have time left..
 
 ---
+## Spatial join
+Spatial join is incredibly useful tool that allows you to join two or more datasets based on geographic proximity that are otherwise disconnected. 
+
+Two most important things to remember is that 
+
+```{r out.height='150px'}
+# Join marta + census
+m_j_c <- marta %>% st_join(census, st_intersects)
+mjc_map <- tm_shape(m_j_c) + tm_lines(col = "hhincome")
+
+# Join census + marta
+c_j_m <- census %>% st_join(marta, st_intersects)
+cjm_map <- tm_shape(c_j_m) + tm_polygons(col = "hhincome")
+
+tmap_arrange(mjc_map, cjm_map, sync = T)
+```
+
+
+---
 ## Visualizing linestring and points
 Let's visualize the first LINESTRING (i.e., Blue Line of MARTA) and the points that makes the LINESTRING.
 
@@ -435,12 +548,17 @@ marta.line
 
 ```{r out.width="100%", out.height="50%"}
 library(leaflet)
+marta.point2 <- marta.point %>% group_by(L1) %>% slice(1)
+pal <- colorNumeric(palette = "Reds", domain = marta.point2$L1)
+
 leaflet() %>% 
   addProviderTiles(providers$CartoDB.Positron) %>% # Background map
   addPolylines(data = marta %>% slice(c(1,3)), 
                color="grey", weight=1) %>% # Adding non-Blue lines
   addPolylines(data = marta.line) %>% # Adding marta.line #<<
-  addCircles(data = marta.point) # Adding marta.point #<<
+  addCircles(data = marta.point2, fillColor = ~pal(L1), fillOpacity=0.9, 
+             stroke = F, radius = 500,
+             popup=paste0("Row ID: ", marta.point2$L1)) # Adding marta.point #<<
 ```
 
 ---

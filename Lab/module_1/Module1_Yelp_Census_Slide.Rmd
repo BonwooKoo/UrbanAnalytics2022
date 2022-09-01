@@ -60,6 +60,12 @@ library(kableExtra)
 ## Census API Key
 
 ---
+## NHGIS
+
+---
+## Defining function
+
+---
 ## Yelp API Key
 
 ---
