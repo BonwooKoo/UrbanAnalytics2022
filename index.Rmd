@@ -84,7 +84,7 @@ weeks <- tibble(
 topic_col <- c(
   "Intro to Urban Analytics in R [(Slide)](https://github.gatech.edu/pages/sguhathakurta3/UA-Lecture1/Untitled/LectureONE.html), <br> Data ethics [(Slide)](https://github.gatech.edu/pages/sguhathakurta3/UA-Lecture1/Lecture-2/LectureTWO.html)",# 1
   "Data for Urban Analytics [(Slide)](./Lab/module_0/w2_d2_modern_data.html), <br> Intro to R - 1 [(Slide)](./Lab/module_0/w2_d1_Intro_to_R_1.html), 2 [(Slide)](./Lab/module_0/w2_d2_Intro_to_R_2.html)",# 2
-  "Accessing data (Slide), <br> Census & Yelp API (RMD)",# 3
+  "Accessing data [(Slide)](https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_1/Module1_Yelp_Census_Slide.html), <br> Census & Yelp API [(RMD)](https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_1/Module1_Yelp_Census.html)",# 3
   "<b>Mini-presentation 1 (Slide)</b>, <br> Tidy data (Slide), <br> Data wrangling (RMD)",# 4
   "First statistical insights from your data (Slide), <br> Hands-on (RMD)",# 5
   "Interactive visualization (Slide), <br> Hands-on (RMD)",# 6
