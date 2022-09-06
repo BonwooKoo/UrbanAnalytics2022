@@ -525,5 +525,5 @@ yelp_sf <- yelp_all %>%
 
 # Map
 tm_shape(yelp_sf) +
-  tm_dots(col = "review_count")
+  tm_dots(col = "review_count", style="quantile")
 ```
