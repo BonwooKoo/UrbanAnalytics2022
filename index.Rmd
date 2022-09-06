@@ -91,7 +91,7 @@ topic_col <- c(
   "<b>Mini-presentation 2 (Slide)</b>, <br> General Transit Feed Specification (Slide), <br> GTFS and equity (RMD)",# 7 # [GTFS and equity (RMD)](./Lab/module_2/1_GTFS.html)
   "Open Street Map (Slide), <br> OSM as a graph (RMD)",# 8 # [OSM as a graph (RMD)](./Lab/module_2/2_OSM.html)
   "<b>Mini-presentation 3 (Slide)</b>, Urban images and computer vision (Slide), <br> Yolo in R (RMD)",# 9
-  "Many ways of viewing your city (Slide), <br> Sampling images and using Vision API (RMD)",# 10
+  "Many ways of viewing your city (Slide), <br> Sampling images and running Mask R-CNN on Google Colab (RMD)",# 10
   "<b>Mini-presentation 4 (Slide)</b>, <br> User-generated text data - Twitter (Slide), <br> Getting live feeds from Twitter (RMD)",# 11
   "Preprocessing texts (Slide), <br> Sentiment analysis (RMD)",# 12
   "<b>Mini-presentation 5 (Slide)</b>, <br> Storytelling with data - 1",# 13
@@ -105,23 +105,22 @@ reading_col <- c(
   "[Tu](https://journals.sagepub.com/doi/full/10.1177/2399808319839494) <br> [Th-1](https://scholarship.law.gwu.edu/cgi/viewcontent.cgi?article=1159&context=faculty_publications), [Th-2](https://openyls.law.yale.edu/handle/20.500.13051/7808), [Th-3](https://web.stanford.edu/dept/HPS/Design%20AI%20so%20that%20it%27s%20fair.pdf), [Th-4](https://www.nature.com/articles/541458a)",# 1
   "[Tu-1](https://r4ds.had.co.nz/workflow-basics.html), [Tu-2](https://r4ds.had.co.nz/transform.html) <br>
    [Th-1](https://geocompr.robinlovelace.net/spatial-class.html), [Th-2](https://geocompr.robinlovelace.net/attr.html), [Th-3](https://geocompr.robinlovelace.net/spatial-operations.html), [Th-4](https://rmarkdown.rstudio.com/lesson-1.html)",# 2
-  "",# 3
-  "[1](https://www.researchgate.net/publication/215990669_Tidy_data), [2](https://r4ds.had.co.nz/tidy-data.html)",
-  "",# 5
-  "",# 6
-  "",# 7
+  "[1](https://dl.acm.org/doi/abs/10.1145/3152178.3152181?casa_token=TKWejCaCUvgAAAAA:B78bsMo0gT6t2GSsl1MQWAIsXs0BCG6usrW5fwpKPYhorO0lKTpXNHUmPQQ0y4xeJYC3U5CF08hjIA), [2](https://www.nber.org/system/files/working_papers/w24952/w24952.pdf), [3]()",# 3
+  "[1](https://www.researchgate.net/publication/215990669_Tidy_data), [2](https://r4ds.had.co.nz/tidy-data.html), [3]()",
+  "[1](https://r4ds.had.co.nz/model-intro.html), [2](https://r4ds.had.co.nz/model-basics.html), [3](https://r4ds.had.co.nz/model-building.html), [4](https://r4ds.had.co.nz/many-models.html)",# 5
+  "[1](https://r4ds.had.co.nz/data-visualisation.html), [2](https://r4ds.had.co.nz/graphics-for-communication.html)",# 6
+  "TBD",# 7
   "",# 8
-  "",# 9
-        # https://www.sciencedirect.com/science/article/pii/S0264275119308443?casa_token=ttj9fEoFey4AAAAA:nR_Wf8tJHv8vfLv93cIlRHlsIqGdUMWByA3AyXcP_zWEYwJAPGKaxZ9TsdwiZlfX1-L8Z0Y7ag
+  "[1](https://www.sciencedirect.com/science/article/pii/S0264275119308443?casa_token=ttj9fEoFey4AAAAA:nR_Wf8tJHv8vfLv93cIlRHlsIqGdUMWByA3AyXcP_zWEYwJAPGKaxZ9TsdwiZlfX1-L8Z0Y7ag), [2](https://www.researchgate.net/profile/Bon-Woo-Koo/publication/351636921_How_are_Neighborhood_and_Street-Level_Walkability_Factors_Associated_with_Walking_Behaviors_A_Big_Data_Approach_Using_Street_View_Images/links/618548fba767a03c14f92f6f/How-are-Neighborhood-and-Street-Level-Walkability-Factors-Associated-with-Walking-Behaviors-A-Big-Data-Approach-Using-Street-View-Images.pdf), [3](https://link.springer.com/content/pdf/10.1007/978-3-030-84459-2_7.pdf)",# 9
   "",# 10
         # https://www.sciencedirect.com/science/article/pii/S2211335519300440
-  "", # 11
+  "[1](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0142209), [2](https://ascpt.onlinelibrary.wiley.com/doi/pdf/10.1111/cts.12178), [3](https://www.sciencedirect.com/science/article/pii/S030324342200109X?via%3Dihub)", # 11
         # https://ascpt.onlinelibrary.wiley.com/doi/pdf/10.1111/cts.12178
         # https://ojs.aaai.org/index.php/ICWSM/article/view/14168
         # https://journalofbigdata.springeropen.com/articles/10.1186/s40537-021-00525-8
         # https://dl.acm.org/doi/pdf/10.1145/2001269.2001297
   "",# 12
-  "",# 13
+  "TBD",# 13
   "",# 14
   "",# 15
   "",# 16
