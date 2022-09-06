@@ -485,9 +485,14 @@ class: inverse, center, middle
 
 ---
 ## Spatial join
+.footnotesize[
 Spatial join is incredibly useful tool that allows you to join two or more datasets based on geographic proximity that are otherwise disconnected. 
 
-Two most important things to remember is that 
+Two most important things to remember is that:
+
+- The order in which you supply sf objects matters. If you do **st_join(A, B)**, A will the output with added information from B. If you do **st_join(B,A)**, B will be the output with information from A attached to it.
+
+- The two (or more) sf objects should share the same CRS. 
 
 ```{r out.height='150px'}
 # Join marta + census
@@ -500,7 +505,18 @@ cjm_map <- tm_shape(c_j_m) + tm_polygons(col = "hhincome")
 
 tmap_arrange(mjc_map, cjm_map, sync = T)
 ```
+]
+---
 
+.footnotesize[
+```{r}
+# This is LINESTRING of marta lines
+m_j_c %>% nice_table()
+
+# This is POLYGON of census tracts
+c_j_m %>% nice_table()
+```
+]
 
 ---
 ## Visualizing linestring and points

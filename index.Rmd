@@ -106,8 +106,7 @@ reading_col <- c(
   "[Tu-1](https://r4ds.had.co.nz/workflow-basics.html), [Tu-2](https://r4ds.had.co.nz/transform.html) <br>
    [Th-1](https://geocompr.robinlovelace.net/spatial-class.html), [Th-2](https://geocompr.robinlovelace.net/attr.html), [Th-3](https://geocompr.robinlovelace.net/spatial-operations.html), [Th-4](https://rmarkdown.rstudio.com/lesson-1.html)",# 2
   "",# 3
-  "",# 4 
-        # [1]https://r4ds.had.co.nz/tidy-data.html, [2](https://r4ds.had.co.nz/transform.html)
+  "[1](https://www.researchgate.net/publication/215990669_Tidy_data), [2](https://r4ds.had.co.nz/tidy-data.html)",
   "",# 5
   "",# 6
   "",# 7
