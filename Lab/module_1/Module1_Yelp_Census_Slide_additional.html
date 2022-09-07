@@ -14,7 +14,7 @@
 
 class: middle, inverse
 
-# Projections in the sf package
+# Coordinate Reference System
 
 .font100[
 Bon Woo Koo &amp; Subhro Guhathakurta
@@ -28,19 +28,28 @@ Bon Woo Koo &amp; Subhro Guhathakurta
 
 
 ---
-## CRS and EPSG
+## CRS
 
 * **Coordinate Reference System**: A framework used to precisely measure locations on the surface of the Earth as coordinates - Wikipedia.
-.footnotesize[
-  * To locate the coordinates (33.749, -84.388) on Earth, you need to know e.g., where (0,0) is, what unit it is measured in, etc. **CRS contains these info.**
-  * Common geographic coordinate system: WGS84 **(unit: degree)**
-  * Projected CRS for Atlanta, North American Datum 1983 for Georgia West **(unit: meter)**
+
+  * To locate the coordinates (**33.749, -84.388**) on Earth, you need to know e.g., where (0,0) is, what unit it is measured in, etc. .red[**CRS contains these info.**]
+  
+* Common geographic coordinate system: World Geodetic System 1984 **(unit: degree)**
+* Projected CRS for Atlanta, North American Datum 1983 for Georgia West **(unit: meter)**
+  
+---
+## EPSG
 * EPSG code is 4- or 5-digit code that uniquely identifies different CRS.
 * In sf, converting CRS can be done by:   
-    `sf_prj &lt;- st_transform(sf, crs = 4326)`   
-    `sf_prj &lt;- st_transform(sf, crs = 26967)`
-]
-For more, read **[this.](https://rspatial.org/raster/spatial/6-crs.html)**
+    **sf_prj &lt;- st_transform(sf, crs = 4326)** 
+    **sf_prj &lt;- st_transform(sf, crs = 26967)** 
+    
+**EPSG 4326** is World Geodetic System (WGS) 1984. To use Google API and Yelp API, use this.  
+**EPSG 26967** is North American Datum (NAD) 1983. To calculate distance, area, etc. in meters in Atlanta area, use this.
+
+&lt;br&gt;
+For more, read **[this.](https://rspatial.org/raster/spatial/6-crs.html)**  
+To search for EPSG code, go **[here.](https://epsg.io/)**
 
 ---
 ## sfg, sfc, and sf
@@ -61,7 +70,9 @@ For more, read **[this.](https://rspatial.org/raster/spatial/6-crs.html)**
 * **Simple feature** 
   * `my_sf &lt;- st_sf(my_sfc)`
   * This is the combination of a **data frame** and **sfc** object.
-  * You can treat it like a data frame.
+  * e.g., dplyr verbs don't work for sfc, but they work for sf.
+
+&lt;br&gt;
 
 
 &lt;img src="sf_structure.png" width="100%" /&gt;
