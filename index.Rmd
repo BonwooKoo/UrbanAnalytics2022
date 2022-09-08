@@ -135,7 +135,7 @@ reading_col <- c(
 assignment_col <- c(
   "[Survey](https://forms.gle/4BBtMfrvr5yJLebK9),<br>[Group](https://forms.gle/sGVfDgLR6yLLmb4S8)",# 1
   "",# 2
-  "Mini",# 3
+  "[Mini](https://bonwookoo.github.io/UrbanAnalytics2022/Assignment/mini_1/mini_assignment_1.html)",# 3
   "Mini",# 4 # add 
   "Mini",# 5
   "Mini",# 6
