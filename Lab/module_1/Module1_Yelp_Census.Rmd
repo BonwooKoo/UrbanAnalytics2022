@@ -154,7 +154,7 @@ Running the code above downloads a data.frame with geometry column-list (i.e., s
 ```{r}
 # View the data
 message(sprintf("nrow: %s, ncol: %s", nrow(tract), ncol(tract)))
-tract %>% head() %>% knitr::kable()
+tract %>% head() %>% knitr::kable() # Ignore this kable() function. This function is for neatly displaying tables on HTML document.
 ```
 
 For simplicity, we will keep columns that end with E and discard those that end with M. Notice that the **select()** verb from dplyr can not only select columns but can change names as well.
@@ -224,7 +224,7 @@ We can apply this function to each polygon using a loop and a functional. At the
 ## Using a loop -----------------------------------------------------------------
 # Creating an empty vector of NA. 
 # Results will fill this vector
-epsg_id <- 26967 # should be unit=meter.
+epsg_id <- 4326 # Edit (9/8/2022): 4326 measures distance in meter. Before the edit, I used 26967.
 
 r4all_loop <- vector("list", nrow(tract))
 
@@ -257,8 +257,6 @@ identical(r4all_apply, r4all_loop)
 ```{r}
 # Appending X Y coordinates as seprate columns
 ready_4_yelp <- r4all_apply %>% 
-  # Transform back to 4326, because that's what Yelp takes
-  st_transform(crs = 4326) %>% 
   mutate(x = st_coordinates(.)[,1],
          y = st_coordinates(.)[,2])
 ```
@@ -367,7 +365,7 @@ resp_parsed <- content(resp, as="text", encoding = "UTF-8")
 
 # Parse json into a list
 resp_parsed <- jsonlite::fromJSON(resp_parsed)
-resp_parsed$businesses %>% head %>% kable()
+resp_parsed$businesses %>% head %>% kable() # Ignore this kable() function. This function is for neatly displaying tables on HTML document.
 ```
 
 ### Raw response

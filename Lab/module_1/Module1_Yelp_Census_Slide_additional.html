@@ -4,7 +4,7 @@
     <title>Accessing Data Through API</title>
     <meta charset="utf-8" />
     <meta name="author" content="Bon Woo Koo &amp; Subhro Guhathakurta" />
-    <script src="libs/header-attrs-2.15/header-attrs.js"></script>
+    <script src="libs/header-attrs-2.14/header-attrs.js"></script>
     <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
     <link rel="stylesheet" href="assets/sydney-fonts.css" type="text/css" />
     <link rel="stylesheet" href="assets/sydney.css" type="text/css" />
@@ -14,7 +14,7 @@
 
 class: middle, inverse
 
-# Coordinate Reference System
+# Creating sf object
 
 .font100[
 Bon Woo Koo &amp; Subhro Guhathakurta
@@ -25,31 +25,6 @@ Bon Woo Koo &amp; Subhro Guhathakurta
 
 
 
-
-
----
-## CRS
-
-* **Coordinate Reference System**: A framework used to precisely measure locations on the surface of the Earth as coordinates - Wikipedia.
-
-  * To locate the coordinates (**33.749, -84.388**) on Earth, you need to know e.g., where (0,0) is, what unit it is measured in, etc. .red[**CRS contains these info.**]
-  
-* Common geographic coordinate system: World Geodetic System 1984 **(unit: degree)**
-* Projected CRS for Atlanta, North American Datum 1983 for Georgia West **(unit: meter)**
-  
----
-## EPSG
-* EPSG code is 4- or 5-digit code that uniquely identifies different CRS.
-* In sf, converting CRS can be done by:   
-    **sf_prj &lt;- st_transform(sf, crs = 4326)** 
-    **sf_prj &lt;- st_transform(sf, crs = 26967)** 
-    
-**EPSG 4326** is World Geodetic System (WGS) 1984. To use Google API and Yelp API, use this.  
-**EPSG 26967** is North American Datum (NAD) 1983. To calculate distance, area, etc. in meters in Atlanta area, use this.
-
-&lt;br&gt;
-For more, read **[this.](https://rspatial.org/raster/spatial/6-crs.html)**  
-To search for EPSG code, go **[here.](https://epsg.io/)**
 
 ---
 ## sfg, sfc, and sf
