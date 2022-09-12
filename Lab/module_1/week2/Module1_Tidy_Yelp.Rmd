@@ -1,0 +1,314 @@
+---
+title: "Tidying Yelp and Census Data"
+author: "Bonwoo Koo & Subhrajit Guhathakurta"
+date: '2022-09-13'
+output:
+  rmdformats::downcute:
+    downcute_theme: "chaos"
+---
+
+```{r, include=F}
+library(tidyverse)
+library(sf)
+library(here)
+library(tmap)
+```
+
+<style type="text/css">
+  body{
+  font-family: Arial;
+  }
+</style>
+
+### This R Markdown document has two parts. First, we will go over techniques for cleaning dataset with simple examples to introduce what each function is doing. Second, we will clean the Census and Yelp data we downloaded.
+
+# Data are messy
+When you read textbooks on statistics or online tutorials on Urban Analytics, they often use data that's already nice and clean. They often do not show you all the hassle they went through to clean the data. 
+
+Data in the wild are messy and have all sorts of issues. Even when you are using highly systematized data sources (e.g., the Census Bureau), you will need some data cleaning. Data for urban analytics are often much messier. I usually spend between 40% ~ 60% of my time as a research on data cleaning. 
+
+What do I mean by **'messy?'** There isn't a formal definition of messiness (at least to the best of my knowledge), which is illustrated in Hadley Wickham's quote of Tolstoy, **"Happy families are all alike; every unhappy family is unhappy in its own way"**. However, **there are some common issues I have encountered frequently**, for example:
+
+1. Rows and columns do not represent observations and variables, respectively.
+2. Duplicated or redundant rows/columns
+3. multiple variables in one column.
+4. Missing data.
+5. Unstructured data<br><font color="gray">and the list goes on..</font>
+
+### Why are messy data problem? 
+In the end, the urban analytics is interested in extracting useful knowledge from the data. This extraction is often done using such tools as visualization, cartography, and statistical analysis. <font color="pink">Many of these tools are not good at handling the issues listed above</font>. Among the five listed above, the hardest to deal with is perhaps the unstructured data.   
+
+**However, Module 3 and 4 are devoted to transforming unstructured data into structured data**, so let's focus on the other ones here in this document.
+
+# Issue 1 - Rows and columns do not represent observations and variables
+There is a standardized framework that illustrates what is **not messy** -- Tidy Data. 
+**Note that all of my writing about tidy data is borrowed from Hadley Wickham's [paper](https://vita.had.co.nz/papers/tidy-data.pdf) and [book](https://r4ds.had.co.nz/tidy-data.html).** 
+
+<center>**In tidy data, <br> "Each variable must have its own column." <br> "Each observation must have its own row." <br> "Each value must have its own cell." <br>** <font size=3 color="gray">(from Chapter 12.2 in R for Data Science)</font></center>
+
+While the definition of observation is usually easy to understand and clear, the definition of variable can be much less straight-forward. Consider these example tables (they are from [this paper](https://vita.had.co.nz/papers/tidy-data.pdf)). 
+
+* In **Table 1**, treatment type forms rows and each column is observation. This is clearly inconsistent with the principles of tidy data.   
+* **Table 2** is a transpose of Table 1. Now, the rows are observations and the two columns represent the two treatment types. We often describe this structure of data table as "wide form."
+* In **Table 3**. the treatment type is now considered as a variable, and the names are repeated twice. As opposed to "wide," we often call this data structure the "long form." This data structure is said to be 'tidy' in the [paper](https://vita.had.co.nz/papers/tidy-data.pdf).
+
+
+
+Table 1. Typical presentation of data
+
+Treament      John Smith  Jane Doe    Mary Johnson
+-----------   ----------- ----------- ------------
+treatment_a   -           16          3
+treatment_b   2           11          1
+-----------   ----------- ----------- -----------
+
+Table 2. A transpose of Table 1
+
+name          treatment_a treatment_b
+----------    ----------- -----------
+John Smith    -           2
+Jane Doe      16          11
+Mary Johnson  3           1
+----------    ----------- -----------
+
+Table 3. Same data but variables in columns and obs. in rows
+
+name         treatment   result    
+------------ ----------- ----------- 
+John Smith   a           --          
+Jane Doe     a           16          
+Mary Johnson a           3
+John Smith   b           2          
+Jane Doe     b           11          
+Mary Johnson b           1
+------------ ----------- ----------- 
+
+I personally think both Table 2 and 3 have their own use cases (let's not consider Table 1 anymore). For example, if we are interested in comparing treatment A and B (e.g., a t-test, correlation analysis, etc.), wide form would be more intuitive. In contrast, if we are interested in making graphs like [these examples](https://ggplot2.tidyverse.org/reference/facet_grid.html), ggplot2 package in R  requires data to be in a long form. 
+
+In R, there are multiple ways to transform data between wide and long forms. I recommend **pivot_longer()** and **pivot_wider()** functions in tidyr package. Let's do some exercises using a toy data.
+
+```{r}
+library(tidyverse) # tidyr is included in tidyverse package.
+# Toy dataset
+toy_df <- data.frame(name = c("John", "Jane", "Mary"), 
+                     treatment_a = c(NA, 16, 3),
+                     treatment_b = c(2, 11, 1),
+                     treatment_c = c(6, 12, NA))
+print(toy_df)
+
+# pivot longer
+(toy_long <- toy_df %>% 
+  pivot_longer(cols = treatment_a:treatment_c, 
+               names_to = 'treatment', # new column name for 'cols' in character
+               values_to = 'result')) # new name for the column storing the values in character
+# back to wider
+(toy_wide <- toy_long %>% 
+  pivot_wider(id_cols = name, # unique identifier
+              names_from = treatment, # from which columns should the new column names come?
+              values_from = result)) # from which columns should the values come?
+```
+
+> This issue of defining rows and columns may not seem as useful because we are used to dealing with datasets that are created by people who already thought about the issue. <br><br> 
+However, in Urban Analytics, we often create our own datasets from sources that innately don't have well-thought out data structure. For example, there isn't a universally accepted way to convert image data into Excel-like spreadsheet. When converting a free-form text (e.g., Twitter data) into a spreadsheet, you will need to think about how to define your observations and variables.
+
+
+
+# Issue 2 - Duplicated or redundant rows/columns
+Duplicated rows is a common issue when using API to acquire data. Multiple functions exist in R to deal with duplicates. Most frequently used ones include: **duplicated()** and **distinct()**. 
+
+### duplicated()
+**duplicated()** takes a vector and returns a logical vector. When this function sees a duplicated values in a given vector (e.g., c("A", "A", "A")), it returns FALSE for the first of the duplicated values and TRUE for the rest of the duplicated values (e.g., c(FALSE, TRUE, TRUE)). So it is saying that the first one is not a duplicate but all others after that are duplicates. We can flip this logical vector using the negation operator **!** and use it as a filter. See below.
+
+```{r}
+dupl_df <- data.frame(name = c("A", "A", "B", "C", "C", "C", "D"),
+                      GPA = c(3.5, 3.5, 4.0, 2.0, 3.0, 3.0, 2.0)) 
+
+# Base R
+duplicated(dupl_df$name)
+
+# Duplicates in column "name" removed.
+dupl_df[!duplicated(dupl_df$name),]
+```
+
+### distinct()
+This is a powerful function in dplyr package. It takes variable names as the argument and outputs a data frame in which no-duplicate version of the variables are stored. Notice that by default, this function drops other columns that are not included in the argument. To keep all other columns in the output, you need to set `.keep_all = TRUE argument`.
+
+You can also specify multiple columns, and the function will consider those multiple columns when determining duplicates.
+```{r}
+# Returns a vector, not data frame
+dupl_df %>% 
+  distinct(name) # Try adding .keep_all = TRUE argument 
+
+# Returns a data frame
+dupl_df %>% 
+  distinct(name, GPA)
+```
+
+# Issue 3 - Multiple variables in one column
+This issue comes in two broad types. 
+
+<font color = "pink">**The first type: **</font> Different variables can be concatenated into a long string. A very commonly found example is from Census data: they sometimes return something like "Census Tract 9501, Appling County, Georgia" in **a single column**. It contains at least three variables: Tract, County, and State. 
+
+We can break the string down into pieces using **separate()** from tidyr package. 
+
+* Notice in the print out below the warning message. This is telling you that **separate()** expects that there are equal number of components for each row after the separation; if this isn't the case, it discards the overflown items. Also notice in the second warning that the first row doesn't have _ inside it. So the numeric column is filled with NA. 
+* The `sep` argument sometimes causes issues that are not easily detected. With "Census Tract 9501, Appling County, Georgia", setting `sep=","` will be incorrect because a space is also a character in R. The output would be "Census Tract 9501", " Appling County", " Georgia" -- notice the space in front of county and state name. The correct separator should be `sep = ", "`, *with the space after the comma*.
+
+
+```{r}
+# A character vector to split
+onecol_df <- data.frame(labels = c('a1','b_2','c_3_2','d_4_1'))
+# split the character at _
+onecol_df %>% separate(col = "labels", sep = "_", into = c("alphabet", "numeric")) 
+```
+
+<font color = "pink">**The second type:**</font> One column in a data frame can contain another data frame or a list. This is the structure used to construct sf objects (remember the sfc class?). This data structure is frequently found when we convert something like a JSON, which can have nested structure, into a data frame. This list-column isn't actually an issue per se--it is a legitimate data structure that has many use cases. But since it can be a bit unintuitive for some people, let's transform it into a more common data frame.
+
+Let's use the data we downloaded last week. Notice in the print out below that `categories` and `transactions` contains lists and `coordinates` and `location` contains a data frame which has another nested structure within it. 
+
+```{r}
+yelp_subset <- read_rds(here("Lab", "module_1", "week2", "yelp_subset.rds"))
+yelp_subset %>% 
+  tibble() %>% 
+  print(width = 1000)
+
+yelp_subset$coordinates
+```
+
+Let's try flattening the **data frame** within `coordinates`and `location` columns. We can do it using flatten() function in jsonlite package. Currently, `coordinates` column contains a data frame with two columns, `latitude` and `longitude`. 
+
+After applying this function, we can see new columns, e.g., `coordinates.latitudes` and `coordinates.longitude`. When flattening, the new columns names are automatically generated by concatenating the name of the given column and the names of the nested columns within.
+
+```{r}
+yelp_flat <- yelp_subset %>% 
+  jsonlite::flatten() %>% 
+  as_tibble() %>% 
+  print(width = 1000)
+
+yelp_flat$coordinates.latitude
+```
+
+Even after flattening, we still have list-columns remaining. These are quite tricky: because there can be anything in any structure inside a list-column, writing a function that can flatten any given list-column is very difficult. In our case, a closer look at the list-columns showed that `transaction` and `location.display_address` have very simple structure: in each component of the list, there is a character vector. We can simply concatenate them. See below.
+
+```{r}
+# Concatenate what's inside the list
+yelp_concat <- yelp_flat %>% 
+  mutate(transactions = transactions %>% 
+           map_chr(., function(x) str_c(x, collapse=", ")),
+         location.display_address = location.display_address %>% 
+           map_chr(., function(x) str_c(x, collapse=", ")))
+```
+
+Now, `categories` column is slightly more complicated: in each component of the list, there is a data frame with two columns and varying row numbers. I think the easiest way is to write a custom function for this list-column. The course of action is:
+
+1. Use lapply or map to loop through each component of the list-column.
+2. For each component (which is a data frame), we extract `title` column.
+3. For however many components in the extracted `title` column (which now is a vector after the extraction), we do the same thing we just did above--concatenate them all.
+
+```{r}
+# Custom function that takes the data frame in "categories" column in Yelp data
+# and returns a character vector
+concate_list <- function(x){
+  # x is a data frame with columns "alias" and "title" from Yelp$categories
+  # returns a character vector containing category concatenated titles 
+  titles <- x[["title"]] %>% str_c(collapse = ", ")
+  return(titles)
+}
+
+yelp_flat2 <- yelp_concat %>% 
+  mutate(categories = categories %>% map_chr(concate_list)) %>% 
+  print(width = 1000)
+
+yelp_flat2 %>% print(width = 1000)
+```
+
+
+
+
+# Issue 4 - Missing data
+
+In R, NA is used to represent missing data. Many core functions in R does not work properly when NA is in the vector (e.g., try `mean(c(NA, 1, 2, 3))`). So it is imperative that NAs are taken care of. 
+
+There are many functions that can find NAs and drop them. Base R provide **is.na()** function that returns a logical object. This logical object would be filled with `TRUE` if the given value is NA and `FALSE` otherwise. You can mix this function with dplyr verbs to drop rows that have NA value(s) in a specific column. 
+
+Similarly, the tidyr package has **drop_na()** function, but I recommend that you exercise caution when using **drop_na()** function. Unlike **is.na()**, **drop_na()** can work without specifying columns. Then, the function will drop every row that have NA in any one of the columns, and only those rows that do not have NA across all columns will be retained. You may end up dropping too many rows for no reason and <font color='pink'>**not even notice it** </font>.
+
+<font color="pink">**A common mistake**</font> is that some people drop rows that have NAs **in columns that they do not use**. If some rows have NAs in columns that you have no intention of using in your analysis, **those is harmless!** (unless those NAs are indicative of other issues..) So, do not blindly drop NAs, as you may lose valuable information for no good reason.
+
+```{r}
+# Dropping NA using is.na()
+toy_df %>% 
+  filter(!is.na(treatment_a))
+
+# This check across all columns and drops all rows that have at least one NA.
+toy_df %>% 
+  drop_na()
+```
+
+# Tidying Yelp data
+We have all the tools we need to clean the Yelp data. Read the comment in the code chunk for more details.
+
+```{r}
+# Read the full data
+my_yelp <- read_rds(here("Lab", "module_1", "week2", "yelp_all.rds"))
+
+# Issue 1 ------------------------------
+# We don't seem to have this issue for Yelp data.
+
+# Issue 2 ------------------------------
+# We do have many duplicated rows in our data, which is expected. 
+# Luckily, Yelp data provides a unique ID column for each business.
+yelp_unique <- my_yelp %>% 
+  distinct(id, .keep_all=T)
+
+paste0(nrow(my_yelp), " -> ", nrow(yelp_unique)) %>% print()
+
+# Issue 3 ------------------------------
+# This is the main issue in Yelp data, caused by the original data format being JSON.
+
+yelp_flat <- yelp_unique %>% 
+  # 1. Flattening columns with data frame
+  jsonlite::flatten() %>% 
+  # 2. Handling list-columns
+  mutate(transactions = transactions %>% 
+           map_chr(., function(x) str_c(x, collapse=", ")),
+         location.display_address = location.display_address %>% 
+           map_chr(., function(x) str_c(x, collapse=", ")),
+         categories = categories %>% map_chr(concate_list)) # concate_list is the custom function
+
+# Issue 4 ------------------------------
+# Let's first check whether there are any NAs.
+yelp_flat %>% 
+  map_dbl(., function(x) sum(is.na(x)))
+
+# There seems to be many missing values in price and location information. 
+# Remember that you do not need to drop rows just because the row has NAs in some columns IF YOU DON"T NEED THAT COLUMN FOR YOUR ANALYSIS. In this dataset, missing values in location.address1 are not problem because we have cooridnate information.
+```
+
+
+
+# Additional issue in geographic information in Yelp
+The last plot in the last week's R Markdown document was a map of the downloaded Yelp data. There were many points that fell outside of Fulton and DeKalb counties. These are clearly errors. Let's delete them.
+
+```{r}
+# census boundary
+census <- st_read("https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.geojson") %>% 
+  filter(county %in% c("Fulton County", "DeKalb County")) %>% 
+  st_union()
+
+# sf subsets
+yelp_in <- my_yelp[census, ,op = st_intersects]
+```
+
+```{r}
+# Visualize
+tmap_mode("view")
+map_in <- tm_shape(yelp_in) + tm_dots()
+```
+
+
+
+
+
+**<font size=3 color="gray">References</font>**  
+<font size=3 color="gray">Codd, E. F. (1990). The relational model for database management: version 2. Addison-Wesley Longman Publishing Co., Inc..</font>

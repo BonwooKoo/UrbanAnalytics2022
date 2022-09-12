@@ -1,0 +1,93 @@
+---
+title: "Accessing Data Through API"
+subtitle: ""
+author: "Bon Woo Koo & Subhro Guhathakurta"
+institute: "Georgia Institute of Technology"
+date: "2022/8/30"
+output:
+  xaringan::moon_reader:
+    css: ["default", "assets/sydney-fonts.css", "assets/sydney.css"]
+    seal: false
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: '4:3' # alternatives '16:9' or '4:3' or others e.g. 13:9
+---
+class: middle, inverse
+
+# Creating sf object
+
+.font100[
+Bon Woo Koo & Subhro Guhathakurta
+
+9/8/2022
+]
+
+```{r xaringan-themer, include=FALSE, warning=FALSE}
+library(xaringanthemer)
+style_mono_accent(
+  base_color = "#1c5253",
+  header_font_google = google_font("Open Sans"),
+  text_font_google   = google_font("Source Sans Pro", "400", "400i"),
+  code_font_google   = google_font("Fira")
+)
+
+nice_table <- function(df, height="150px"){
+  return(
+    df %>% kable() %>% 
+      kable_styling(latex_options="scale_down", font_size=12) %>% 
+      scroll_box(width = "100%", height = height)
+    )
+}
+```
+
+```{r, include=F}
+library(xaringanthemer)
+library(sf)
+library(tidyverse)
+library(leaflet)
+library(tmap)
+library(kableExtra)
+```
+
+---
+## sfg, sfc, and sf
+
+### How simple features in R are organized:
+* **Simple feature geometry.**
+  * `my_point <- st_point(c(-84.388, 33.749))`.
+  * **my_point** is a point on an arbitrary plane.
+  * It cannot be mapped on Earth.
+* **Simple feature geometry list-column.**
+  * `my_sfc <- st_sfc(my_point, crs = 4326)`.
+  * It adds **crs** information to sfg object.
+  * With CRS defined, now R knows where that point is on Earth.
+  * **CRS** must match the coordinates used to create sfg object.
+  * The geometry column you see in sf objects = sfc
+
+---
+* **Simple feature** 
+  * `my_sf <- st_sf(my_sfc)`
+  * This is the combination of a **data frame** and **sfc** object.
+  * e.g., dplyr verbs don't work for sfc, but they work for sf.
+
+<br>
+
+
+```{r, echo=F, out.width="100%"}
+knitr::include_graphics(here::here("Lab", "Module_1", "sf_structure.png"))
+```
+
+---
+To create (POINT) sf object from a pair of lng/lat coordinates, you need to do it in **sfg &rarr; sfc &rarr; sf**, in this order.
+.footnotesize[
+1. Create an .red[**sfg**] using coordinates. **my_sfg <- st_point(c(-84.388, 33.749))**.
+2. Convert the .red[**sfg**] object into .blue[**sfc**] object with CRS info. **my_sfc <- my_sfg %>% st_sfc(crs = 4326)**.
+3. Convert the .blue[**sfc**] object into .green[**sf**] object using **my_sf <- st_sf(my_sfc)**.
+]
+<br>
+```{r, echo=F, out.width="100%"}
+knitr::include_graphics(here::here("Lab", "Module_1", "sf_structure.png"))
+```

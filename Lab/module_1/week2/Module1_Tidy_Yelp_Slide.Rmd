@@ -1,0 +1,111 @@
+---
+title: "Tidy Data"
+subtitle: ""
+author: "Bon Woo Koo & Subhro Guhathakurta"
+institute: "Georgia Institute of Technology"
+date: "2022/9/13"
+output:
+  xaringan::moon_reader:
+    css: ["default", "assets/sydney-fonts.css", "assets/sydney.css"]
+    seal: false
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: '4:3' # alternatives '16:9' or '4:3' or others e.g. 13:9
+---
+class: middle, inverse
+
+# Tidy Data
+
+.font100[
+Bon Woo Koo & Subhro Guhathakurta
+
+9/13/2022
+]
+
+```{r xaringan-themer, include=FALSE, warning=FALSE}
+library(xaringanthemer)
+style_mono_accent(
+  base_color = "#1c5253",
+  header_font_google = google_font("Open Sans"),
+  text_font_google   = google_font("Source Sans Pro", "400", "400i"),
+  code_font_google   = google_font("Fira")
+)
+
+nice_table <- function(df, height="150px"){
+  return(
+    df %>% kable() %>% 
+      kable_styling(latex_options="scale_down", font_size=12) %>% 
+      scroll_box(width = "100%", height = height)
+    )
+}
+```
+
+```{r, include=F}
+library(xaringanthemer)
+library(sf)
+library(tidyverse)
+library(leaflet)
+library(tmap)
+library(kableExtra)
+library(tidycensus)
+```
+
+---
+## Content
+* Final project - short write up (300~500 words)
+* Working Environment
+* Wide vs. Long forms
+* Saving files
+* 
+
+---
+## Final project write-up
+Purpose: To facilitate the progress and nudge you to start thinking about the project.
+Ungraded: Will not affect your grade in any way.
+
+---
+## Wide vs. Long forms
+```{r}
+census_api_key(Sys.getenv("census_api"))
+
+suppressMessages(
+census_wide <- get_acs(geography="tract", state="GA", variables=c(hhincome='B19019_001', race.tot = "B02001_001"), 
+                       county="Fulton", year=2019, output="wide", geomtry=TRUE))
+suppressMessages(
+census_long <- get_acs(geography="tract", state="GA", variables=c(hhincome='B19019_001', race.tot = "B02001_001"), 
+                       county="Fulton", year=2019, geomtry=TRUE))
+
+census_wide
+census_long
+```
+
+---
+## Saving files
+
+
+**.RData**: Native data storage format for R. Can store multiple objects.  
+**.RDS**: Short for RData. Can only store one object.
+
+readr::write_rds()
+readr::read_rds()
+
+base::save()
+base::save.image()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,274 @@
+---
+title: "Accessing Data Through API"
+subtitle: ""
+author: "Bon Woo Koo & Subhro Guhathakurta"
+institute: "Georgia Institute of Technology"
+date: "2022/8/30"
+output:
+  xaringan::moon_reader:
+    css: ["default", "assets/sydney-fonts.css", "assets/sydney.css"]
+    seal: false
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: '4:3' # alternatives '16:9' or '4:3' or others e.g. 13:9
+---
+class: middle, inverse
+
+# Accessing data through API
+
+.font100[
+Bon Woo Koo & Subhro Guhathakurta
+
+9/6/2022
+]
+
+```{r xaringan-themer, include=FALSE, warning=FALSE}
+library(xaringanthemer)
+style_mono_accent(
+  base_color = "#1c5253",
+  header_font_google = google_font("Open Sans"),
+  text_font_google   = google_font("Source Sans Pro", "400", "400i"),
+  code_font_google   = google_font("Fira")
+)
+
+nice_table <- function(df, height="150px"){
+  return(
+    df %>% kable() %>% 
+      kable_styling(latex_options="scale_down", font_size=12) %>% 
+      scroll_box(width = "100%", height = height)
+    )
+}
+```
+
+```{r, include=F}
+library(xaringanthemer)
+library(sf)
+library(tidyverse)
+library(leaflet)
+library(tmap)
+library(kableExtra)
+```
+
+---
+## Content
+* Setting Working Environment
+* Yelp API Key
+* Census API Key
+* NHGIS
+* Defining Function
+* Using Environment Variable
+* Yelp Business Search and Pagination
+* Using Tracts to Break Down the Break
+
+---
+## Setting Working Environment - 1
+R has a concept of **working directory (WD).** R is **looking at** WD when it searches for and save files. .red[I recommend NOT using **setwd().**]  
+
+The best practice is to create a R project folder by **File -> New Project -> New Directory**, and organize all your files related to this project within this folder. 
+
+That creates a **.Rproj** file in that folder. Next time you continue working on the project, double click the **.Rproj** file. That will give you
+
+* A new, clean R session
+* Working directory = where **.Rproj** is
+
+
+![](rproject.png)
+
+---
+Let's say you've created a folder called UA_module1. **Store everything related with module 1 here.** An example folder structure would look like:
+.footnotesize[
+
+```
+UA_module1
+|--data
+    |--mtcars.csv
+|--figs
+    |--mpg_hp.png
+|--rmd
+    |--01_read_data.Rmd
+    |--01_read_data.pdf
+|--scripts
+    |--read_data.R
+|--UA_module1.Rproj 
+```
+]
+
+Notice **UA_module1_Rproj**. Again, opening .Rproj file will give you:
+* A new, clean R session
+* Working directory = where **.Rproj** is
+
+---
+## Setting Working Environment - 2
+After creating .Rproj and opening R with it, call **library(here)**. From now on, you can use relative path for everything using **here()** function that works cross-platform.
+
+**The relative path should start from where .Rproj is located.**
+
+.left-column[
+.footnotesize[
+
+```
+UA_module1
+|--data
+    |--mtcars.csv
+|--figs
+    |--mpg_hp.png
+|--rmd
+    |--01_read_data.Rmd
+    |--01_read_data.pdf
+|--scripts
+    |--read_data.R
+|--UA_module1.Rproj 
+```
+]
+]
+
+.right-column[
+Let's say you are working on **/rmd/01_read_data.Rmd** and want to read **/data/mtcars.csv**:
+```{r eval=F}
+# Reading
+library(here)
+read.csv(here("data", "mtcars.csv"))
+```
+
+Let's say you created a plot using **ggplot2** and want to save it in the **figs** folder:
+```{r eval=F}
+ggsave(here("figs", "mpg_hp.png"))
+```
+]
+
+---
+## Why do we do this?
+
+* (Potentially) clog-free environment, due to new environment for each project.
+* Collaboration with others is easier due to relative path.
+  * Collaboration across OS is easier (i.e., `/`  vs. `\`).
+* Your project folder becomes portable.
+
+---
+## Census API Key
+
+* We will be using Census data frequently throughout this course.
+* Census data will accessed within R through Census API.
+* You need a key, which can be acquired from **[here](https://api.census.gov/data/key_signup.html).**
+
+![](census_api_key.JPG)
+
+---
+## Census & NHGIS
+* We need to specify which variable we'd like to download. 
+  * For example, median household income = Table ID B19013.
+* These codes are can be found in all websites that provide Census data.
+* I recommend [National Historical GIS (NHGIS)](https://www.nhgis.org/).
+* There can be multiple variable IDs within one table ID.
+  * E.g., there are 10 variables for Table ID B19013, broken down by race (e.g., B19013A_001)
+  * This variable codes can be found in **`tidycensus::load_variables()`**.
+
+---
+E.g.,for median household income,
+
+```{r echo=F}
+knitr::include_graphics("nhgis.JPG")
+```
+
+---
+## Defining function
+* We have been using various functions, mean(), filter(), st_coordinates, etc.
+* We can write our own functions to simpler and more maintainable code.
+
+.red[my_function] <- .blue[function](arg1, arg2, ... )
+{  
+  .green[some operation using arg1, arg2, and so on]  
+}
+
+```{r}
+# Converting F to C
+f_to_c <- function(x)
+{
+  z <- (x - 32)*(5/9)
+  return(z)
+}
+
+f_to_c(100)
+```
+
+---
+## Yelp API Key
+
+.pull-left[
+.footnotesize[
+* Just like Census, we need an API key to make API request to Yelp server. Click **[here](https://www.yelp.com/developers/documentation/v3/authentication)**.
+  1. Sign up.
+  2. Then go [here](https://www.yelp.com/developers/v3/manage_app) to Create New App.
+  3. Fill out form.
+  4. You will have an email from Yelp. Once you confirm, the webpage will refresh and your key will be there.
+  5. You might need to fill out the form again (but won't have to do the email verification).
+]]
+
+.pull-right[
+```{r, out.width = "400px", echo=F}
+knitr::include_graphics("yelp_create_app.JPG")
+```
+]
+
+---
+## Using Environment Variables
+* API services are often **not** free.
+* If someone uses your API key, you will be charged.
+* **PROTECT IT.**
+
+
+* Everything on Rpubs is public.
+* You shouldn't type your API key in your code.
+* Instead use environment variable.
+
+```{r}
+a <- Sys.getenv("census_api")
+```
+
+---
+## Yelp Business Search 
+
+* "[Business search] endpoint returns up to 1000 businesses based on the provided search criteria." 
+  * Search is done with (1) a lng/lat coordinate and (2) search radius.
+* We can't get info on all restaurants in Atlanta in one API request if there are more than 1000
+* We need to make sure **one search criteria returns < 1000 hits**.
+* Atlanta should be broken down to **smaller bits**.
+* We will use **Census Tracts as the bits**
+  * We will download Yelp data for each Census Tract and combine them.
+
+---
+## Pagination
+
+* Even if we have < 1000 hits, we still can get up to 50 business information per one request.
+* E.g., there is 254 businesses in a given Census Tract. We need to make **ceiling(254/50)** requests to collect 254 business information.
+* In the first request, we set **offset=0**. After collecting the first 50 business information, we set **offset=50** in the next request, and so on until we collect all of them.
+
+.center[
+```{r, out.width="400px", echo=F}
+knitr::include_graphics("pagination.png")
+```
+]
+
+---
+## Using Tracts to Break Down the Search
+
+1. Generate a **bounding box** of a given Census Tract.
+2. Find the **centroid** of the bounding box.
+3. Find the **radius** of search area from the centroid such that *the circle defined by the centroid and radius entirely contains the polygon*.
+4. Centroid = lat/lng for Yelp search. Radius = distance.
+5. Send API request to Yelp server to get a response.
+
+.center[
+```{r, out.width = "300px", echo=F}
+knitr::include_graphics("radius.png")
+```
+]
+---
+## Using Tracts to Break Down the Search
+
+* We can repeat this process for all Census Tracts,
+* which will generate n separate responses, where n = number of Census Tracts.
+* These responses will be combined together.
