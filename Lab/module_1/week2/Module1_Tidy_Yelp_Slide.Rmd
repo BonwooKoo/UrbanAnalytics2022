@@ -55,20 +55,33 @@ library(tidycensus)
 
 ---
 ## Content
-* Final project - short write up (300~500 words)
-* Working Environment
+* Final project proposal
 * Wide vs. Long forms
 * Saving files
-* 
+* Anonymous function
+* Converting existing data frame into a sf object
+
 
 ---
-## Final project write-up
-Purpose: To facilitate the progress and nudge you to start thinking about the project.
-Ungraded: Will not affect your grade in any way.
+## Final project proposal
+
+<br>
+.center[
+Please submit 300~500-word long write-up of the project proposal.   
+]
+<br>
+
+**Purpose**: This proposal is to encourage you to start thinking about the project topic & potential data sources. 
+
+**Ungraded**: Will not affect your grade in any way.  
+
+**Submit by**: Oct 7th (Friday) 11:59 PM.  
+
+**Submit through**: Canvas > Assignment > Final Project Proposal.  
 
 ---
 ## Wide vs. Long forms
-```{r}
+```{r, include=F, message=F}
 census_api_key(Sys.getenv("census_api"))
 
 suppressMessages(
@@ -77,25 +90,125 @@ census_wide <- get_acs(geography="tract", state="GA", variables=c(hhincome='B190
 suppressMessages(
 census_long <- get_acs(geography="tract", state="GA", variables=c(hhincome='B19019_001', race.tot = "B02001_001"), 
                        county="Fulton", year=2019, geomtry=TRUE))
-
-census_wide
-census_long
 ```
+.footnotesize[
+.pull-left[
+
+with `output="wide"`:
+
+```{r}
+census_wide %>% 
+  head() %>%  
+  nice_table("350px")
+```
+]
+
+.pull-right[
+with `output="long"`:
+
+```{r}
+census_long %>% 
+  head() %>% 
+  nice_table("350px")
+```
+]
+]
+---
+## Wide vs. Long forms
+
+.footnotesize[
+```{r}
+longer <- census_wide %>% 
+  pivot_longer(cols = hhincomeE:race.totM, # Cols to be affected
+               names_to = c("variable"), # Name for the label column
+               values_to = c("value")) # Name for the value column
+longer
+```
+]
+---
+## Wide vs. Long forms
+
+.footnotesize[
+```{r}
+wider <- longer %>% 
+  pivot_wider(id_cols = c(GEOID, NAME), 
+              names_from = c("variable"),
+              values_from = c("value")) 
+wider
+```
+]
 
 ---
 ## Saving files
 
-
+.center[
+We tend to use common file formats (e.g., CSV, SHP) so that others who don't use R can read the files. However, when we have special data structures, R native formats can be handy.
+]
+<br>
+### File formats
 **.RData**: Native data storage format for R. Can store multiple objects.  
 **.RDS**: Short for RData. Can only store one object.
 
-readr::write_rds()
-readr::read_rds()
+### Functions
+**write_rds(), read_rds()** from readr package -> Works the same way as write.csv, read.csv
 
-base::save()
-base::save.image()
+**save(), save.image()** from base R -> Note that save.image() save the entire environment
 
+---
+## Anonymous function
 
+* When using **apply()** or **map()**, you can provide an existing or a custom-made function.
+* Similar to lambda in Python, R has anonymous function. 
+* Anonymous function is a function defined on the fly and disappears after execution.
+
+.footnotesize[
+.pull-left[
+```{r}
+map(1:5, # input vector
+    function(x) x + 1) # anonymous function
+```
+]
+
+.pull-right[
+```{r}
+map(1:5, # input vector
+    function(x){ # anonymous function with {}
+      out <- (x + 1)*x
+      return(out)
+    })
+```
+]
+]
+
+---
+* map() and other variants has a nice syntax that make the code simple. 
+* Instead of declaring `function(x)`, you can use a tilde (~) to indicate that it is anonymous function.
+* `x`s inside the anonymous function needs to be preceded by a period (.). See the example below.
+.footnotesize[
+```{r}
+map(1:5, # input
+    ~(.x + 1)*.x ) # tilde replaces function().  # x is preceded by a period
+```
+]
+
+---
+## Existing data frame into a sf object
+* You can convert a data frame with lng/lat into a sf object. This can be done using **st_as_sf()**. 
+
+* The word 'as' indicates that it converts an *existing* object to sf rather than creating one from scratch.
+
+.footnotesize[
+```{r, out.width="100%"}
+# A data frame with XY info
+point_df <- data.frame(x = c(-84.3991, -84.4010, -84.3899), 
+                       y = c(33.7770, 33.7748, 33.7777))
+
+# st_as_sf
+point_df %>% 
+  st_as_sf(coords = c("x", "y"), crs = 4326) %>% 
+  tm_shape(.) + tm_dots()
+```
+]
 
 
 

@@ -33,14 +33,14 @@ What do I mean by **'messy?'** There isn't a formal definition of messiness (at 
 2. Duplicated or redundant rows/columns
 3. multiple variables in one column.
 4. Missing data.
-5. Unstructured data<br><font color="gray">and the list goes on..</font>
+5. Unstructured data <br> <font color="gray">and the list goes on..</font>
 
 ### Why are messy data problem? 
 In the end, the urban analytics is interested in extracting useful knowledge from the data. This extraction is often done using such tools as visualization, cartography, and statistical analysis. <font color="pink">Many of these tools are not good at handling the issues listed above</font>. Among the five listed above, the hardest to deal with is perhaps the unstructured data.   
 
 **However, Module 3 and 4 are devoted to transforming unstructured data into structured data**, so let's focus on the other ones here in this document.
 
-# Issue 1 - Rows and columns do not represent observations and variables
+## Issue 1 - Rows and columns do not represent observations and variables
 There is a standardized framework that illustrates what is **not messy** -- Tidy Data. 
 **Note that all of my writing about tidy data is borrowed from Hadley Wickham's [paper](https://vita.had.co.nz/papers/tidy-data.pdf) and [book](https://r4ds.had.co.nz/tidy-data.html).** 
 
@@ -113,7 +113,7 @@ However, in Urban Analytics, we often create our own datasets from sources that 
 
 
 
-# Issue 2 - Duplicated or redundant rows/columns
+## Issue 2 - Duplicated or redundant rows/columns
 Duplicated rows is a common issue when using API to acquire data. Multiple functions exist in R to deal with duplicates. Most frequently used ones include: **duplicated()** and **distinct()**. 
 
 ### duplicated()
@@ -144,7 +144,7 @@ dupl_df %>%
   distinct(name, GPA)
 ```
 
-# Issue 3 - Multiple variables in one column
+## Issue 3 - Multiple variables in one column
 This issue comes in two broad types. 
 
 <font color = "pink">**The first type: **</font> Different variables can be concatenated into a long string. A very commonly found example is from Census data: they sometimes return something like "Census Tract 9501, Appling County, Georgia" in **a single column**. It contains at least three variables: Tract, County, and State. 
@@ -164,15 +164,17 @@ onecol_df %>% separate(col = "labels", sep = "_", into = c("alphabet", "numeric"
 
 <font color = "pink">**The second type:**</font> One column in a data frame can contain another data frame or a list. This is the structure used to construct sf objects (remember the sfc class?). This data structure is frequently found when we convert something like a JSON, which can have nested structure, into a data frame. This list-column isn't actually an issue per se--it is a legitimate data structure that has many use cases. But since it can be a bit unintuitive for some people, let's transform it into a more common data frame.
 
-Let's use the data we downloaded last week. Notice in the print out below that `categories` and `transactions` contains lists and `coordinates` and `location` contains a data frame which has another nested structure within it. 
+Let's use the data we downloaded last week. Notice in the print out below that `categories` and `transactions` contains lists and `coordinates` and `location` contains data frames which has another nested structure within it. Note that when we print out,  `coordinates` and `location` are automatically flattened and displayed like normal columns, but that's just in print out. They are still nested.
 
 ```{r}
+# Read a subset of Yelp data we downloaded last week
 yelp_subset <- read_rds(here("Lab", "module_1", "week2", "yelp_subset.rds"))
+# Print to see what's inside
 yelp_subset %>% 
   tibble() %>% 
   print(width = 1000)
 
-yelp_subset$coordinates
+yelp_subset$coordinates %>% head()
 ```
 
 Let's try flattening the **data frame** within `coordinates`and `location` columns. We can do it using flatten() function in jsonlite package. Currently, `coordinates` column contains a data frame with two columns, `latitude` and `longitude`. 
@@ -182,10 +184,9 @@ After applying this function, we can see new columns, e.g., `coordinates.latitud
 ```{r}
 yelp_flat <- yelp_subset %>% 
   jsonlite::flatten() %>% 
-  as_tibble() %>% 
-  print(width = 1000)
+  as_tibble() 
 
-yelp_flat$coordinates.latitude
+yelp_flat$coordinates %>% head()
 ```
 
 Even after flattening, we still have list-columns remaining. These are quite tricky: because there can be anything in any structure inside a list-column, writing a function that can flatten any given list-column is very difficult. In our case, a closer look at the list-columns showed that `transaction` and `location.display_address` have very simple structure: in each component of the list, there is a character vector. We can simply concatenate them. See below.
@@ -199,7 +200,7 @@ yelp_concat <- yelp_flat %>%
            map_chr(., function(x) str_c(x, collapse=", ")))
 ```
 
-Now, `categories` column is slightly more complicated: in each component of the list, there is a data frame with two columns and varying row numbers. I think the easiest way is to write a custom function for this list-column. The course of action is:
+Now, `categories` column is slightly more complicated: in each component of the list, there is a data frame with two columns and varying row numbers. I think the easiest way to flatten this column is to write a custom function for this list-column. The course of action is:
 
 1. Use lapply or map to loop through each component of the list-column.
 2. For each component (which is a data frame), we extract `title` column.
@@ -216,8 +217,7 @@ concate_list <- function(x){
 }
 
 yelp_flat2 <- yelp_concat %>% 
-  mutate(categories = categories %>% map_chr(concate_list)) %>% 
-  print(width = 1000)
+  mutate(categories = categories %>% map_chr(concate_list))
 
 yelp_flat2 %>% print(width = 1000)
 ```
@@ -225,7 +225,7 @@ yelp_flat2 %>% print(width = 1000)
 
 
 
-# Issue 4 - Missing data
+## Issue 4 - Missing Values
 
 In R, NA is used to represent missing data. Many core functions in R does not work properly when NA is in the vector (e.g., try `mean(c(NA, 1, 2, 3))`). So it is imperative that NAs are taken care of. 
 
@@ -236,6 +236,12 @@ Similarly, the tidyr package has **drop_na()** function, but I recommend that yo
 <font color="pink">**A common mistake**</font> is that some people drop rows that have NAs **in columns that they do not use**. If some rows have NAs in columns that you have no intention of using in your analysis, **those is harmless!** (unless those NAs are indicative of other issues..) So, do not blindly drop NAs, as you may lose valuable information for no good reason.
 
 ```{r}
+# This is the same toy_df from above
+toy_df <- data.frame(name = c("John", "Jane", "Mary"), 
+                     treatment_a = c(NA, 16, 3),
+                     treatment_b = c(2, 11, 1),
+                     treatment_c = c(6, 12, NA))
+
 # Dropping NA using is.na()
 toy_df %>% 
   filter(!is.na(treatment_a))
@@ -246,26 +252,27 @@ toy_df %>%
 ```
 
 # Tidying Yelp data
-We have all the tools we need to clean the Yelp data. Read the comment in the code chunk for more details.
+We have all the tools we need to clean the Yelp data. Our Yelp data doesn't seem to have Issue 1, so let's start from Issue 2.
 
+#### Issue 2 - Duplicates
+We do have many duplicated rows in our data, which is expected. In practice, we normally spend good amount of time on thinking about which column (or a combination of columns) should be used to identify duplicates. Luckily, Yelp data provides a unique ID column for each business.
 ```{r}
 # Read the full data
 my_yelp <- read_rds(here("Lab", "module_1", "week2", "yelp_all.rds"))
 
-# Issue 1 ------------------------------
-# We don't seem to have this issue for Yelp data.
-
 # Issue 2 ------------------------------
-# We do have many duplicated rows in our data, which is expected. 
-# Luckily, Yelp data provides a unique ID column for each business.
 yelp_unique <- my_yelp %>% 
   distinct(id, .keep_all=T)
 
-paste0(nrow(my_yelp), " -> ", nrow(yelp_unique)) %>% print()
+glue::glue("Before dropping NA, there were {nrow(my_yelp)} rows. After dropping them, there are {nrow(yelp_unique)} rows") %>% 
+  print()
+```
 
+
+#### Multiple variables in one column
+This is the main issue in Yelp data, caused by the original data format being JSON. 
+```{r}
 # Issue 3 ------------------------------
-# This is the main issue in Yelp data, caused by the original data format being JSON.
-
 yelp_flat <- yelp_unique %>% 
   # 1. Flattening columns with data frame
   jsonlite::flatten() %>% 
@@ -275,14 +282,36 @@ yelp_flat <- yelp_unique %>%
          location.display_address = location.display_address %>% 
            map_chr(., function(x) str_c(x, collapse=", ")),
          categories = categories %>% map_chr(concate_list)) # concate_list is the custom function
+```
 
+#### Missing values
+We first need to identify whether there exists any NA values. 
+```{r}
 # Issue 4 ------------------------------
-# Let's first check whether there are any NAs.
 yelp_flat %>% 
-  map_dbl(., function(x) sum(is.na(x)))
+  map_dbl(., function(x) sum(is.na(x))) 
+  # map_dbl is a variant of map() which outputs 
+  # numeric vector rather than a list.
+```
 
-# There seems to be many missing values in price and location information. 
-# Remember that you do not need to drop rows just because the row has NAs in some columns IF YOU DON"T NEED THAT COLUMN FOR YOUR ANALYSIS. In this dataset, missing values in location.address1 are not problem because we have cooridnate information.
+There seems to be many missing values in 'price' and 'location' columns. Remember that you do not need to drop rows just because the row has NAs in some columns IF YOU DON"T NEED THAT COLUMN FOR YOUR ANALYSIS. 
+
+In this dataset, missing values in location.address1 are not problem because we have coordinate information. We, however, must drop the four NAs in coordinates.latitude and coordinates.longitude. Sf package cannot handle NAs in coordinates. 
+
+Also, missing values in 'price' column can be an issue, as that's one of the main variables. Assuming that we will be using the price column, let's drop NAs in 'price' column too.
+
+```{r}
+# Fist, let's verify that the 4 missing values in lat/long columns are in the same rows.
+identical(is.na(yelp_flat$coordinates.latitude),
+          is.na(yelp_flat$coordinates.longitude)) # Yes, they are in the same 4 rows.
+
+# Drop them.
+yelp_dropna1 <- yelp_flat %>% 
+  drop_na(coordinates.longitude)
+
+# Dropping NAs in price
+yelp_dropna2 <- yelp_dropna1 %>% 
+  drop_na(price)
 ```
 
 
@@ -292,23 +321,116 @@ The last plot in the last week's R Markdown document was a map of the downloaded
 
 ```{r}
 # census boundary
-census <- st_read("https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.geojson") %>% 
-  filter(county %in% c("Fulton County", "DeKalb County")) %>% 
-  st_union()
+census <- st_read("https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.geojson") 
 
+# Converting yelp_dropna2 into a sf object
+yelp_sf <- yelp_dropna2 %>% 
+  st_as_sf(coords=c("coordinates.longitude", "coordinates.latitude"), crs = 4326)
+  
 # sf subsets
-yelp_in <- my_yelp[census, ,op = st_intersects]
+yelp_in <- yelp_sf[census %>% 
+                     filter(county %in% c("Fulton County", "DeKalb County")) %>% 
+                     st_union(), ,op = st_intersects]
 ```
+
+# Comparing messy vs. tidy
+Through tidying the data, the Yelp data is ready for analysis. What follows below is a summary of what/how the data changed.
+
+```{r}
+glue::glue("nrow before: {nrow(my_yelp)} -> nrow after: {nrow(yelp_in)} \n
+            ncol before: {ncol(my_yelp)} -> ncol after: {ncol(yelp_in)} \n") %>% 
+  print()
+```
+
 
 ```{r}
 # Visualize
 tmap_mode("view")
-map_in <- tm_shape(yelp_in) + tm_dots()
+tm_shape(yelp_in) + tm_dots(col = "price")
 ```
+
+
+
+
+# Appending Census Data 
+Starting from next week, we will go over simple statistical analyses to derive important insights. We will need to add Census Data to provide social context to the Yelp data. Because Yelp and Census data are created without any references to each other, the only way that I know to join the two is based on spatial proximity between them.
+
+As we've reviewed last week, spatial join can be done using **st_join()** function. This function takes two sf objects of the same CRS and joins them using spatial relationship defined by the predicate function. Remember that the order matters: **st_join(x,y)** will return `x` with `y` attributes appended. **st_join(y,x)** will return `y` with `x` attributes appended. Let's try both.
+
+```{r}
+# census is currently sfc. Convert it to sf.
+census_sf <- census %>% st_sf()
+
+# Spatial join
+census_yelp <- st_join(census_sf, yelp_in, join = st_intersects)
+yelp_census <- st_join(yelp_in, census_sf, join = st_intersects)
+
+# View
+census_yelp %>% head()
+
+yelp_census %>% head()
+```
+
+```{r}
+tm_shape(census_yelp %>% group_by(GEOID) %>% summarise(rating=mean(rating))) + 
+  tm_polygons(col = "rating", style = "quantile")
+```
+
+```{r}
+tm_shape(yelp_census) + tm_dots(col="hhincome")
+```
+
+
+
+
+
+# Other useful functions (Optional)
+There are many other tools and functions that are very useful. I introduce some of them, so that you are introduced with them and have a reference that you can come back to in the future should you need it.
+
+### When you need to re-code a variable's value - case_when()
+the arguments for **case_when()** consists of two parts, condition and output. In the example below, `review_count > 1000` is the condition part. The part following the tilde (~) is the output part. So, it evaluates the condition and spits out appropriate outputs.
+```{r}
+yelp_in %>% 
+  # Use mutate bc the re-coded variable is a new variable
+  mutate(review_count_binary = case_when(review_count > 1000 ~ "many",
+                                         review_count <= 1000 ~ "few")) %>% 
+  # Select these two columns to simplify the print out
+  select(review_count, review_count_binary) %>% 
+  head()
+```
+
+### When you need to select or modify multiple columns based on common characteristics - across()
+**across()** function allows us to select multiple columns and apply an operation to all of them. In the code below, **is.nemeric()** function is supplied to indicate that I want all numeric columns. The **scale()** function indicates that the operation I want to apply to all numeric columns is to standardize them into z-scores.
+```{r}
+yelp_in %>% 
+  mutate(across(is.numeric, scale)) %>% 
+  select(is.numeric)
+```
+
+### When you need to count the frequency of each value in a variables - table() or count()
+Often you need to check how many occurrences there are for each value in a given variable. This is used perhaps more often to study a dataset in your hand and less often as a part of tidying your data. You can use table() from the base R or count() from the dplyr package.
+
+```{r}
+# Using table
+yelp_in %>% 
+  pull(price) %>% table
+
+# Using count
+yelp_in %>% 
+  count(price)
+```
+
+
 
 
 
 
 
 **<font size=3 color="gray">References</font>**  
-<font size=3 color="gray">Codd, E. F. (1990). The relational model for database management: version 2. Addison-Wesley Longman Publishing Co., Inc..</font>
+<font size=3 color="gray">
+
+Codd, E. F. (1990). The relational model for database management: version 2. Addison-Wesley Longman Publishing Co., Inc..
+
+Wickham, H., & Grolemund, G. (2016). R for data science: import, tidy, transform, visualize, and model data. " O'Reilly Media, Inc.".
+
+</font>

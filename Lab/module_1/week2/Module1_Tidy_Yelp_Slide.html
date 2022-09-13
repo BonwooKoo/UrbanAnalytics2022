@@ -4,8 +4,10 @@
     <title>Tidy Data</title>
     <meta charset="utf-8" />
     <meta name="author" content="Bon Woo Koo &amp; Subhro Guhathakurta" />
-    <script src="libs/header-attrs-2.14/header-attrs.js"></script>
+    <script src="libs/header-attrs-2.15/header-attrs.js"></script>
     <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <script src="libs/kePrint-0.0.1/kePrint.js"></script>
+    <link href="libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
     <link rel="stylesheet" href="assets/sydney-fonts.css" type="text/css" />
     <link rel="stylesheet" href="assets/sydney.css" type="text/css" />
   </head>
@@ -28,33 +30,218 @@ Bon Woo Koo &amp; Subhro Guhathakurta
 
 ---
 ## Content
-* Final project
-* Working Environment
+* Final project proposal
 * Wide vs. Long forms
 * Saving files
-* 
+* Anonymous function
+* Converting existing data frame into a sf object
 
+
+---
+## Final project proposal
+
+&lt;br&gt;
+.center[
+Please submit 300~500-word long write-up of the project proposal.   
+]
+&lt;br&gt;
+
+**Purpose**: This proposal is to encourage you to start thinking about the project topic &amp; potential data sources. 
+
+**Ungraded**: Will not affect your grade in any way.  
+
+**Submit by**: Oct 7th (Friday) 11:59 PM.  
+
+**Submit through**: Canvas &gt; Assignment &gt; Final Project Proposal.  
 
 ---
 ## Wide vs. Long forms
 
-```r
-census_api_key(Sys.getenv("census_api"))
-```
+.footnotesize[
+.pull-left[
 
-```
-## To install your API key for use in future sessions, run this function with `install = TRUE`.
-```
+with `output="wide"`:
+
 
 ```r
-suppressMessages(
-census_wide &lt;- get_acs(geography="tract", state="GA", variables=c(hhincome='B19019_001', race.tot = "B02001_001"), 
-                       county="Fulton", year=2019, output="wide", geomtry=TRUE))
-suppressMessages(
-census_long &lt;- get_acs(geography="tract", state="GA", variables=c(hhincome='B19019_001', race.tot = "B02001_001"), 
-                       county="Fulton", year=2019, geomtry=TRUE))
+census_wide %&gt;% 
+  head() %&gt;%  
+  nice_table("350px")
+```
 
-census_wide
+&lt;div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:350px; overflow-x: scroll; width:100%; "&gt;&lt;table class="table" style="font-size: 12px; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"&gt; GEOID &lt;/th&gt;
+   &lt;th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"&gt; NAME &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; hhincomeE &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; hhincomeM &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; race.totE &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; race.totM &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 13121010122 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Census Tract 101.22, Fulton County, Georgia &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 90586 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 14002 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6383 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 650 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 13121010123 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Census Tract 101.23, Fulton County, Georgia &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 77969 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7510 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5081 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 716 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 13121010211 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Census Tract 102.11, Fulton County, Georgia &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 142750 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 22560 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2864 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 347 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 13121007602 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Census Tract 76.02, Fulton County, Georgia &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 32500 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5264 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2570 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 310 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 13121001700 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Census Tract 17, Fulton County, Georgia &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 94750 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 19507 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4911 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 403 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 13121007802 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Census Tract 78.02, Fulton County, Georgia &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 51388 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7637 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 10961 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1177 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;&lt;/div&gt;
+]
+
+.pull-right[
+with `output="long"`:
+
+
+```r
+census_long %&gt;% 
+  head() %&gt;% 
+  nice_table("350px")
+```
+
+&lt;div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:350px; overflow-x: scroll; width:100%; "&gt;&lt;table class="table" style="font-size: 12px; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"&gt; GEOID &lt;/th&gt;
+   &lt;th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"&gt; NAME &lt;/th&gt;
+   &lt;th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"&gt; variable &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; estimate &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; moe &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 13121000100 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Census Tract 1, Fulton County, Georgia &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; race.tot &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5410 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 359 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 13121000100 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Census Tract 1, Fulton County, Georgia &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; hhincome &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 168396 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 18644 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 13121000200 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Census Tract 2, Fulton County, Georgia &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; race.tot &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6175 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 448 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 13121000200 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Census Tract 2, Fulton County, Georgia &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; hhincome &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 158011 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 37856 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 13121000400 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Census Tract 4, Fulton County, Georgia &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; race.tot &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2047 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 292 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 13121000400 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Census Tract 4, Fulton County, Georgia &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; hhincome &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 97257 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 30528 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;&lt;/div&gt;
+]
+]
+---
+## Wide vs. Long forms
+
+.footnotesize[
+
+```r
+longer &lt;- census_wide %&gt;% 
+  pivot_longer(cols = hhincomeE:race.totM, # Cols to be affected
+               names_to = c("variable"), # Name for the label column
+               values_to = c("value")) # Name for the value column
+longer
+```
+
+```
+## # A tibble: 816 × 4
+##    GEOID       NAME                                        variable   value
+##    &lt;chr&gt;       &lt;chr&gt;                                       &lt;chr&gt;      &lt;dbl&gt;
+##  1 13121010122 Census Tract 101.22, Fulton County, Georgia hhincomeE  90586
+##  2 13121010122 Census Tract 101.22, Fulton County, Georgia hhincomeM  14002
+##  3 13121010122 Census Tract 101.22, Fulton County, Georgia race.totE   6383
+##  4 13121010122 Census Tract 101.22, Fulton County, Georgia race.totM    650
+##  5 13121010123 Census Tract 101.23, Fulton County, Georgia hhincomeE  77969
+##  6 13121010123 Census Tract 101.23, Fulton County, Georgia hhincomeM   7510
+##  7 13121010123 Census Tract 101.23, Fulton County, Georgia race.totE   5081
+##  8 13121010123 Census Tract 101.23, Fulton County, Georgia race.totM    716
+##  9 13121010211 Census Tract 102.11, Fulton County, Georgia hhincomeE 142750
+## 10 13121010211 Census Tract 102.11, Fulton County, Georgia hhincomeM  22560
+## # … with 806 more rows
+## # ℹ Use `print(n = ...)` to see more rows
+```
+]
+---
+## Wide vs. Long forms
+
+.footnotesize[
+
+```r
+wider &lt;- longer %&gt;% 
+  pivot_wider(id_cols = c(GEOID, NAME), 
+              names_from = c("variable"),
+              values_from = c("value")) 
+wider
 ```
 
 ```
@@ -74,43 +261,136 @@ census_wide
 ## # … with 194 more rows
 ## # ℹ Use `print(n = ...)` to see more rows
 ```
-
-```r
-census_long
-```
-
-```
-## # A tibble: 408 × 5
-##    GEOID       NAME                                   variable estimate   moe
-##    &lt;chr&gt;       &lt;chr&gt;                                  &lt;chr&gt;       &lt;dbl&gt; &lt;dbl&gt;
-##  1 13121000100 Census Tract 1, Fulton County, Georgia race.tot     5410   359
-##  2 13121000100 Census Tract 1, Fulton County, Georgia hhincome   168396 18644
-##  3 13121000200 Census Tract 2, Fulton County, Georgia race.tot     6175   448
-##  4 13121000200 Census Tract 2, Fulton County, Georgia hhincome   158011 37856
-##  5 13121000400 Census Tract 4, Fulton County, Georgia race.tot     2047   292
-##  6 13121000400 Census Tract 4, Fulton County, Georgia hhincome    97257 30528
-##  7 13121000500 Census Tract 5, Fulton County, Georgia race.tot     5219   651
-##  8 13121000500 Census Tract 5, Fulton County, Georgia hhincome    90140 13217
-##  9 13121000600 Census Tract 6, Fulton County, Georgia race.tot     7952   988
-## 10 13121000600 Census Tract 6, Fulton County, Georgia hhincome    53686  9322
-## # … with 398 more rows
-## # ℹ Use `print(n = ...)` to see more rows
-```
+]
 
 ---
 ## Saving files
 
-
+.center[
+We tend to use common file formats (e.g., CSV, SHP) so that others who don't use R can read the files. However, when we have special data structures, R native formats can be handy.
+]
+&lt;br&gt;
+### File formats
 **.RData**: Native data storage format for R. Can store multiple objects.  
 **.RDS**: Short for RData. Can only store one object.
 
-readr::write_rds()
-readr::read_rds()
+### Functions
+**write_rds(), read_rds()** from readr package -&gt; Works the same way as write.csv, read.csv
 
-base::save()
-base::save.image()
+**save(), save.image()** from base R -&gt; Note that save.image() save the entire environment
 
+---
+## Anonymous function
 
+* When using **apply()** or **map()**, you can provide an existing or a custom-made function.
+* Similar to lambda in Python, R has anonymous function. 
+* Anonymous function is a function defined on the fly and disappears after execution.
+
+.footnotesize[
+.pull-left[
+
+```r
+map(1:5, # input vector
+    function(x) x + 1) # anonymous function
+```
+
+```
+## [[1]]
+## [1] 2
+## 
+## [[2]]
+## [1] 3
+## 
+## [[3]]
+## [1] 4
+## 
+## [[4]]
+## [1] 5
+## 
+## [[5]]
+## [1] 6
+```
+]
+
+.pull-right[
+
+```r
+map(1:5, # input vector
+    function(x){ # anonymous function with {}
+      out &lt;- (x + 1)*x
+      return(out)
+    })
+```
+
+```
+## [[1]]
+## [1] 2
+## 
+## [[2]]
+## [1] 6
+## 
+## [[3]]
+## [1] 12
+## 
+## [[4]]
+## [1] 20
+## 
+## [[5]]
+## [1] 30
+```
+]
+]
+
+---
+* map() and other variants has a nice syntax that make the code simple. 
+* Instead of declaring `function(x)`, you can use a tilde (~) to indicate that it is anonymous function.
+* `x`s inside the anonymous function needs to be preceded by a period (.). See the example below.
+.footnotesize[
+
+```r
+map(1:5, # input
+    ~(.x + 1)*.x ) # tilde replaces function().  # x is preceded by a period
+```
+
+```
+## [[1]]
+## [1] 2
+## 
+## [[2]]
+## [1] 6
+## 
+## [[3]]
+## [1] 12
+## 
+## [[4]]
+## [1] 20
+## 
+## [[5]]
+## [1] 30
+```
+]
+
+---
+## Existing data frame into a sf object
+* You can convert a data frame with lng/lat into a sf object. This can be done using **st_as_sf()**. 
+
+* The word 'as' indicates that it converts an *existing* object to sf rather than creating one from scratch.
+
+.footnotesize[
+
+```r
+# A data frame with XY info
+point_df &lt;- data.frame(x = c(-84.3991, -84.4010, -84.3899), 
+                       y = c(33.7770, 33.7748, 33.7777))
+
+# st_as_sf
+point_df %&gt;% 
+  st_as_sf(coords = c("x", "y"), crs = 4326) %&gt;% 
+  tm_shape(.) + tm_dots()
+```
+
+&lt;img src="Module1_Tidy_Yelp_Slide_files/figure-html/unnamed-chunk-10-1.png" width="100%" /&gt;
+]
 
 
 

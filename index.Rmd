@@ -83,22 +83,37 @@ weeks <- tibble(
 ```{r, echo=FALSE}
 topic_col <- c(
   "Intro to Urban Analytics in R [(Slide)](https://github.gatech.edu/pages/sguhathakurta3/UA-Lecture1/Untitled/LectureONE.html), <br> Data ethics [(Slide)](https://github.gatech.edu/pages/sguhathakurta3/UA-Lecture1/Lecture-2/LectureTWO.html)",# 1
+  
   "Data for Urban Analytics [(Slide)](./Lab/module_0/w2_d2_modern_data.html), <br> Intro to R - 1 [(Slide)](./Lab/module_0/w2_d1_Intro_to_R_1.html), 2 [(Slide)](./Lab/module_0/w2_d2_Intro_to_R_2.html)",# 2
+  
   "Accessing data [(Slide)](https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_1/week1/Module1_Yelp_Census_Slide.html), <br> 
   Census & Yelp API [(RMD)](https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_1/week1/Module1_Yelp_Census.html), <br>Creating sf objects [(Slide)](https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_1/week1/Module1_Yelp_Census_Slide_additional.html)",# 3
-  "<b>(Tue) Mini-presentation 1 (Slide)</b>, <br> Tidy data (Slide), <br> Data wrangling (RMD)",# 4
+  
+  "<b>(Tue) Mini-presentation 1 (Slide)</b>, <br> Tidy data [(Slide)](https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_1/week2/Module1_Tidy_Yelp.html), <br> Data wrangling [(RMD)](https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_1/week2/Module1_Tidy_Yelp_Slide.html)",# 4
+  
   "First statistical insights from your data (Slide), <br> Hands-on (RMD)",# 5
+  
   "Interactive visualization (Slide), <br> Hands-on (RMD)",# 6
   "<b>(Tue) Mini-presentation 2 (Slide)</b>, <br> General Transit Feed Specification (Slide), <br> GTFS and equity (RMD)",# 7 # [GTFS and equity (RMD)](./Lab/module_2/1_GTFS.html)
+  
   "Open Street Map (Slide), <br> OSM as a graph (RMD)",# 8 # [OSM as a graph (RMD)](./Lab/module_2/2_OSM.html)
+  
   "<b>(Tue) Mini-presentation 3 (Slide)</b>, Urban images and computer vision (Slide), <br> Yolo in R (RMD)",# 9
+  
   "Many ways of viewing your city (Slide), <br> Sampling images and running Mask R-CNN on Google Colab (RMD)",# 10
+  
   "<b>(Tue) Mini-presentation 4 (Slide)</b>, <br> User-generated text data - Twitter (Slide), <br> Getting live feeds from Twitter (RMD)",# 11
+  
   "Preprocessing texts (Slide), <br> Sentiment analysis (RMD)",# 12
+  
   "<b>(Tue) Mini-presentation 5 (Slide)</b>, <br> Storytelling with data - 1",# 13
+  
   "Storytelling with data - 2",# 14
+  
   "<b>Student presentations</b>",# 15
+  
   "<b>Student presentations - continued</b>",# 16
+  
   "Wrap up"# 17
 )
 
