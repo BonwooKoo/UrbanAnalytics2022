@@ -350,7 +350,7 @@ url_format <- function(latitude = NULL, longitude = NULL,
 full_url <- url_format(latitude = 33.792479078196294, # This is Atlantic station
                        longitude = -84.39676077444938, # This is Atlantic station 
                        radius=1000, 
-                       categories="restaurant", 
+                       categories="restaurants", 
                        offset = 0, 
                        limit = 50)
 
@@ -381,7 +381,7 @@ As shown above, it is possible to format an URL, send request, and get the respo
 ```{r}
 which_tract <- 1
 test <- business_search(api_key = Sys.getenv('yelp_api'), # like we did for census, store your api key
-                        category = 'restaurant', # return only restaurant businesses
+                        categories = 'restaurants', # return only restaurant businesses
                         latitude = ready_4_yelp$y[which_tract],
                         longitude = ready_4_yelp$x[which_tract],
                         offset = 0, # 1st page, 1st obs
@@ -486,7 +486,7 @@ get_yelp <- function(tract, category){
 
 ```{r}
 # Apply the function for the first Census Tract
-yelp_first_tract <- get_yelp(ready_4_yelp[1,], "restaurant") %>% 
+yelp_first_tract <- get_yelp(ready_4_yelp[1,], "restaurants") %>% 
   as_tibble()
 
 # Print

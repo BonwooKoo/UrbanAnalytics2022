@@ -4,7 +4,7 @@
     <title>Tidy Data</title>
     <meta charset="utf-8" />
     <meta name="author" content="Bon Woo Koo &amp; Subhro Guhathakurta" />
-    <script src="libs/header-attrs-2.15/header-attrs.js"></script>
+    <script src="libs/header-attrs-2.14/header-attrs.js"></script>
     <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
     <script src="libs/kePrint-0.0.1/kePrint.js"></script>
     <link href="libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
@@ -31,6 +31,7 @@ Bon Woo Koo &amp; Subhro Guhathakurta
 ---
 ## Content
 * Final project proposal
+* Categories
 * Wide vs. Long forms
 * Saving files
 * Anonymous function
@@ -53,6 +54,29 @@ Please submit 300~500-word long write-up of the project proposal.
 **Submit by**: Oct 7th (Friday) 11:59 PM.  
 
 **Submit through**: Canvas &gt; Assignment &gt; Final Project Proposal.  
+
+---
+## Categories on Yelp API
+
+Error correction!!
+
+* Argument name in business_search should be "categories", not "category".
+* The string you supply must be from the [list that Yelp provides](https://www.yelp.com/developers/documentation/v3/all_category_list).
+
+.footnotesize[
+
+```r
+business_search(api_key = Sys.getenv('yelp_api'), 
+*                       categories = 'restaurants',
+                        latitude = ready_4_yelp$y[which_tract],
+                        longitude = ready_4_yelp$x[which_tract],
+                        offset = 0, 
+                        radius = round(ready_4_yelp$radius[which_tract]), 
+                        limit = 50)
+```
+
+]
+ 
 
 ---
 ## Wide vs. Long forms
@@ -388,7 +412,7 @@ point_df %&gt;%
   tm_shape(.) + tm_dots()
 ```
 
-&lt;img src="Module1_Tidy_Yelp_Slide_files/figure-html/unnamed-chunk-10-1.png" width="100%" /&gt;
+&lt;img src="Module1_Tidy_Yelp_Slide_files/figure-html/unnamed-chunk-11-1.png" width="100%" /&gt;
 ]
 
 
