@@ -505,7 +505,7 @@ yelp_all_list <- vector("list", nrow(ready_4_yelp))
 
 # Looping through all Census Tracts
 for (row in 1:nrow(ready_4_yelp)){
-  yelp_all_list[[row]] <- suppressMessages(get_yelp(ready_4_yelp[row,], "restaurant"))
+  yelp_all_list[[row]] <- suppressMessages(get_yelp(ready_4_yelp[row,], "restaurants"))
   if (row %% 50 == 0){
     print(paste0("Current row: ", row))
   }

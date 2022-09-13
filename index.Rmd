@@ -24,6 +24,8 @@ library(kableExtra)
 
 This course introduces students to the field of urban analytics. The main objective of this course is for students to master important theories and concepts emerging in the field of urban analytics. Students will complete this course with a working knowledge of how data and advanced analytical techniques can enhance the planning and operation of cities.
 
+* URL of this syllabus: https://bonwookoo.github.io/UrbanAnalytics2022/
+
 # Prerequisites
 There are no prerequisites to this course, but the followings are encouraged.
 * Basic understanding of geographic information systems (GIS) and applied statistics
