@@ -246,19 +246,20 @@ wider
 
 ```
 ## # A tibble: 204 × 6
-##    GEOID       NAME                                        hhincomeE hhincomeM race.totE race.totM
-##    &lt;chr&gt;       &lt;chr&gt;                                           &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;
-##  1 13121010122 Census Tract 101.22, Fulton County, Georgia     90586     14002      6383       650
-##  2 13121010123 Census Tract 101.23, Fulton County, Georgia     77969      7510      5081       716
-##  3 13121010211 Census Tract 102.11, Fulton County, Georgia    142750     22560      2864       347
-##  4 13121007602 Census Tract 76.02, Fulton County, Georgia      32500      5264      2570       310
-##  5 13121001700 Census Tract 17, Fulton County, Georgia         94750     19507      4911       403
-##  6 13121007802 Census Tract 78.02, Fulton County, Georgia      51388      7637     10961      1177
-##  7 13121007805 Census Tract 78.05, Fulton County, Georgia      31174      5355      3397       633
-##  8 13121009700 Census Tract 97, Fulton County, Georgia        208750     66170      3846       316
-##  9 13121010206 Census Tract 102.06, Fulton County, Georgia    192375     49707      5618       361
-## 10 13121011303 Census Tract 113.03, Fulton County, Georgia     45942      4865      9543       666
-## # … with 194 more rows
+##    GEOID       NAME                              hhinc…¹ hhinc…² race.…³ race.…⁴
+##    &lt;chr&gt;       &lt;chr&gt;                               &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
+##  1 13121010122 Census Tract 101.22, Fulton Coun…   90586   14002    6383     650
+##  2 13121010123 Census Tract 101.23, Fulton Coun…   77969    7510    5081     716
+##  3 13121010211 Census Tract 102.11, Fulton Coun…  142750   22560    2864     347
+##  4 13121007602 Census Tract 76.02, Fulton Count…   32500    5264    2570     310
+##  5 13121001700 Census Tract 17, Fulton County, …   94750   19507    4911     403
+##  6 13121007802 Census Tract 78.02, Fulton Count…   51388    7637   10961    1177
+##  7 13121007805 Census Tract 78.05, Fulton Count…   31174    5355    3397     633
+##  8 13121009700 Census Tract 97, Fulton County, …  208750   66170    3846     316
+##  9 13121010206 Census Tract 102.06, Fulton Coun…  192375   49707    5618     361
+## 10 13121011303 Census Tract 113.03, Fulton Coun…   45942    4865    9543     666
+## # … with 194 more rows, and abbreviated variable names ¹​hhincomeE, ²​hhincomeM,
+## #   ³​race.totE, ⁴​race.totM
 ## # ℹ Use `print(n = ...)` to see more rows
 ```
 ]
@@ -266,18 +267,16 @@ wider
 ---
 ## Saving files
 
-.center[
-We tend to use common file formats (e.g., CSV, SHP) so that others who don't use R can read the files. However, when we have special data structures, R native formats can be handy.
-]
-&lt;br&gt;
-### File formats
-**.RData**: Native data storage format for R. Can store multiple objects.  
-**.RDS**: Short for RData. Can only store one object.
+### R-Native File formats
+**.RData**: Native data storage format for R. Can store multiple objects.    
+**.RDS**: Short for RData. Can only store one object.  
 
-### Functions
-**write_rds(), read_rds()** from readr package -&gt; Works the same way as write.csv, read.csv
+### Read/write RDS (recommended over RData)
+**write_rds(), read_rds()** from readr package -&gt; Works the same way as write.csv, read.csv.  
 
-**save(), save.image()** from base R -&gt; Note that save.image() save the entire environment
+### Read/write RData 
+**save(), save.image()** from base R -&gt; save() function can save multiple objects. save.image() saves the entire environment.  
+**load()** from base R -&gt; The biggest different from .RDS is that you do not use **&lt;-** for load(). It stores the original object name as well.
 
 ---
 ## Anonymous function

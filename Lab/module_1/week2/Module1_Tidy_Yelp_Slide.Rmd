@@ -141,18 +141,16 @@ wider
 ---
 ## Saving files
 
-.center[
-We tend to use common file formats (e.g., CSV, SHP) so that others who don't use R can read the files. However, when we have special data structures, R native formats can be handy.
-]
-<br>
-### File formats
-**.RData**: Native data storage format for R. Can store multiple objects.  
-**.RDS**: Short for RData. Can only store one object.
+### R-Native File formats
+**.RData**: Native data storage format for R. Can store multiple objects.    
+**.RDS**: Short for RData. Can only store one object.  
 
-### Functions
-**write_rds(), read_rds()** from readr package -> Works the same way as write.csv, read.csv
+### Read/write RDS (recommended over RData)
+**write_rds(), read_rds()** from readr package -> Works the same way as write.csv, read.csv.  
 
-**save(), save.image()** from base R -> Note that save.image() save the entire environment
+### Read/write RData 
+**save(), save.image()** from base R -> save() function can save multiple objects. save.image() saves the entire environment.  
+**load()** from base R -> The biggest different from .RDS is that you do not use **<-** for load(). It stores the original object name as well.
 
 ---
 ## Anonymous function
