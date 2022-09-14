@@ -189,7 +189,9 @@ yelp_flat <- yelp_subset %>%
 yelp_flat$coordinates %>% head()
 ```
 
-Even after flattening, we still have list-columns remaining. These are quite tricky: because there can be anything in any structure inside a list-column, writing a function that can flatten any given list-column is very difficult. In our case, a closer look at the list-columns showed that `transaction` and `location.display_address` have very simple structure: in each component of the list, there is a character vector. We can simply concatenate them. See below.
+Even after flattening, we still have list-columns remaining. Flattening list-columns can be tricky because, to the best of my knowledge, there is no single function that you can use to flatten any list-column you encounter. Because lists in R are the most flexible way to store data, there can be anything inside a list-column, which makes writing a function that can work universally for any given list-columns challenging. 
+
+In our case, a closer look at the list-columns showed that `transaction` and `location.display_address` have relatively simple structure: each component of the list contains a character vector. We can simply concatenate them. The output of the code below will be one character string per row.
 
 ```{r}
 # Concatenate what's inside the list
@@ -200,7 +202,7 @@ yelp_concat <- yelp_flat %>%
            map_chr(., function(x) str_c(x, collapse=", ")))
 ```
 
-Now, `categories` column is slightly more complicated: in each component of the list, there is a data frame with two columns and varying row numbers. I think the easiest way to flatten this column is to write a custom function for this list-column. The course of action is:
+Now, `categories` column is slightly more complicated: in each component of the list, there is a data frame with two columns and varying row numbers. I think the easiest way to flatten this column is to write a custom function. The course of action is:
 
 1. Use lapply or map to loop through each component of the list-column.
 2. For each component (which is a data frame), we extract `title` column.
