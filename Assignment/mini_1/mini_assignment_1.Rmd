@@ -41,7 +41,7 @@ The purpose of this mini assignment is to provide you with an opportunity to dig
 1. Write your report and R code in a R Markdown document. 
 2. Use the Knit button in R Studio to render it as a HTML document.
 3. Publish the rendered document to RPubs.
-4. <font color="pink">Submit the URL of the RPubs document through Canvas by **9/16/2022 Friday midnight (11:59 PM on Friday).** </font>
+4. <font color="pink">Submit the URL of the RPubs document through Canvas by **9/20/2022 Friday midnight (11:59 PM on Friday).** </font>
 5. To submit, go to Canvas > Assignments > Mini assignment 1.
 6. Grades and feedback will be posted through Canvas.
 
