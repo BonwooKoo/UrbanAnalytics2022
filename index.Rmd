@@ -152,19 +152,20 @@ reading_col <- c(
 assignment_col <- c(
   "[Survey](https://forms.gle/4BBtMfrvr5yJLebK9),<br>[Group](https://forms.gle/sGVfDgLR6yLLmb4S8)",# 1
   "",# 2
-  "[Mini](https://bonwookoo.github.io/UrbanAnalytics2022/Assignment/mini_1/mini_assignment_1.html)",# 3
-  "Mini",# 4 # add 
-  "Mini",# 5
-  "Mini",# 6
+  "[Mini 1](https://bonwookoo.github.io/UrbanAnalytics2022/Assignment/mini_1/mini_assignment_1.html) (due Sep20)", # 3
+  
+  "[Mini 2](https://bonwookoo.github.io/UrbanAnalytics2022/Assignment/mini_1/mini_assignment_2.html) (due Sep23)",# 4 # add 
+  "Mini 4",# 5
+  "Mini 5",# 6
   "",# 7
-  "Major",# 8 
+  "Major 1",# 8 
         # Chicago GTFS feed http://www.transitchicago.com/downloads/sch_data/google_transit.zip
   "",# 9
-  "Major",# 10
+  "Major 2",# 10
   "",# 11
-  "Major",# 12
+  "Major 3",# 12
   "",# 13
-  "Major",# 14
+  "Major 4",# 14
   "",# 15
   "",# 16
   ""# 17

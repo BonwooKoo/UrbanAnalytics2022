@@ -230,12 +230,30 @@ point_df %>%
   tm_shape(.) + tm_dots()
 ```
 ]
+---
+## Extension to the Mini Assignment 1
 
+* Now due next Tuesday (20).
+* Mini-assignment 2 is due next Friday (23).
+* Instructions on mini-assignment 2 can be found [here]() or syllabus.
 
+---
+## Detecting string - str_detect/grepl
 
+* Some people downloaded two Yelp categories at once.
+* Rows for category A and B will be mixed.
+* To count how many As and Bs are there each, you need to be able to search strings.
 
+grepl(.red[pattern], .blue[string])
+```{r}
+a <- c("yoga studio", "health gym", "pizza", "YoGa")
+grepl("yoga", a)
+```
 
-
+str_detect(.blue[string], .red[pattern])
+```{r}
+str_detect(a, "yoga")
+```
 
 
 
