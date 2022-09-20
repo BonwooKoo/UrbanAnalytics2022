@@ -1,0 +1,408 @@
+---
+title: "Intro to Urban Analytics"
+author: "Bon Woo Koo & Subhrajit Guhathakurta"
+date: '2022-08-20'
+output:
+  rmdformats::downcute:
+    downcute_theme: "chaos"
+    code_folding: show
+---
+
+```{r}
+tidycensus::census_api_key(Sys.getenv("census_api"))
+library(tidycensus)
+library(sf)
+library(tmap)
+library(jsonlite)
+library(tidyverse)
+library(httr)
+library(jsonlite)
+library(reshape2)
+library(here)
+library(yelpr)
+library(knitr)
+```
+
+
+# Download data from Census 2020
+
+Here we are downloading income, race, and means of transportation to work
+
+```{r, results=F}
+FD_tract <- suppressMessages(
+  get_acs(geography = "tract", # or "block group", "county", "state" etc.
+          state = "GA",
+          county = c("Fulton", "Dekalb"),
+          variables = c(hhincome = 'B19019_001',
+                        race.tot = "B02001_001",
+                        race.white = "B02001_002",
+                        race.black = "B02001_003",
+                        trans.total = "B08006_001",
+                        trans.car = "B08006_002",
+                        trans.drovealone = "B08006_003",
+                        trans.carpooled = "B08006_004", # Notice that I was not interested in 005-007 (2 person/ 4 person carpool etc.)
+                        trans.pubtrans = "B08006_008", # Did not want to download any details about the type of public transport (009-0013)
+                        trans.bicycle = "B08006_014",
+                        trans.walk = "B08006_015",
+                        trans.WfH = "B08006_017"
+          ),
+          year = 2020,
+          survey = "acs5", # American Community Survey 5-year estimate
+          geometry = TRUE, # returns sf objects
+          output = "wide") # wide vs. long
+)
+```
+
+<br>
+
+The data contains several redundant columns that we will not use. So, let's subset the data to only have the columns we will use
+
+```{r}
+FD_tract <- FD_tract %>%
+  select(GEOID,
+          hhincome = hhincomeE, # New name = old name
+          race.tot = race.totE,
+          race.white = race.whiteE,
+          race.black = race.blackE,
+          trans.total = trans.totalE,
+          trans.car = trans.carE,
+          trans.drovealone = trans.drovealoneE,
+          trans.carpooled = trans.carpooledE,
+          trans.pubtrans = trans.pubtransE,
+          trans.bicycle = trans.bicycleE,
+          trans.walk = trans.walkE,
+          trans.WfH = trans.WfHE)
+
+tmap_mode("view")
+## tmap mode set to interactive viewing
+tm_shape(FD_tract) + tm_borders()
+```
+
+# Downloading Yelp data
+
+```{r}
+# Function: Get tract-wise radius
+epsg_id <- 4326
+get_r <- function(poly, epsg_id){
+  #---------------------
+  # Takes: a single POLYGON or LINESTRTING
+  # Outputs: distance between the centroid of the boundingbox and a corner of the bounding box
+  #---------------------
+
+  # Get bounding box of a given polygon
+  bb <- st_bbox(poly)
+  # Get lat & long coordinates of any one corner of the bounding box.
+  bb_corner <- st_point(c(bb[1], bb[2])) %>% st_sfc(crs = epsg_id)
+  # Get centroid of the bb
+  bb_center_x <- (bb[3]+bb[1])/2
+  bb_center_y <- (bb[4]+bb[2])/2
+  bb_center <- st_point(c(bb_center_x, bb_center_y)) %>% st_sfc(crs = epsg_id) %>% st_sf()
+
+  # Get the distance between bb_p and c
+  r <- st_distance(bb_corner, bb_center)
+  # Multiply 1.1 to make the circle a bit larger than the Census Tract.
+  # See the Yelp explanation of their radius parameter to see why we do this.
+  bb_center$radius <- r*1.2
+  return(bb_center)
+}
+
+# Using a functional -----------------------------------------------------------
+# We use a functional (lapply) to apply this custom function to each Census Tract.
+r4all_apply <- FD_tract %>%
+  st_geometry() %>%
+  st_transform(crs = epsg_id) %>%
+  lapply(., function(x) get_r(x, epsg_id = epsg_id))
+
+r4all_apply <- bind_rows(r4all_apply)
+ready_4_yelp <- r4all_apply %>%
+  mutate(x = st_coordinates(.)[,1],
+         y = st_coordinates(.)[,2])
+# Select the first 10 rows
+ready_4_yelp[1:10,] %>%
+  # Draw a buffer centered at the centroid of Tract polygons.
+  # Radius of the buffer is the radius we just calculated using loop
+  st_buffer(., dist = .$radius) %>%
+  # Display this buffer in red
+  tm_shape(.) + tm_polygons(alpha = 0.5, col = 'red') +
+  # Display the original polygon in blue
+  tm_shape(FD_tract[1:10,]) + tm_borders(col= 'blue')
+
+## =========================================================================
+## Starting Yelp API call and data capture process
+
+get_yelp <- function(tract, category){
+  # ----------------------------------
+  # Gets one row of tract information (1,) and category name (str),
+  # Outputs a list of business data.frame
+  n <- 1
+  # First request --------------------------------------------------------------
+  resp <- business_search(api_key = Sys.getenv("yelp_api"),
+                          categories = category,
+                          latitude = tract$y,
+                          longitude = tract$x,
+                          offset = (n - 1) * 50, # = 0 when n = 1
+                          radius = round(tract$radius),
+                          limit = 50)
+  # Calculate how many requests are needed in total
+  required_n <- ceiling(resp$total/50)
+
+  # out is where the results will be appended to.
+  out <- vector("list", required_n)
+
+  # Store the business information to nth slot in out
+  out[[n]] <- resp$businesses
+
+  # Change the name of the elements to the total required_n
+  # This is to know if there are more than 1000 businesses,
+  # we know how many.
+  names(out)[n] <- required_n
+
+  # Throw error if more than 1000
+  if (resp$total >= 1000)
+  {
+    # glue formats string by inserting {n} with what's currently stored in object n.
+    print(glue::glue("{n}th row has >= 1000 businesses."))
+    # Stop before going into the loop because we need to
+    # break down Census Tract to something smaller.
+    return(out)
+  }
+  else
+  {
+    # add 1 to n
+    n <- n + 1
+
+    # Now we know required_n -----------------------------------------------------
+    # Starting a loop
+    while(n <= required_n){
+      resp <- business_search(api_key = Sys.getenv("yelp_api"),
+                              categories = category,
+                              latitude = tract$y,
+                              longitude = tract$x,
+                              offset = (n - 1) * 50,
+                              radius = round(tract$radius),
+                              limit = 50)
+
+      out[[n]] <- resp$businesses
+
+      n <- n + 1
+    } #<< end of while loop
+
+    # Merge all elements in the list into a single data frame
+    out <- out %>% bind_rows()
+
+    return(out)
+  }
+}
+# Get data for the first tract
+yelp_first_tract <- get_yelp(ready_4_yelp[1,], "yoga") %>%
+  as_tibble()
+
+# Prepare a collector
+yelp_all_list <- vector("list", nrow(ready_4_yelp))
+```
+
+```{r, results=F, message=F, echo=F}
+# Looping through all Census Tracts
+for (row in 1:nrow(ready_4_yelp)){
+  yelp_all_list[[row]] <- suppressMessages(get_yelp(ready_4_yelp[row,], "yoga"))
+  if (row %% 5 == 0){
+    Sys.sleep(1)
+    print(paste0("Current row: ", row))
+  }
+}
+```
+
+
+```{r}
+# Collapsing the list into a data.frame
+yelp_all <- yelp_all_list %>% bind_rows() %>% as_tibble()
+
+# print
+yelp_all %>% print(width=1000)
+```
+
+# Tyding the Yelp data
+```{r}
+
+yelp_flat <- yelp_all %>%
+  jsonlite::flatten() %>%
+  as_tibble()
+
+yelp_concat <- yelp_flat %>%
+  mutate(transactions = transactions %>%
+           map_chr(., function(x) str_c(x, collapse=", ")),
+         location.display_address = location.display_address %>%
+           map_chr(., function(x) str_c(x, collapse=", ")))
+# Custom function that takes the data frame in "categories" column in Yelp data
+# and returns a character vector
+concate_list <- function(x){
+  # x is a data frame with columns "alias" and "title" from Yelp$categories
+  # returns a character vector containing category concatenated titles
+  titles <- x[["title"]] %>% str_c(collapse = ", ")
+  return(titles)
+}
+
+yelp_flat2 <- yelp_concat %>%
+  mutate(categories = categories %>% map_chr(concate_list))
+
+yelp_flat2 %>% print(width = 1000)
+
+yelp_unique <- yelp_flat2 %>%
+  distinct(id, .keep_all=T)
+
+glue::glue("Before dropping NA, there were {nrow(yelp_flat2)} rows. After dropping them, there are {nrow(yelp_unique)} rows") %>%
+  print()
+
+yelp_unique %>%
+  map_dbl(., function(x) sum(is.na(x)))
+
+
+# Converting yelp_unique into a sf object
+yelp_sf <- yelp_unique %>%
+  st_as_sf(coords=c("coordinates.longitude", "coordinates.latitude"), crs = 4326)
+
+# sf subsets making sure that all data points are within the Fulton and Dekalb county boundaries
+# census boundary
+census <- st_read("https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.geojson")
+yelp_in <- yelp_sf[census %>%
+                     filter(county %in% c("Fulton County", "DeKalb County")) %>%
+                     st_union(), ,op = st_intersects]
+```
+
+
+# Appending Census data
+
+```{r}
+census_sf <- FD_tract %>% st_sf() %>% st_transform(crs = 4326)
+yelp_census <- st_join(yelp_in, census_sf, join = st_intersects)
+```
+
+# Start exploring the data -- look for summary stats, outliers, and associations
+
+```{r}
+library(skimr)
+skim(yelp_census)
+
+## Notice that the data file has a few missing values - we will not worry about the ones we will not use
+## We will use household income -- so let's drop the two missing values from hhincome
+
+yelp_census_dropnaHH2 <- yelp_census[!is.na(yelp_census$hhincome),]
+
+skim(yelp_census_dropnaHH2) # Just to check whether the 2 NAs have been driopped
+
+class(yelp_census_dropnaHH2) # To check if it is still a sf file
+```
+
+## Let's ask some probing questions about the data
+1. Are people driving alone living in tracts with high median hh incomes?
+
+We could use the following ggplot command.
+
+```{r}
+ggplot(yelp_census_dropnaHH2, aes(x=hhincome, y=trans.drovealone)) + 
+  geom_point() + 
+  ylab("Number of commuters who drive alone by car")
+```
+
+
+
+Think about whether "number" of commuters who drive alone is the right variable to check against hhincome when you are seeking to explore the relationship between income and the use of cars.
+
+The number of people who drive alone may be low if there are fewer people commuting in high income neighborhoods. So ideally you want to use PERCENT of commuters who drive alone rather than the number.
+
+```{r}
+yelp_census2 <- yelp_census_dropnaHH2 %>%
+  mutate(prop_drovealone=trans.drovealone/trans.total)
+
+ggplot(yelp_census2, aes(x=hhincome, y=prop_drovealone)) + 
+  geom_point() + 
+  ylab("Proportion of commuters who drive alone by car")
+```
+
+
+Do you notice a difference from the previous plot?
+
+```{r}
+yelp_census3 <- yelp_census2 %>%
+  mutate(prop_white = race.white/race.tot, prop_black=race.black/race.tot)
+
+```
+
+Let us now check whether race has a association with drive alone
+
+```{r}
+ggplot(yelp_census3, aes(x=prop_white, y=prop_drovealone)) + 
+  geom_point() + 
+  ylab("commuters who drive alone by car by race = white")
+
+```
+
+
+Where are the people who drive alone?
+
+```{r}
+tmap_mode("view")
+tm_shape(yelp_census3) + 
+  tm_dots(col="prop_drovealone")
+```
+
+
+What about work from home?
+
+```{r}
+yelp_census4 <- yelp_census3 %>%
+  mutate(prop_wfh=trans.WfH/trans.total)
+
+ggplot(yelp_census4, aes(x=hhincome, y=prop_wfh)) + 
+  geom_point() + 
+  ylab("Workers working from home")
+```
+
+
+## Adding a smoothed line 
+
+You can also fit a smoothed line to the scatterpolt
+```{r}
+scatter.smooth(yelp_census4$prop_wfh, 
+               yelp_census4$hhincome, 
+               xlab="Household Income", 
+               ylab="Proportion of workers working from home", 
+               main="Work from Home by Household Income")
+```
+
+
+## Simple correlations between two variables
+How strong is the relationship between income and work from home? Measures of association are dependent upon the type of variables: nominal, ordinal, or ratio. Since the measures here are ratio variables, we will use the correlation coefficient.
+
+Use > **cor(x, use=, method=)**
+
+```{r}
+cor(yelp_census4$prop_wfh, 
+    yelp_census4$hhincome, 
+    use="pairwise.complete.obs", 
+    method="pearson")
+```
+
+
+## Bivariate regression
+What about a bivariate regression to examine the relationship between work from home and income? Which variable should be the dependent?
+
+```{r}
+regress_wfh <- lm(yelp_census4$prop_wfh ~ yelp_census4$hhincome)
+summary(regress_wfh)
+```
+
+## Plot the regression line
+
+```{r}
+plot(yelp_census4$hhincome, 
+     yelp_census4$prop_wfh, 
+     main = "Regression for Work from Home and income", 
+     xlab="Household Income", 
+     ylab="Percent working from home")
+
+abline(lm(prop_wfh~hhincome, data=yelp_census4), col="red")
+```
+
+
+Can you examine some other measures of associations? Work from home vs. income? What about Yoga studios vs. income.
