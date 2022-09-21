@@ -422,6 +422,7 @@ get_yelp <- function(tract, category){
   # ----------------------------------
   # Gets one row of tract information (1,) and category name (str),
   # Outputs a list of business data.frame
+  Sys.sleep(5)
   n <- 1
   # First request --------------------------------------------------------------
   resp <- business_search(api_key = Sys.getenv("yelp_api"), 
@@ -506,7 +507,8 @@ yelp_all_list <- vector("list", nrow(ready_4_yelp))
 # Looping through all Census Tracts
 for (row in 1:nrow(ready_4_yelp)){
   yelp_all_list[[row]] <- suppressMessages(get_yelp(ready_4_yelp[row,], "restaurants"))
-  if (row %% 50 == 0){
+  if (row %% 10 == 0){
+    Sys.sleep(10)
     print(paste0("Current row: ", row))
   }
 }
@@ -517,6 +519,24 @@ yelp_all <- yelp_all_list %>% bind_rows() %>% as_tibble()
 # print
 yelp_all %>% print(width=1000)
 ```
+
+```{r eval=F}
+# Error-catching function
+get_yelp_poss <- purrr::possibly(.f = get_yelp, otherwise = NULL)
+
+# Looping through all Census Tracts
+yelp_all_list <- map(1:nrow(ready_4_yelp), ~{ get_yelp_poss(ready_4_yelp[.x,], "restaurants"); Sys.sleep(5) } )
+
+# Collapsing the list into a data.frame
+yelp_all <- yelp_all_list %>% bind_rows() %>% as_tibble()
+
+# Saving the downloaded data
+yelp_all %>% write_rds(here("Lab", "module_1", "week1", "yelp_all_restaurants.rds"))
+
+# print
+yelp_all %>% print(width=1000)
+```
+
 
 # Glimpse
 We have yelp information on restaurant in data frame format. We have 16 columns. We will take a closer look at them next week. For now, let's just map them.

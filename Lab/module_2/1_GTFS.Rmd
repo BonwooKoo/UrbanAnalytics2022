@@ -107,9 +107,9 @@ print(head(atl))
 
 # Converting GTFS Into Geospatial Format
 
-The function `gtfs_as_sf` converts 'shapes' and 'stops' tables in GTFS data into sf objects. In the print out below, you will notice that all other tables have not changed, but 'shapes' and 'stops' tables are now **Simple feature collection with XXX features and XXX fields** and have added column 'geometry' that contains a series of coordinates. 
+The function `gtfs_as_sf` converts **shapes** and **stops** tables in GTFS data into sf objects. In the print out below, you will notice that all other tables have not changed, but 'shapes' and 'stops' tables are now **Simple feature collection** and have added column 'geometry' that contains a series of coordinates. 
 
-Having these two tables in sf format is actually sufficient because we can join other tables to 'shapes' and 'stops' table using **join keys**.  
+Although all other tables are not sf objects, we can still know their spatial preperties because we can join the non-sf tables to **shapes** and/or **stops**. We can join other tables to 'shapes' and 'stops' table using **join keys**. 
 
 
 ```{r}
@@ -119,15 +119,15 @@ head(atlsf)
 
 
 ```{r}
-a <- leaflet(atlsf$shapes) %>% 
-  addProviderTiles(providers$CartoDB.DarkMatter) %>% 
-  addPolylines(weight = 1, color = "red") %>% 
-  addControl(htmltools::HTML("Route shapes"))
+a <- leaflet(atlsf$shapes) %>% # add data to display
+  addProviderTiles(providers$CartoDB.DarkMatter) %>% # add BaseMap
+  addPolylines(weight = 1, color = "red") %>% # add lines
+  addControl(htmltools::HTML("Route shapes")) # add Title 
 
-b <- leaflet(atlsf$stops) %>% 
-  addProviderTiles(providers$CartoDB.DarkMatter) %>% 
-  addCircles(weight = 3, color = "red") %>% 
-  addControl(htmltools::HTML("Stop shapes"))
+b <- leaflet(atlsf$stops) %>% # add data to display
+  addProviderTiles(providers$CartoDB.DarkMatter) %>% # add BaseMap
+  addCircles(weight = 3, color = "red") %>% # add lines
+  addControl(htmltools::HTML("Stop shapes")) # add Title 
 
 leafsync::sync(a,b)
 ```
@@ -136,19 +136,22 @@ These maps (route shapes on the left; stop locations on the right) show the cove
 
 
 # Calculating Transit Service Quality
+There are, of course, many different analyses that can be done using GTFS. Among nearly infinite number of analyses that can be done, this class will be looking at the equity aspect of transit services. There are numerous studies on transit service equity that uses highly sophisticated methods (e.g., [this paper](https://www.sciencedirect.com/science/article/pii/S0966692317303794?casa_token=u5ystJxKU8sAAAAA:EW3L6ZODX0eq0yVXYl-FWcphYRzcbyD71KEVu9uRWL8PxaL79ebuNKS12KDB_tyfeRrtcbhWuQ)). This course will present more simple (yet intuitive and thus effective) methods to evaluate this issue.
 
 &nbsp;
 
 ## Calculate travel times from one station to all other stations
-The tidytransit package offers a very convenient function that calculates the shortest travel times from a stop to all other stops. Try `?tidytransit::travel_times` to see what this function does and what arguments it takes. Notice that only two out of nine arguments are required, and the rest are optional. The required arguments are 'filtered_stop_times' and 'stop_name.' If you do not provide the optional arguments, the function will use the pre-populated values for the calculation.
+The tidytransit package offers a very convenient function that calculates the shortest travel times from a stop to all other stops. Try `?tidytransit::travel_times` to see what this function does and what arguments it takes. Notice that only two out of nine arguments are required arguments, and the rest are optional. The required arguments are 'filtered_stop_times' and 'stop_name.' If you do not provide the optional arguments, the function will use the pre-populated values for the calculation.
 
 
 
-**But if you run the function right away, there will be an error.** The error is caused by the fact that there are stations that share names but are far from each other. There may be more than one stations in different parts of the city that share their names. If this was the case, the duplicate names would not be errors in the data. However, if in reality there are no such stations, the duplicate names would be actual flaws in your data. 
+**But if you run the function right away, there will be an error.** The error is caused by the fact that there are stations that share names but are far from each other. There may be more than one stations in different parts of the city that share their names, which sometimes actually happen in real world. If duplicate names in our dataset is caused by these legitimate cases, the duplicate names should not be considered as errors. However, if in reality there are no such stations, the duplicate names would be actual flaws in your data. 
 
-The `travel_times()` function calculates travel time based on station names. This function is designed to throw an error if there are stops with the same name but are more than 300 meters apart. We need to eliminate duplicate names through the following steps:
+The `travel_times()` function calculates travel time based on station names. This function is designed to throw an error if there are stops with the same name **regardless** of whether the duplicate names are legitimate reflection of the real world or flaws in the data. One exceptional case when duplicated names don't cause error is when the stations with duplicate names are within 300 meters from each other -- in this case, the function considers the two stations may actually be the same station and merges them. 
 
-1. For each unique station names in *stops table*, calculate how many duplicates there are and, if there are duplicates, calculate distances to the duplicate stops. `stop_group_distances()` function can do this.
+For all other cases (duplicate names that are 200-meters apart), we need to modify the duplicate names so that the names are actually different. We do that through the following steps:
+
+1. For each unique station names in **stops** table, calculate how many duplicates there are and, if there are duplicates, calculate distances to the duplicate stops. `stop_group_distances()` function can do this.
 2. Get names of the stops that have duplicates far from each other. If stops with duplicate names are close (e.g., within 200 meters), they may actually be same stations.
 3. For all stops with duplicates > 200-meter distances, change their station names by appending (1), (2), ... (n) where n is the number of duplicates. For example, if there are two "MIDTOWN STATION"s, they will each be "MIDTOWN STATION (1)" and "MIDTOWN STATION (2)". 
 4. One of the requirements for `travel_times()` function is that `atl` object contains a **transfer** table, which is absent when freshly imported from the hard drive. This is NOT always the case -- the transfer table is an optional table in GTFS definition. Some entities include transfer table by default, some don't. MARTA is among those who don't include transfer table. We can use `gtfs_transfer_table()` function from gtfsrouter package to *create* this table and include it to the `atl` object.
@@ -186,25 +189,22 @@ trvt <- travel_times(filtered_stop_times = am_stop_time,
 ``` 
 
 ```{r}
+# ..and visualize the output
 trvt_pal <- colorQuantile(palette = "Reds", domain = trvt$travel_time)
 
 leaflet() %>% 
   addProviderTiles(providers$CartoDB.DarkMatter) %>% 
-  addCircles(data = trvt %>% st_as_sf(coords = c("to_stop_lon", "to_stop_lat"), crs = 4326),
-             fillColor = ~trvt_pal(travel_time),
-             stroke = F,
-             radius = 300,
-             fillOpacity = 0.7,
-             popup = paste0("Travel Time from <br> <strong> MIDTOWN: ", round(trvt$travel_time/60, 2), " minutes <strong>") %>% 
+  addCircles(data = trvt %>% st_as_sf(coords = c("to_stop_lon", "to_stop_lat"), crs = 4326), # converting trvt into sf object on the fly.
+             fillColor = ~trvt_pal(travel_time), # Define color
+             stroke = F, # Turn off the outer border lines of circles
+             radius = 300, # Size of the circle
+             fillOpacity = 0.7, # Transparency
+             popup = paste0("Travel Time from <br> <strong> MIDTOWN: ", round(trvt$travel_time/60, 2), " minutes <strong>") %>% # Defines what's displayed on popup
                lapply(htmltools::HTML))
 ```
 
 
 On average, you can see that it takes `r round(mean(trvt$travel_time)/60,1)` minutes from the Midtown Station to other stations. On the map, you can see that it takes longer time to get to stops that are further away from the Midtown Station. 
-Let's do this calculation for other stops in different parts of the city to see if there are a particular corners of the city that are burdened with longer travel time on average. To do this, we will do the following steps:
-
-1. Randomly sample a few stations from each Census Tract.
-2. TBD
 
 ```{r}
 # Average time to get to other stations
@@ -216,11 +216,12 @@ print(str_c("On average, it takes ",
 
 
 ## Calculate area of service by SES
+
 GTFS from MARTA contains information about both rails and buses. The 'routes' table in `atl` has a column named 'route_type,' which contains integer values denoting types of transit service. To see what each integer means, you will need to look at the link to the Reference provided above (or see below for a screen capture from the Reference). 
 
 ![Reference from Google](GTFS_route_types.JPG)
 
-'routes' table contains route_types, which is needed for separating rail transit.
+'routes' table contains route_types, which is needed for separating rail transit from bus transit.
 'shapes' table contains the shapefile needed for geo-operations such as buffer, intersections, etc.
 Because 'routes' and 'shapes' table do not contain a common key, they need to be joined through 'trips' as intermediate table.
 
@@ -260,15 +261,18 @@ route.shape %>%
 
 
 
-Until Version 1.0, the sf package used 'equirectangular projection' for many operations that involve, for example, `intersects`, `intersection`, `union`, `nearest_point`, `st_join`, etc. It did so even when the given data is in geographical coordinates.
+Until Version 1.0, the sf package used 'equirectangular projection' for many operations that involve, for example, `st_intersects`, `st_intersection`, `st_union`, `st_nearest_point`, `st_join`, etc. It did so even when the given data is in geographical coordinates.
 
-From Version 1.0, sf package uses S2 spherical geometry for spatial operations, based on S2 geometry library written by Google. For more information on what all of these means, you can read [this post](https://r-spatial.org/r/2020/06/17/s2.html#sf-10-goodbye-flat-earth-welcome-s2-spherical-geometry).
+From Version 1.0, sf package uses S2 spherical geometry for spatial operations, based on S2 geometry library written by Google. For our purposes, the difference introduced in Version 1.0. is likely to have a huge impact. However, we may see some glitches here and there (e.g., zig-zaged lines of st_buffer). 
+
+For more information on what all of these means, you can read [this post](https://r-spatial.org/r/2020/06/17/s2.html#sf-10-goodbye-flat-earth-welcome-s2-spherical-geometry).
 
 ```{r}
 # If we do not convert CRS to a projected one, the buffer may generate a ragged boundaries. 
 # https://r-spatial.github.io/sf/articles/sf7.html#buffers-1
 # https://r-spatial.org/r/2020/06/17/s2.html#sf-10-goodbye-flat-earth-welcome-s2-spherical-geometry
-sf::sf_use_s2(TRUE)
+
+sf::sf_use_s2(TRUE) # This is default to TRUE when we load SF package. So this code is not really needed. I added it here just to make it more explicit.
 MARTA_buffer <- route.shape %>% 
   sf::st_transform(crs = 26967) %>% 
   sf::st_buffer(dist = units::set_units(400, "m")) 

@@ -8,7 +8,7 @@ output:
     code_folding: show
 ---
 
-```{r}
+```{r,message=FALSE}
 tidycensus::census_api_key(Sys.getenv("census_api"))
 library(tidycensus)
 library(sf)
@@ -22,13 +22,17 @@ library(here)
 library(yelpr)
 library(knitr)
 ```
-
+<style type="text/css">
+  body{
+  font-family: Arial;
+  }
+</style>
 
 # Download data from Census 2020
 
 Here we are downloading income, race, and means of transportation to work
 
-```{r, results=F}
+```{r, results="hide"}
 FD_tract <- suppressMessages(
   get_acs(geography = "tract", # or "block group", "county", "state" etc.
           state = "GA",
@@ -57,7 +61,7 @@ FD_tract <- suppressMessages(
 
 The data contains several redundant columns that we will not use. So, let's subset the data to only have the columns we will use
 
-```{r}
+```{r, message=FALSE}
 FD_tract <- FD_tract %>%
   select(GEOID,
           hhincome = hhincomeE, # New name = old name
@@ -78,219 +82,51 @@ tmap_mode("view")
 tm_shape(FD_tract) + tm_borders()
 ```
 
-# Downloading Yelp data
+# Reading Yelp data
+
+**To save time in class, we will use the Yelp data that Bonwoo downloaded for today's class.**
+
+The Yelp data can be found on **Canvas > Files > yelp_yoga.geojson.** This data is for Fulton and DeKalb County, GA, and contains Yelp data with categories = "yoga". This data is already cleaned. 
+
+To read the data into R, we will use st_read() function in sf package. Notice that in the code below, only the name of the .geojson file is specified. This works only when the file is in the same folder as your .Rmd file. If not, you will need to provide a full path to the file.
 
 ```{r}
-# Function: Get tract-wise radius
-epsg_id <- 4326
-get_r <- function(poly, epsg_id){
-  #---------------------
-  # Takes: a single POLYGON or LINESTRTING
-  # Outputs: distance between the centroid of the boundingbox and a corner of the bounding box
-  #---------------------
-
-  # Get bounding box of a given polygon
-  bb <- st_bbox(poly)
-  # Get lat & long coordinates of any one corner of the bounding box.
-  bb_corner <- st_point(c(bb[1], bb[2])) %>% st_sfc(crs = epsg_id)
-  # Get centroid of the bb
-  bb_center_x <- (bb[3]+bb[1])/2
-  bb_center_y <- (bb[4]+bb[2])/2
-  bb_center <- st_point(c(bb_center_x, bb_center_y)) %>% st_sfc(crs = epsg_id) %>% st_sf()
-
-  # Get the distance between bb_p and c
-  r <- st_distance(bb_corner, bb_center)
-  # Multiply 1.1 to make the circle a bit larger than the Census Tract.
-  # See the Yelp explanation of their radius parameter to see why we do this.
-  bb_center$radius <- r*1.2
-  return(bb_center)
-}
-
-# Using a functional -----------------------------------------------------------
-# We use a functional (lapply) to apply this custom function to each Census Tract.
-r4all_apply <- FD_tract %>%
-  st_geometry() %>%
-  st_transform(crs = epsg_id) %>%
-  lapply(., function(x) get_r(x, epsg_id = epsg_id))
-
-r4all_apply <- bind_rows(r4all_apply)
-ready_4_yelp <- r4all_apply %>%
-  mutate(x = st_coordinates(.)[,1],
-         y = st_coordinates(.)[,2])
-# Select the first 10 rows
-ready_4_yelp[1:10,] %>%
-  # Draw a buffer centered at the centroid of Tract polygons.
-  # Radius of the buffer is the radius we just calculated using loop
-  st_buffer(., dist = .$radius) %>%
-  # Display this buffer in red
-  tm_shape(.) + tm_polygons(alpha = 0.5, col = 'red') +
-  # Display the original polygon in blue
-  tm_shape(FD_tract[1:10,]) + tm_borders(col= 'blue')
-
-## =========================================================================
-## Starting Yelp API call and data capture process
-
-get_yelp <- function(tract, category){
-  # ----------------------------------
-  # Gets one row of tract information (1,) and category name (str),
-  # Outputs a list of business data.frame
-  n <- 1
-  # First request --------------------------------------------------------------
-  resp <- business_search(api_key = Sys.getenv("yelp_api"),
-                          categories = category,
-                          latitude = tract$y,
-                          longitude = tract$x,
-                          offset = (n - 1) * 50, # = 0 when n = 1
-                          radius = round(tract$radius),
-                          limit = 50)
-  # Calculate how many requests are needed in total
-  required_n <- ceiling(resp$total/50)
-
-  # out is where the results will be appended to.
-  out <- vector("list", required_n)
-
-  # Store the business information to nth slot in out
-  out[[n]] <- resp$businesses
-
-  # Change the name of the elements to the total required_n
-  # This is to know if there are more than 1000 businesses,
-  # we know how many.
-  names(out)[n] <- required_n
-
-  # Throw error if more than 1000
-  if (resp$total >= 1000)
-  {
-    # glue formats string by inserting {n} with what's currently stored in object n.
-    print(glue::glue("{n}th row has >= 1000 businesses."))
-    # Stop before going into the loop because we need to
-    # break down Census Tract to something smaller.
-    return(out)
-  }
-  else
-  {
-    # add 1 to n
-    n <- n + 1
-
-    # Now we know required_n -----------------------------------------------------
-    # Starting a loop
-    while(n <= required_n){
-      resp <- business_search(api_key = Sys.getenv("yelp_api"),
-                              categories = category,
-                              latitude = tract$y,
-                              longitude = tract$x,
-                              offset = (n - 1) * 50,
-                              radius = round(tract$radius),
-                              limit = 50)
-
-      out[[n]] <- resp$businesses
-
-      n <- n + 1
-    } #<< end of while loop
-
-    # Merge all elements in the list into a single data frame
-    out <- out %>% bind_rows()
-
-    return(out)
-  }
-}
-# Get data for the first tract
-yelp_first_tract <- get_yelp(ready_4_yelp[1,], "yoga") %>%
-  as_tibble()
-
-# Prepare a collector
-yelp_all_list <- vector("list", nrow(ready_4_yelp))
-```
-
-```{r, results=F, message=F, echo=F}
-# Looping through all Census Tracts
-for (row in 1:nrow(ready_4_yelp)){
-  yelp_all_list[[row]] <- suppressMessages(get_yelp(ready_4_yelp[row,], "yoga"))
-  if (row %% 5 == 0){
-    Sys.sleep(1)
-    print(paste0("Current row: ", row))
-  }
-}
-```
-
-
-```{r}
-# Collapsing the list into a data.frame
-yelp_all <- yelp_all_list %>% bind_rows() %>% as_tibble()
-
-# print
-yelp_all %>% print(width=1000)
-```
-
-# Tyding the Yelp data
-```{r}
-
-yelp_flat <- yelp_all %>%
-  jsonlite::flatten() %>%
-  as_tibble()
-
-yelp_concat <- yelp_flat %>%
-  mutate(transactions = transactions %>%
-           map_chr(., function(x) str_c(x, collapse=", ")),
-         location.display_address = location.display_address %>%
-           map_chr(., function(x) str_c(x, collapse=", ")))
-# Custom function that takes the data frame in "categories" column in Yelp data
-# and returns a character vector
-concate_list <- function(x){
-  # x is a data frame with columns "alias" and "title" from Yelp$categories
-  # returns a character vector containing category concatenated titles
-  titles <- x[["title"]] %>% str_c(collapse = ", ")
-  return(titles)
-}
-
-yelp_flat2 <- yelp_concat %>%
-  mutate(categories = categories %>% map_chr(concate_list))
-
-yelp_flat2 %>% print(width = 1000)
-
-yelp_unique <- yelp_flat2 %>%
-  distinct(id, .keep_all=T)
-
-glue::glue("Before dropping NA, there were {nrow(yelp_flat2)} rows. After dropping them, there are {nrow(yelp_unique)} rows") %>%
-  print()
-
-yelp_unique %>%
-  map_dbl(., function(x) sum(is.na(x)))
-
-
-# Converting yelp_unique into a sf object
-yelp_sf <- yelp_unique %>%
-  st_as_sf(coords=c("coordinates.longitude", "coordinates.latitude"), crs = 4326)
-
-# sf subsets making sure that all data points are within the Fulton and Dekalb county boundaries
-# census boundary
-census <- st_read("https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_0/testdata.geojson")
-yelp_in <- yelp_sf[census %>%
-                     filter(county %in% c("Fulton County", "DeKalb County")) %>%
-                     st_union(), ,op = st_intersects]
+# Reading the yelp data
+yelp_in <- st_read("yelp_yoga.geojson")
 ```
 
 
 # Appending Census data
+Here, we will append Yelp data to Census data using st_join(). If you can't remember how the code works, look at [this slide](https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_0/w2_d2_Intro_to_R_2.html#37).
 
 ```{r}
+# Transforming CRS of census to match that of Yelp data .
+# st_join() requires that the CRS are the same for two data.
 census_sf <- FD_tract %>% st_sf() %>% st_transform(crs = 4326)
+# Spatial join. Notice the order of arguments.
 yelp_census <- st_join(yelp_in, census_sf, join = st_intersects)
+
+yelp_census %>% head(3)
 ```
 
 # Start exploring the data -- look for summary stats, outliers, and associations
+Let's use skim() function to get a summary of the data.
+
+Notice that the data file has a few missing values - we will not worry about the ones we will not use.
+We will use household income -- so let's drop the two missing values from hhincome.
 
 ```{r}
 library(skimr)
-skim(yelp_census)
+# skim your data
+print(skim(yelp_census))
 
-## Notice that the data file has a few missing values - we will not worry about the ones we will not use
-## We will use household income -- so let's drop the two missing values from hhincome
-
+# Dropping the two missing values
 yelp_census_dropnaHH2 <- yelp_census[!is.na(yelp_census$hhincome),]
 
-skim(yelp_census_dropnaHH2) # Just to check whether the 2 NAs have been driopped
-
-class(yelp_census_dropnaHH2) # To check if it is still a sf file
+# Just to check whether the 2 NAs have been dropped
+print(skim(yelp_census_dropnaHH2))
+# To check if it is still a sf file
+class(yelp_census_dropnaHH2) 
 ```
 
 ## Let's ask some probing questions about the data
