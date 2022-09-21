@@ -32,6 +32,12 @@ wd <- file.path(Sys.getenv('setwd'),"work/working/School/UA_2022/external/Lab/mo
 setwd(eval(wd))
 ```
 
+<style type="text/css">
+  body{
+  font-family: Arial;
+  }
+</style>
+
 # What is the General Transit Feed Specification (GTFS)?
 
 | The GTFS is a common format for public transit schedules and associated geographic information provided by transit agencies.
@@ -107,18 +113,22 @@ print(head(atl))
 
 # Converting GTFS Into Geospatial Format
 
-The function `gtfs_as_sf` converts **shapes** and **stops** tables in GTFS data into sf objects. In the print out below, you will notice that all other tables have not changed, but 'shapes' and 'stops' tables are now **Simple feature collection** and have added column 'geometry' that contains a series of coordinates. 
+The function `gtfs_as_sf` converts **shapes** and **stops** tables in GTFS data into sf objects. In the print out below, you will notice that all other tables have not changed, but 'shapes' and 'stops' tables are now **Simple feature collection** and have added column 'geometry' that contains a series of coordinates. Under the hood, `gtfs_as_sf` is no special function; this function uses `st_as_sf()` to do the conversion, the same way we have been doing so far in this class.
 
-Although all other tables are not sf objects, we can still know their spatial preperties because we can join the non-sf tables to **shapes** and/or **stops**. We can join other tables to 'shapes' and 'stops' table using **join keys**. 
+Even though we have 9 tables but only 2 of them are in sf format, that's fine. We can still figure out other tables' spatial properties because we can **join** the non-sf tables to **shapes** and/or **stops**. We can join other tables to 'shapes' and 'stops' table using **join keys**. 
 
 
 ```{r}
+# Converting GTFS data into sf objects
 atlsf <- tidytransit::gtfs_as_sf(atl, crs = 4326)
-head(atlsf)
+atlsf$stops %>% head() # Notice that this is POINT
+atlsf$shapes %>% head() # This is LINESTRING
 ```
 
+Let's take a look at their maps of their routes and stops, respectively.
 
 ```{r}
+# Visualize
 a <- leaflet(atlsf$shapes) %>% # add data to display
   addProviderTiles(providers$CartoDB.DarkMatter) %>% # add BaseMap
   addPolylines(weight = 1, color = "red") %>% # add lines
@@ -139,80 +149,6 @@ These maps (route shapes on the left; stop locations on the right) show the cove
 There are, of course, many different analyses that can be done using GTFS. Among nearly infinite number of analyses that can be done, this class will be looking at the equity aspect of transit services. There are numerous studies on transit service equity that uses highly sophisticated methods (e.g., [this paper](https://www.sciencedirect.com/science/article/pii/S0966692317303794?casa_token=u5ystJxKU8sAAAAA:EW3L6ZODX0eq0yVXYl-FWcphYRzcbyD71KEVu9uRWL8PxaL79ebuNKS12KDB_tyfeRrtcbhWuQ)). This course will present more simple (yet intuitive and thus effective) methods to evaluate this issue.
 
 &nbsp;
-
-## Calculate travel times from one station to all other stations
-The tidytransit package offers a very convenient function that calculates the shortest travel times from a stop to all other stops. Try `?tidytransit::travel_times` to see what this function does and what arguments it takes. Notice that only two out of nine arguments are required arguments, and the rest are optional. The required arguments are 'filtered_stop_times' and 'stop_name.' If you do not provide the optional arguments, the function will use the pre-populated values for the calculation.
-
-
-
-**But if you run the function right away, there will be an error.** The error is caused by the fact that there are stations that share names but are far from each other. There may be more than one stations in different parts of the city that share their names, which sometimes actually happen in real world. If duplicate names in our dataset is caused by these legitimate cases, the duplicate names should not be considered as errors. However, if in reality there are no such stations, the duplicate names would be actual flaws in your data. 
-
-The `travel_times()` function calculates travel time based on station names. This function is designed to throw an error if there are stops with the same name **regardless** of whether the duplicate names are legitimate reflection of the real world or flaws in the data. One exceptional case when duplicated names don't cause error is when the stations with duplicate names are within 300 meters from each other -- in this case, the function considers the two stations may actually be the same station and merges them. 
-
-For all other cases (duplicate names that are 200-meters apart), we need to modify the duplicate names so that the names are actually different. We do that through the following steps:
-
-1. For each unique station names in **stops** table, calculate how many duplicates there are and, if there are duplicates, calculate distances to the duplicate stops. `stop_group_distances()` function can do this.
-2. Get names of the stops that have duplicates far from each other. If stops with duplicate names are close (e.g., within 200 meters), they may actually be same stations.
-3. For all stops with duplicates > 200-meter distances, change their station names by appending (1), (2), ... (n) where n is the number of duplicates. For example, if there are two "MIDTOWN STATION"s, they will each be "MIDTOWN STATION (1)" and "MIDTOWN STATION (2)". 
-4. One of the requirements for `travel_times()` function is that `atl` object contains a **transfer** table, which is absent when freshly imported from the hard drive. This is NOT always the case -- the transfer table is an optional table in GTFS definition. Some entities include transfer table by default, some don't. MARTA is among those who don't include transfer table. We can use `gtfs_transfer_table()` function from gtfsrouter package to *create* this table and include it to the `atl` object.
-5. Finally, one of the two required arguments, 'filtered_stop_times', takes an output from a function called `tidytransit::filter_stop_times()`. This function takes two required arguments: (1) our `atl` object and (2) a date for which we'd like calculate travel time. You can also choose to specify (3) minimum departure time and (4) maximum arrival time.
-
-Finally, you are ready to calculate travel times!
-
-```{r message=FALSE}
-# Step 1:
-stop_dist <- stop_group_distances(atlsf$stops, by='stop_name') %>% 
-
-# Step 2:  
-  filter(dist_max > 200)
-
-# Step 3
-atl$stops <- atl$stops %>% 
-  group_by(stop_name) %>% 
-  mutate(stop_name = case_when(stop_name %in% stop_dist$stop_name ~ paste0(stop_name, " (", seq(1,n()), ")"),
-                               TRUE ~ stop_name)) 
-
-# Step 4
-atl$transfers <- gtfsrouter::gtfs_transfer_table(atl, 
-                                     d_limit = 200, 
-                                     min_transfer_time = 120)
-# Step 5
-am_stop_time <- filter_stop_times(gtfs_obj = atl, 
-                                  extract_date = "2021-08-14",
-                                  min_departure_time = 3600*7, # input unit is in second. So 3500*7 is 7AM
-                                  max_arrival_time = 3600*10)  # similarly, this is 10AM 
-
-# travel_times
-trvt <- travel_times(filtered_stop_times = am_stop_time,
-                     stop_name = "MIDTOWN STATION",
-                     return_coords = TRUE)
-``` 
-
-```{r}
-# ..and visualize the output
-trvt_pal <- colorQuantile(palette = "Reds", domain = trvt$travel_time)
-
-leaflet() %>% 
-  addProviderTiles(providers$CartoDB.DarkMatter) %>% 
-  addCircles(data = trvt %>% st_as_sf(coords = c("to_stop_lon", "to_stop_lat"), crs = 4326), # converting trvt into sf object on the fly.
-             fillColor = ~trvt_pal(travel_time), # Define color
-             stroke = F, # Turn off the outer border lines of circles
-             radius = 300, # Size of the circle
-             fillOpacity = 0.7, # Transparency
-             popup = paste0("Travel Time from <br> <strong> MIDTOWN: ", round(trvt$travel_time/60, 2), " minutes <strong>") %>% # Defines what's displayed on popup
-               lapply(htmltools::HTML))
-```
-
-
-On average, you can see that it takes `r round(mean(trvt$travel_time)/60,1)` minutes from the Midtown Station to other stations. On the map, you can see that it takes longer time to get to stops that are further away from the Midtown Station. 
-
-```{r}
-# Average time to get to other stations
-print(str_c("On average, it takes ", 
-            round(mean(trvt$travel_time)/60,1), 
-            " minutes to travel from the Midtown Station to all other stations."))
-```
-
 
 
 ## Calculate area of service by SES
@@ -544,4 +480,78 @@ plotly::ggplotly(departure_count)
 
 
 
+
+
+## Calculate travel times from one station to all other stations
+The tidytransit package offers a very convenient function that calculates the shortest travel times from a stop to all other stops. Try `?tidytransit::travel_times` to see what this function does and what arguments it takes. Notice that only two out of nine arguments are required arguments, and the rest are optional. The required arguments are 'filtered_stop_times' and 'stop_name.' If you do not provide the optional arguments, the function will use the pre-populated values for the calculation.
+
+
+
+**But if you run the function right away, there will be an error.** The error is caused by the fact that there are stations that share names but are far from each other. There may be more than one stations in different parts of the city that share their names, which sometimes actually happen in real world. If duplicate names in our dataset is caused by these legitimate cases, the duplicate names should not be considered as errors. However, if in reality there are no such stations, the duplicate names would be actual flaws in your data. 
+
+The `travel_times()` function calculates travel time based on station names. This function is designed to throw an error if there are stops with the same name **regardless** of whether the duplicate names are legitimate reflection of the real world or flaws in the data. One exceptional case when duplicated names don't cause error is when the stations with duplicate names are within 300 meters from each other -- in this case, the function considers the two stations may actually be the same station and merges them. 
+
+For all other cases (duplicate names that are 200-meters apart), we need to modify the duplicate names so that the names are actually different. We do that through the following steps:
+
+1. For each unique station names in **stops** table, calculate how many duplicates there are and, if there are duplicates, calculate distances to the duplicate stops. `stop_group_distances()` function can do this.
+2. Get names of the stops that have duplicates far from each other. If stops with duplicate names are close (e.g., within 200 meters), they may actually be same stations.
+3. For all stops with duplicates > 200-meter distances, change their station names by appending (1), (2), ... (n) where n is the number of duplicates. For example, if there are two "MIDTOWN STATION"s, they will each be "MIDTOWN STATION (1)" and "MIDTOWN STATION (2)". 
+4. One of the requirements for `travel_times()` function is that `atl` object contains a **transfer** table, which is absent when freshly imported from the hard drive. This is NOT always the case -- the transfer table is an optional table in GTFS definition. Some entities include transfer table by default, some don't. MARTA is among those who don't include transfer table. We can use `gtfs_transfer_table()` function from gtfsrouter package to *create* this table and include it to the `atl` object.
+5. Finally, one of the two required arguments, 'filtered_stop_times', takes an output from a function called `tidytransit::filter_stop_times()`. This function takes two required arguments: (1) our `atl` object and (2) a date for which we'd like calculate travel time. You can also choose to specify (3) minimum departure time and (4) maximum arrival time.
+
+Finally, you are ready to calculate travel times!
+
+```{r message=FALSE}
+# Step 1:
+stop_dist <- stop_group_distances(atlsf$stops, by='stop_name') %>% 
+
+# Step 2:  
+  filter(dist_max > 200)
+
+# Step 3
+atl$stops <- atl$stops %>% 
+  group_by(stop_name) %>% 
+  mutate(stop_name = case_when(stop_name %in% stop_dist$stop_name ~ paste0(stop_name, " (", seq(1,n()), ")"),
+                               TRUE ~ stop_name)) 
+
+# Step 4
+atl$transfers <- gtfsrouter::gtfs_transfer_table(atl, 
+                                     d_limit = 200, 
+                                     min_transfer_time = 120)
+# Step 5
+am_stop_time <- filter_stop_times(gtfs_obj = atl, 
+                                  extract_date = "2021-08-14",
+                                  min_departure_time = 3600*7, # input unit is in second. So 3500*7 is 7AM
+                                  max_arrival_time = 3600*10)  # similarly, this is 10AM 
+
+# travel_times
+trvt <- travel_times(filtered_stop_times = am_stop_time,
+                     stop_name = "MIDTOWN STATION",
+                     return_coords = TRUE)
+``` 
+
+```{r}
+# ..and visualize the output
+trvt_pal <- colorQuantile(palette = "Reds", domain = trvt$travel_time)
+
+leaflet() %>% 
+  addProviderTiles(providers$CartoDB.DarkMatter) %>% 
+  addCircles(data = trvt %>% st_as_sf(coords = c("to_stop_lon", "to_stop_lat"), crs = 4326), # converting trvt into sf object on the fly.
+             fillColor = ~trvt_pal(travel_time), # Define color
+             stroke = F, # Turn off the outer border lines of circles
+             radius = 300, # Size of the circle
+             fillOpacity = 0.7, # Transparency
+             popup = paste0("Travel Time from <br> <strong> MIDTOWN: ", round(trvt$travel_time/60, 2), " minutes <strong>") %>% # Defines what's displayed on popup
+               lapply(htmltools::HTML))
+```
+
+
+On average, you can see that it takes `r round(mean(trvt$travel_time)/60,1)` minutes from the Midtown Station to other stations. On the map, you can see that it takes longer time to get to stops that are further away from the Midtown Station. 
+
+```{r}
+# Average time to get to other stations
+print(str_c("On average, it takes ", 
+            round(mean(trvt$travel_time)/60,1), 
+            " minutes to travel from the Midtown Station to all other stations."))
+```
 
