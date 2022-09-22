@@ -125,7 +125,9 @@ atlsf$stops %>% head() # Notice that this is POINT
 atlsf$shapes %>% head() # This is LINESTRING
 ```
 
-Let's take a look at their maps of their routes and stops, respectively.
+Let's take a look at their maps of their routes and stops, respectively. These maps (route shapes on the left; stop locations on the right) show the coverage of MARTA. 
+
+Notice that I am using **leaflet()** for mapping instead of **tmap()**. Of course, you can make the same map with tmap package as well; I am using **leaflet()** in this module just to expose you to different packages. As you follow along this R Mark Down, feel free to make these maps in whichever package you prefer to use. **Through this course, you can use whatever package you like to use for interactive mapping and visualization; it won't affect your grade in any way.**
 
 ```{r}
 # Visualize
@@ -136,45 +138,62 @@ a <- leaflet(atlsf$shapes) %>% # add data to display
 
 b <- leaflet(atlsf$stops) %>% # add data to display
   addProviderTiles(providers$CartoDB.DarkMatter) %>% # add BaseMap
-  addCircles(weight = 3, color = "red") %>% # add lines
+  addCircles(weight = 3, color = "red") %>% # add circles
   addControl(htmltools::HTML("Stop shapes")) # add Title 
 
 leafsync::sync(a,b)
 ```
 
-These maps (route shapes on the left; stop locations on the right) show the coverage of MARTA. 
+
 
 
 # Calculating Transit Service Quality
-There are, of course, many different analyses that can be done using GTFS. Among nearly infinite number of analyses that can be done, this class will be looking at the equity aspect of transit services. There are numerous studies on transit service equity that uses highly sophisticated methods (e.g., [this paper](https://www.sciencedirect.com/science/article/pii/S0966692317303794?casa_token=u5ystJxKU8sAAAAA:EW3L6ZODX0eq0yVXYl-FWcphYRzcbyD71KEVu9uRWL8PxaL79ebuNKS12KDB_tyfeRrtcbhWuQ)). This course will present more simple (yet intuitive and thus effective) methods to evaluate this issue.
+There are, of course, many different analyses that can be done using GTFS. Among nearly infinite numbers of analyses that can be done, this class will look at the equity aspect of transit services. There are numerous studies on transit service equity that uses highly sophisticated methods (e.g., [this paper](https://www.sciencedirect.com/science/article/pii/S0966692317303794?casa_token=u5ystJxKU8sAAAAA:EW3L6ZODX0eq0yVXYl-FWcphYRzcbyD71KEVu9uRWL8PxaL79ebuNKS12KDB_tyfeRrtcbhWuQ)). This course will present more simple (but intuitive) methods to evaluate this issue.
 
 &nbsp;
 
 
 ## Calculate area of service by SES
+One of the simplest ways to calculate transit service quality is to look at the areas within each neighborhood that is within a certain distance from transit stops or routes. 
 
-GTFS from MARTA contains information about both rails and buses. The 'routes' table in `atl` has a column named 'route_type,' which contains integer values denoting types of transit service. To see what each integer means, you will need to look at the link to the Reference provided above (or see below for a screen capture from the Reference). 
+In this section, we will 
+
+1. Extract transit lines (and stops) for rail and bus transit,
+2. Draw buffers around them,
+3. Intersect the buffer with Census Tracts, 
+4. Calculate the proportion of each Census Tract that are within the buffers.
+
+### Step 1: Extracting lines
+GTFS from MARTA contains information about both rails and buses. The `routes` table in `atl` has a column named `route_type`, which contains integer values denoting types of transit service (e.g., bus vs. rail transit). To see what each integer means, you will need to look at the link to the Reference provided above (or see below for a screen capture from the Reference). 
 
 ![Reference from Google](GTFS_route_types.JPG)
 
-'routes' table contains route_types, which is needed for separating rail transit from bus transit.
-'shapes' table contains the shapefile needed for geo-operations such as buffer, intersections, etc.
-Because 'routes' and 'shapes' table do not contain a common key, they need to be joined through 'trips' as intermediate table.
+`routes` table contains route_types, which is needed for separating rail transit from bus transit.
+`shapes` table contains the geographic information needed for geo-operations such as buffer, intersections, etc. Because `routes` and `shapes` table do not contain a common key, they need to be joined through `trips` table as intermediate table. 
+
+Notice that there can be multiple trips that runs on the same routes. If we join `trips` and `routes`, one rows in `routes` table will be matched with multiple rows in `trips` table and create duplicated. 
 
 ```{r}
-# Filter out rail transit
-route_trip <- atl$trips %>% dplyr::left_join(atl$routes, by = "route_id")
+# Join routes table with trips table with shapes table
+trip_routes <- atl$trips %>% 
+  full_join(atl$routes, by = "route_id")
 
-unique_shape <- route_trip %>% 
-  dplyr::group_by(route_id) %>% 
-  dplyr::slice(1) %>% 
-  dplyr::ungroup()
+trip_shape <- atlsf$shapes %>% 
+  full_join(atl$trips %>% 
+              select(shape_id, trip_id), 
+            by = "shape_id")
 
-route.shape <- atlsf$shape %>% inner_join(unique_shape, by = "shape_id")
+# Merging the two into one and then taking only one row for each
+# unique combination of route_id and shape_id.
+route_trip_shape <- trip_shape %>% 
+  select(-shape_id) %>% 
+  full_join(trip_routes, by = c("trip_id")) %>% 
+  group_by(shape_id, route_id) %>% 
+  slice(1)
 
 # Route type is not really intuitive - let's fix that
-route.shape <- route.shape %>% 
-  dplyr::mutate(route_type = dplyr::case_when(
+route.shape <- route_trip_shape %>% 
+  mutate(route_type = case_when(
     route_type == "0" ~ 'Tram, Streetcar',
     route_type == "1" ~ 'Subway, Metro',
     route_type == "2" ~ 'Rail',
@@ -195,13 +214,10 @@ route.shape %>%
   
 ```
 
+### Step 2: Drawing buffers
+We can use **st_buffer()** function from sf package to draw buffers. Drawing buffers is a simple process, but there is a caveat to it which is rooted in the recent change in sf package. Until Version 1.0, the sf package used 'equirectangular projection' using GEOS library for many operations that involve, for example, `st_intersects`, `st_intersection`, `st_union`, `st_nearest_point`, `st_join`, etc. What this means is that sf package carried out these operations assuming that the Earth is a flat surface. It did so even when the given data is in geographical coordinates. 
 
-
-Until Version 1.0, the sf package used 'equirectangular projection' for many operations that involve, for example, `st_intersects`, `st_intersection`, `st_union`, `st_nearest_point`, `st_join`, etc. It did so even when the given data is in geographical coordinates.
-
-From Version 1.0, sf package uses S2 spherical geometry for spatial operations, based on S2 geometry library written by Google. For our purposes, the difference introduced in Version 1.0. is likely to have a huge impact. However, we may see some glitches here and there (e.g., zig-zaged lines of st_buffer). 
-
-For more information on what all of these means, you can read [this post](https://r-spatial.org/r/2020/06/17/s2.html#sf-10-goodbye-flat-earth-welcome-s2-spherical-geometry).
+From Version 1.0, sf package started using S2 spherical geometry for spatial operations, based on S2 geometry library written by Google. For our purposes, the difference introduced in Version 1.0. is unlikely to have huge impacts. However, we may see some glitches here and there. For example, in the code chunks below I transform `route.shape` from crs = 4326 to crs = 26967. If we use crs = 4326, the buffer polygons will have rough outlines with zig-zag patterns. You can try it yourself. For more information on what all of these means, you can read [this post](https://r-spatial.org/r/2020/06/17/s2.html#sf-10-goodbye-flat-earth-welcome-s2-spherical-geometry).
 
 ```{r}
 # If we do not convert CRS to a projected one, the buffer may generate a ragged boundaries. 
@@ -213,6 +229,7 @@ MARTA_buffer <- route.shape %>%
   sf::st_transform(crs = 26967) %>% 
   sf::st_buffer(dist = units::set_units(400, "m")) 
 
+# To union the buffer polygons by route_type
 MARTA_buffer_group <- MARTA_buffer %>% 
   group_by(route_type) %>% 
   summarise()
@@ -228,17 +245,14 @@ leaflet() %>%
               popup = MARTA_buffer_group$route_type) 
 ```
 
+### Step 3: Intersect the buffer with Census Tracts, 
+We will use `tidycensus` package again to download Census data at Tract-level. 
 
-
-
-
-
-
-
-# Overlaying GTFS with Census
 ```{r message=FALSE, warning=FALSE, echo=FALSE, results='hide'}
-# Get American Community Survey
+# Your API key
 tidycensus::census_api_key(Sys.getenv('census_api'))
+
+# Get American Community Survey
 acs2020 <- tidycensus::get_acs(geography = "tract",
                    variables = c("hhinc" = 'B19013_001',
                                  "r_tot" = "B02001_001",
@@ -252,9 +266,9 @@ acs2020 <- tidycensus::get_acs(geography = "tract",
                    state = "GA",
                    county = c("Fulton", "DeKalb", "Clayton"),
                    geometry = TRUE) 
-
-acs2020
 ```
+
+And then, of course, some data cleaning..
 
 ```{r, out.width="100%"}
 acs2020c <- acs2020 %>% 
@@ -269,10 +283,8 @@ acs2020c <- acs2020 %>%
   mutate(pct_wh = r_wh / r_tot,
          pct_bl = r_bl / r_tot,
          pct_novhc = (own_novhc + rent_novhc)/tot_hh) %>% 
+  # Calculate area of the Census Tract polygons
   mutate(area1 = unclass(st_area(.))) %>% 
-  st_transform(26967) %>% 
-  mutate(area2 = unclass(st_area(.))) %>% 
-  st_transform(crs = 4326) %>% 
   mutate(ln_pop_den = log((r_tot / (area1/1000^2)) + 1)) %>% 
   filter(!is.na(hhinc), !is.na(r_tot), !is.na(own_novhc))
 

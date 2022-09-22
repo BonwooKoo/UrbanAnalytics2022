@@ -8,8 +8,8 @@ output:
     code_folding: show
 ---
 
-```{r,message=FALSE}
-tidycensus::census_api_key(Sys.getenv("census_api"))
+```{r,message=FALSE, include=FALSE, r,message=FALSE}
+# tidycensus::census_api_key(Sys.getenv("census_api"))
 library(tidycensus)
 library(sf)
 library(tmap)
@@ -21,6 +21,8 @@ library(reshape2)
 library(here)
 library(yelpr)
 library(knitr)
+library(skimr)
+        
 ```
 <style type="text/css">
   body{
@@ -28,9 +30,17 @@ library(knitr)
   }
 </style>
 
-# Download data from Census 2020
+# To answer the question we need to first determine what data we need
 
-Here we are downloading income, race, and means of transportation to work
+Since we will be only using cross-sectional data (i.e., data from one period of time) we are limited in examining dynamics. You would probably look for change in several variables over the years to do a proper analysis of this questions!
+
+But given this example of using data to seek some preliminary answers to the questions and strengthen a hypothesis, let's consider the following data:
+1. Yoga Studios in Fulton and Dekalb Counties (already downloaded)
+2. Neighborhood parameters (household income, racial make up, home values? Change in home values? Rental values?)
+
+In this example I am hypothesizing that household income, racial mix, housing costs, and real estate taxes will have something to say about gentrification
+So, I will first download my data for the most recent year from Census
+
 
 ```{r, results="hide"}
 FD_tract <- suppressMessages(
@@ -48,13 +58,16 @@ FD_tract <- suppressMessages(
                         trans.pubtrans = "B08006_008", # Did not want to download any details about the type of public transport (009-0013)
                         trans.bicycle = "B08006_014",
                         trans.walk = "B08006_015",
-                        trans.WfH = "B08006_017"
+                        trans.WfH = "B08006_017",
+                        med_housexp = "B25104_001",
+                        med_realestate_taxes = "B25103_001"
           ),
           year = 2020,
           survey = "acs5", # American Community Survey 5-year estimate
           geometry = TRUE, # returns sf objects
           output = "wide") # wide vs. long
 )
+
 ```
 
 <br>
@@ -64,181 +77,160 @@ The data contains several redundant columns that we will not use. So, let's subs
 ```{r, message=FALSE}
 FD_tract <- FD_tract %>%
   select(GEOID,
-          hhincome = hhincomeE, # New name = old name
-          race.tot = race.totE,
-          race.white = race.whiteE,
-          race.black = race.blackE,
-          trans.total = trans.totalE,
-          trans.car = trans.carE,
-          trans.drovealone = trans.drovealoneE,
-          trans.carpooled = trans.carpooledE,
-          trans.pubtrans = trans.pubtransE,
-          trans.bicycle = trans.bicycleE,
-          trans.walk = trans.walkE,
-          trans.WfH = trans.WfHE)
-
-tmap_mode("view")
-## tmap mode set to interactive viewing
-tm_shape(FD_tract) + tm_borders()
+         hhincome = hhincomeE, # New name = old name
+         race.tot = race.totE,
+         race.white = race.whiteE,
+         race.black = race.blackE,
+         trans.total = trans.totalE,
+         trans.car = trans.carE,
+         trans.drovealone = trans.drovealoneE,
+         trans.carpooled = trans.carpooledE,
+         trans.pubtrans = trans.pubtransE,
+         trans.bicycle = trans.bicycleE,
+         trans.walk = trans.walkE,
+         trans.WfH = trans.WfHE,
+         Med_HHExp = med_housexpE,
+         med_RETaxes = med_realestate_taxesE)
 ```
 
-# Reading Yelp data
+# Let's display what we have!
+
+```{r, message=FALSE}
+tmap_mode("view")
+## tmap mode set to interactive viewing
+RE_Taxes <- tm_shape(FD_tract) + tm_polygons("med_RETaxes")
+HH_exp <- tm_shape(FD_tract) + tm_polygons("Med_HHExp")
+tmap_arrange(RE_Taxes, HH_exp)
+
+```
+
+# Now download the Yelp data. This has been done for you (given the problems we have been having with Yelp API)
 
 **To save time in class, we will use the Yelp data that Bonwoo downloaded for today's class.**
 
-The Yelp data can be found on **Canvas > Files > yelp_yoga.geojson.** This data is for Fulton and DeKalb County, GA, and contains Yelp data with categories = "yoga". This data is already cleaned. 
+The Yelp data can be found on **Canvas > Files > yelp_in.rds.** This data is for Fulton and DeKalb County, GA, and contains Yelp data with categories = "yoga". This data is already cleaned. 
 
-To read the data into R, we will use st_read() function in sf package. Notice that in the code below, only the name of the .geojson file is specified. This works only when the file is in the same folder as your .Rmd file. If not, you will need to provide a full path to the file.
+To read the data into R, we will use read_rds() function in readr package. Notice that in the code below, only the name of the .rds file is specified. This works only when the file is in the same folder as your .Rmd file. If not, you will need to provide a full path to the file.
 
 ```{r}
 # Reading the yelp data
-yelp_in <- st_read("yelp_yoga.geojson")
+yelp_in <- read_rds("yelp_in.rds")
+```
+
+# I like to constantly check my datasets to see if the results look fine
+I will check the file and then display it (i.e., the point locations of Yoga Studios) on the census data 
+
+```{r}
+skim(yelp_in)
+tm_shape(yelp_in) + tm_dots(col="red") + tm_shape(FD_tract) + tm_borders()
 ```
 
 
 # Appending Census data
-Here, we will append Yelp data to Census data using st_join(). If you can't remember how the code works, look at [this slide](https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_0/w2_d2_Intro_to_R_2.html#37).
+Joining census data in this case is somewhat different from earlier. We will do the following:
+1. make sure the projection (CRS) of both files are correct
+2. Calculate how many yoga studios are within each census tract (there will be many tracts with 0 studios)
+3. Join the two files with the count of Yoga studios
 
 ```{r}
-# Transforming CRS of census to match that of Yelp data .
-# st_join() requires that the CRS are the same for two data.
-census_sf <- FD_tract %>% st_sf() %>% st_transform(crs = 4326)
-# Spatial join. Notice the order of arguments.
-yelp_census <- st_join(yelp_in, census_sf, join = st_intersects)
+## Check to see that the CRS for both the sf files are the same
+head(FD_tract)
+head(yelp_in)
 
-yelp_census %>% head(3)
+## It turns out they are NOT! So we need to transform their CRS into the same
+FD_tract_Geom <- st_transform(FD_tract, crs=4326)
+Yelp_in_Geom <- st_transform(yelp_in, crs=4326)
+
+Yoga_in_tract <- st_join(FD_tract_Geom, Yelp_in_Geom, join = st_intersects)
+skim(Yoga_in_tract)
+
+# Now count the Yoga Studios by tract
+yoga_count_tract <- count(as_tibble(Yoga_in_tract), GEOID) %>%
+  print()
+
+# Join tract geometry with the number of Yoga studios in tract
+test <- st_join(FD_tract_Geom, Yelp_in_Geom %>% mutate(count = 1))
+out <- test %>%
+  group_by(GEOID) %>%
+  summarise(count = sum(count, na.rm = T))
+
+# Lets' check to see if the polygons and the poin data on Yoga Studios match
+tm_shape(out) + tm_polygons(col = "count") + tm_shape(Yelp_in_Geom)  + tm_dots()
+
+## OK Now we are ready to join back the counts of Yoga Studios to the Tract data
+FD_tract_Geom_yoga <- FD_tract_Geom %>%
+  left_join(out %>% st_set_geometry(NULL), by = "GEOID")
 ```
 
-# Start exploring the data -- look for summary stats, outliers, and associations
-Let's use skim() function to get a summary of the data.
-
-Notice that the data file has a few missing values - we will not worry about the ones we will not use.
-We will use household income -- so let's drop the two missing values from hhincome.
+# Make sure that the final dataset we will be using for our analysis is as expected
 
 ```{r}
-library(skimr)
-# skim your data
-print(skim(yelp_census))
+skim(FD_tract_Geom_yoga)
+tm_shape(FD_tract_Geom_yoga) + tm_polygons(col="count") +tm_shape(Yelp_in_Geom) +tm_dots()
+```
 
-# Dropping the two missing values
-yelp_census_dropnaHH2 <- yelp_census[!is.na(yelp_census$hhincome),]
+# Let's clean up the data and drop the "NA"s for important variables like househiold income and real estate taxes
 
-# Just to check whether the 2 NAs have been dropped
-print(skim(yelp_census_dropnaHH2))
+```{r}
+## Now we have the file to work with (I hope!) Let's check again
+
+print(skim(FD_tract_Geom_yoga))
+
+# Dropping the missing values
+yoga_census_dropnaHH2 <- FD_tract_Geom_yoga[!is.na(FD_tract_Geom_yoga$hhincome),]
+
+# Just to check whether the 8 NAs have been dropped from hhincome
+print(skim(yoga_census_dropnaHH2))
+
+# What about the missing values of med_RETaxes? Let's get rid of those NAs too
+
+y_census_dropnaHHTX <- yoga_census_dropnaHH2[!is.na(yoga_census_dropnaHH2$med_RETaxes),]
+skim(y_census_dropnaHHTX)
+
 # To check if it is still a sf file
-class(yelp_census_dropnaHH2) 
+class(y_census_dropnaHHTX)
+
 ```
 
-## Let's ask some probing questions about the data
-1. Are people driving alone living in tracts with high median hh incomes?
+## Now we are ready to ask some probing questions about the data
+1. Are yoga studios in places with high median household incomes?
 
 We could use the following ggplot command.
 
 ```{r}
-ggplot(yelp_census_dropnaHH2, aes(x=hhincome, y=trans.drovealone)) + 
-  geom_point() + 
-  ylab("Number of commuters who drive alone by car")
+ggplot(y_census_dropnaHHTX, aes(x=hhincome, y=count)) +
+  geom_point() +
+  ylab("Number of Yoga Studios and Household Median Income in Tract")
 ```
 
-
-
-Think about whether "number" of commuters who drive alone is the right variable to check against hhincome when you are seeking to explore the relationship between income and the use of cars.
-
-The number of people who drive alone may be low if there are fewer people commuting in high income neighborhoods. So ideally you want to use PERCENT of commuters who drive alone rather than the number.
+# How about we just look at a binary field that shows the presence or absence of Yoga Studios in tract?
 
 ```{r}
-yelp_census2 <- yelp_census_dropnaHH2 %>%
-  mutate(prop_drovealone=trans.drovealone/trans.total)
-
-ggplot(yelp_census2, aes(x=hhincome, y=prop_drovealone)) + 
-  geom_point() + 
-  ylab("Proportion of commuters who drive alone by car")
+y_census_dropnaHHTX$Yoga <- ifelse(y_census_dropnaHHTX$count>0, 1, 0)
 ```
 
-
-Do you notice a difference from the previous plot?
+# A better way to visualize this categorical variable is a "boxplot"
 
 ```{r}
-yelp_census3 <- yelp_census2 %>%
-  mutate(prop_white = race.white/race.tot, prop_black=race.black/race.tot)
-
+boxplot(hhincome~Yoga, data=y_census_dropnaHHTX, main="Boxplot of Yoga Studios by Income", xlab="Whether Yoga Studios are present", ylab="Household median income")
+```
+# What about a similat boxplot with Real Estate Taxes?
+```{r}
+boxplot(med_RETaxes~Yoga, data=y_census_dropnaHHTX, main="Boxplot of Yoga Studios by Real Estate Taxes", xlab="Whether Yoga Studios are present", ylab="Real Estate Taxes in tract")
 ```
 
-Let us now check whether race has a association with drive alone
+## Finally, let's try a binary logistic regression
 
 ```{r}
-ggplot(yelp_census3, aes(x=prop_white, y=prop_drovealone)) + 
-  geom_point() + 
-  ylab("commuters who drive alone by car by race = white")
+binary_Yoga1 <- glm(Yoga~hhincome, family=binomial, data=y_census_dropnaHHTX)
+summary(binary_Yoga1)
+
+binary_Yoga2 <- glm(Yoga~med_RETaxes, family=binomial, data=y_census_dropnaHHTX)
+summary(binary_Yoga2)
+```
+
+# So what do you think about our initial question? Are Yoga Studios associated with gentrified neighborhoods?
+# As an exercise, download the data on median rents and examine if there is an association of yoga studios with median rents.
 
 ```
 
-
-Where are the people who drive alone?
-
-```{r}
-tmap_mode("view")
-tm_shape(yelp_census3) + 
-  tm_dots(col="prop_drovealone")
-```
-
-
-What about work from home?
-
-```{r}
-yelp_census4 <- yelp_census3 %>%
-  mutate(prop_wfh=trans.WfH/trans.total)
-
-ggplot(yelp_census4, aes(x=hhincome, y=prop_wfh)) + 
-  geom_point() + 
-  ylab("Workers working from home")
-```
-
-
-## Adding a smoothed line 
-
-You can also fit a smoothed line to the scatterpolt
-```{r}
-scatter.smooth(yelp_census4$prop_wfh, 
-               yelp_census4$hhincome, 
-               xlab="Household Income", 
-               ylab="Proportion of workers working from home", 
-               main="Work from Home by Household Income")
-```
-
-
-## Simple correlations between two variables
-How strong is the relationship between income and work from home? Measures of association are dependent upon the type of variables: nominal, ordinal, or ratio. Since the measures here are ratio variables, we will use the correlation coefficient.
-
-Use > **cor(x, use=, method=)**
-
-```{r}
-cor(yelp_census4$prop_wfh, 
-    yelp_census4$hhincome, 
-    use="pairwise.complete.obs", 
-    method="pearson")
-```
-
-
-## Bivariate regression
-What about a bivariate regression to examine the relationship between work from home and income? Which variable should be the dependent?
-
-```{r}
-regress_wfh <- lm(yelp_census4$prop_wfh ~ yelp_census4$hhincome)
-summary(regress_wfh)
-```
-
-## Plot the regression line
-
-```{r}
-plot(yelp_census4$hhincome, 
-     yelp_census4$prop_wfh, 
-     main = "Regression for Work from Home and income", 
-     xlab="Household Income", 
-     ylab="Percent working from home")
-
-abline(lm(prop_wfh~hhincome, data=yelp_census4), col="red")
-```
-
-
-Can you examine some other measures of associations? Work from home vs. income? What about Yoga studios vs. income.
