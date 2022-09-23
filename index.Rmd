@@ -155,8 +155,8 @@ assignment_col <- c(
   "[Mini 1](https://bonwookoo.github.io/UrbanAnalytics2022/Assignment/mini_1/mini_assignment_1.html) <br> (due Sep20)", # 3
   
   "[Mini 2](https://bonwookoo.github.io/UrbanAnalytics2022/Assignment/mini_2/mini_assignment_2.html) <br> (due Sep23)",# 4 # add 
-  "Mini 4",# 5
-  "Mini 5",# 6
+  "[Mini 3](https://bonwookoo.github.io/UrbanAnalytics2022/Assignment/mini_3/mini_assignment_3.html) <br> (due Sep30)",# 5
+  "Mini 4",# 6
   "",# 7
   "Major 1",# 8 
         # Chicago GTFS feed http://www.transitchicago.com/downloads/sch_data/google_transit.zip
