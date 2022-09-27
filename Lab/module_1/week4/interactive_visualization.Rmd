@@ -11,6 +11,13 @@ output:
 font-family: Arial;
 </style>
 
+# Why visualization?
+
+Data visualization is an essential tool for urban analytics. It offers an intuitive and quick way to understand the characteristics and relationships embedded in your data. Sometimes a good data visualization can deliver a message more effectively than any other medium and exercise transformative power that shapes people's perception [see this example](https://www.cnn.com/interactive/2021/us/census-race-ethnicity-map/). And not to mention that cool visualizations are cool.
+
+The first thing we analysts do when we get our hands on a dataset is to understand it. The best way to understand any given data is to visualize it. We have a wide variety of maps and charts to choose from, including scatterplots, histograms, boxplots, violin plots, and mapping. We have been doing mapping a lot, so this document will focus more on other charts.
+
+
 ```{r, message=FALSE, results='hide'}
 library(tidyverse)
 library(sf)
@@ -22,9 +29,9 @@ library(tidycensus)
 
 
 
-```{r, results='hide'}
+```{r, results='hide', message=FALSE}
 # Let's prepare data
-yelp <- read_rds(here("Lab", "module_1", "week4", "yelp_in.rds"))
+yelp <- read_rds("https://github.com/BonwooKoo/UrbanAnalytics2022/blob/main/Lab/module_1/week4/yelp_in.rds?raw=true")
 # Census data
 census_api_key(Sys.getenv("census_api"))
 
@@ -83,48 +90,54 @@ Or we can use leaflet() package for mapping.
  library(htmlwidgets)
  library(htmltools)
 
+# CSS for title
 tag.map.title <- tags$style(HTML("
   .leaflet-control.map_title { 
     position: absolute;
     left: 50px;
-    width: 400px;
+    width: 320px;
     text-align: left;
     color: white;
-    left-padding: 20px;
-    background: rgba(255,255,255,0.05);
+    padding-left: 10px; 
+    background: rgba(200,200,200,0.2);
     font-weight: bold;
     font-size: 20px;
     font-family: Helvetica;
+    border-color: white;
+    border-radius: 10px;
   }"))
 
+# Format title
 title <- tags$div(
   class="map_title", tag.map.title, HTML("<p>Restaurants in Fulton and DeKalb Counties from Yelp</p>")
 )  
 
-# map_leaflet <- leaflet() %>%
-#   addTiles() %>%
-#   addControl(title, position = "topleft", className="map-title")
-
-
+# Color palette
 fill_pal <- colorQuantile(palette = "YlOrRd", domain=yelp$review_count)
 
+# Label for mouseover & popup
 yelp_labels <- paste(
   "<a href=",yelp$url,">",yelp$name, "</a><br>",
   "<strong>Review Count: </strong>", yelp$review_count,"<br>",
   "<strong>Rating: </strong>", yelp$rating) %>%
   lapply(htmltools::HTML)
 
+# Creating a Leaflet widget
 leaflet() %>% 
+  # Setting the view on load
   setView(lng = -84.3903996350635, lat = 33.77074368998939, zoom = 11) %>% 
   
+  # Dark base map
   addProviderTiles(providers$CartoDB.DarkMatterNoLabels) %>% 
   
+  # Polygon boundary
   addPolygons(data = census %>% st_union(), 
               opacity=0.2,
               fillOpacity=0,
               weight=1,
               color="white") %>% 
   
+  # Yelp point
   addCircleMarkers(data = yelp, 
              radius = yelp$rating*1.5, 
              opacity=0.2,
@@ -134,13 +147,15 @@ leaflet() %>%
              popup= ~yelp_labels,
              label= ~yelp_labels) %>% 
   
+  # Legend
   addLegend("bottomright", pal = fill_pal, values = yelp$review_count,title = "Review Count",opacity = 1) %>% 
   
-  addControl(title, className="map_title")
+  # Title
+  addControl(title, position="topleft",className="map_title")
 ```
 
 <br><br>
-For static maps with a lot of customizeability - ggplot2 can also create maps.See [this example](https://github.com/grssnbchr/bivariate-maps-ggplot2-sf) for an inspiration.
+For static maps with a lot of customizeability - ggplot2 can also create maps. See [this example](https://github.com/grssnbchr/bivariate-maps-ggplot2-sf) for an inspiration.
 
 ```{r, include=FALSE}
 library(viridis)
@@ -211,7 +226,8 @@ fig1 <- ggplot(data = census_yelp) +
                            alpha=price)) #<<
 
 fig2 <- ggplot(data = census_yelp) +
-  geom_point(mapping = aes(x=review_count, y=rating, alpha=price, 
+  geom_point(mapping = aes(x=review_count, y=rating, 
+                           alpha=price, #<<
                            size=price)) #<<
 
 gridExtra::grid.arrange(fig1, fig2, ncol= 1)
@@ -230,7 +246,7 @@ fig3 <- ggplot(data = census_yelp) +
 gridExtra::grid.arrange(fig2, fig3, ncol = 1)
 ```
 
-Remember that if you use `facet_wrap` with a continuous data, it will generate as many plots as the unique values in the continuous data.
+Remember that if you use `facet_wrap` with a continuous data, it will generate as many plots as the unique values in the continuous data. Avoid writing such codes! 
 
 ```{r}
 ggplot(data = census_yelp) +
@@ -322,6 +338,24 @@ If you want to use your custom color choices - for a continuous variable.
 ```{r}
 ggplot(data = census_yelp) +
   geom_point(mapping = aes(x=review_count, y=rating, color = hhincome)) + 
+  labs(x = "Review Count in Yelp",
+       y = "Rating in Yelp",
+       color = "Annual Household Income",
+       title = "Do better rated restaurants have more reviews?") +
+  scale_color_gradient(low="darkblue", high="red") + #<<
+  theme_bw()
+```
+
+```{r}
+outliers <- census_yelp %>% 
+  arrange(desc(review_count)) %>% 
+  slice(1:4)
+
+ggplot(data = census_yelp,
+       aes(x=review_count, y=rating)) + # moved aes() to here
+  geom_point(mapping = aes(color = hhincome)) + # Colored ones
+  geom_point(data = outliers, size = 3, shape = 1, color = "black") + # Black circles
+  ggrepel::geom_label_repel(data = outliers, mapping = aes(label = county)) + 
   labs(x = "Review Count in Yelp",
        y = "Rating in Yelp",
        color = "Annual Household Income",
@@ -486,6 +520,7 @@ ggplot(census_yelp) +
   geom_violin(mapping = aes(x = county, y = review_count, fill=county), color = "black")
 ```
 
+# Interactivity
 Something I recently found out..
 ```{r}
 scat_plot <- ggplot(data = census_yelp) +
@@ -501,7 +536,7 @@ plotly::ggplotly(scat_plot)
 ```
 
 
-
+# So, do restaurants in wealthy neighborhoods get higher Yelp ratings?
 ```{r}
 census_yelp %>% 
   mutate(review_count_cut = cut(review_count, breaks = quantile(review_count, prob = c(0,0.5,0.75,1)), include.lowest=TRUE)) %>%

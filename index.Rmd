@@ -95,7 +95,7 @@ topic_col <- c(
   
   "First statistical insights from your data [(Slide)](https://github.gatech.edu/pages/sguhathakurta3/UA-Lectures/Lecture-2/LectureEDA.html#1), <br> Hands-on [(RMD)](https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_1/week3/stats.html)",# 5
   
-  "Interactive visualization (Slide), <br> Hands-on (RMD)",# 6
+  "Interactive visualization [(RMD)](https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_1/week4/interactive_visualization.html)",# 6
   "<b>(Tue) Mini-presentation 2 (Slide)</b>, <br> General Transit Feed Specification (Slide), <br> GTFS and equity (RMD)",# 7 # [GTFS and equity (RMD)](./Lab/module_2/1_GTFS.html)
   
   "Open Street Map (Slide), <br> OSM as a graph (RMD)",# 8 # [OSM as a graph (RMD)](./Lab/module_2/2_OSM.html)
