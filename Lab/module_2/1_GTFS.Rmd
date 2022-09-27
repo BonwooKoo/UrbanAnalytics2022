@@ -386,55 +386,82 @@ leaflet() %>%
 ```
 
 # Get statistical insights
-Now that our data is ready, we can use various methods to examine whether transit service area is equitably distributed. We will use
+Now that the data is ready, we can use various methods to examine whether transit service area is equitably distributed. We will use
 
 1. Drawing scatterplots
 2. Correlation Analysis
 3. Multiple regression analysis
 
-to evaluate the equity. 
+to evaluate the equity. Let's first draw scatterplots to visualize the relationship between % service area and various socioeconomic/demographic variables. These variables are by no means complete; feel free to test other variables that represent population characteristics that you are interested in.
+
+Here we will draw multiple scatterplots **automatically** by using **facet_wrap()** in ggplot2 package. To use this function, ggplot requires that the input data is in a long-form where one column shows the variable name and the other column shows the data value. Then, ggplot draws multiple scatterplots by grouping the rows by variable names. Also notice the labeller; we provide formatted titles for each variable name so that the plots get proper titles.
+
+Looking at the scatterplots below, some variables have clear relationships with % service area, such as annual household income, population density, and % household without vehicle. Other variables are not as clear. The visual inspection is very intuitive and powerful, but it is limited in telling us how strong the relationships are and how confident we can be that there exist these relationships.
 
 ```{r}
-# Is there any correlation between SES and service area?
-var_name <- as_labeller(c(
+# Readable plot title  
+var_name <- c(
   'hhinc'="Annual Household Income",
   'pct_bl'="% Black population",
   'pct_novhc'="% Household without vehicle",
   'pct_wh'="% White population",
   'r_tot'="Total population",
-  'ln_pop_den' = "Population density"
-))
+  'ln_pop_den' = "(log) Population density"
+)
+
+var_name_labeller <-  as_labeller(var_name)
 
 buffer_by_tract %>% 
   #filter(na_index) %>% 
   pivot_longer(cols = c('hhinc', 'pct_wh', 'pct_bl', 'pct_novhc', "r_tot", "ln_pop_den"), names_to = "variable", values_to = "value") %>% 
   ggplot() +
-  facet_wrap(~variable, scales = "free_y", labeller = var_name) +
+  facet_wrap(~variable, scales = "free_y", labeller = var_name_labeller) +
   geom_point(aes(x = pct_served, y = value), alpha = 0.4) +
   labs(x = "\n % Area with 400m beffer from transit line") +
   theme_bw()
 ```
+Correlation analysis can provide how strong the relationship between two variables is and how much confidence we can have about that knowledge. R has built-in function **cor.test()** that runs correlation analysis. It takes two vectors (i.e., variables) as input and outputs various statistics such as correlation coefficients, degrees of freedom, and t- and p-values. 
 
+When we have many variables to evaluate, the fact that only two variables can be evaluated at a time can be cumbersome. We can write a custom function to automate correlation analysis. Let's do one correlation analysis first, and then look at how we can automate it.
 
 ```{r}
+## Correlation analysis for just two variables
+# Syntax 1: not using pipe
+cor.test(buffer_by_tract$pct_served, 
+         buffer_by_tract$hhinc)
+
+# Syntax 2: using pipe, useful when you want to do 
+# something first and then do correlation with the result
+buffer_by_tract %>%
+  with(cor.test(pct_served, hhinc)) # (you can use whichever syntax you prefer). 
+
+## Correlation analysis for multiple variables
+# Define a vector with the variable names that you want to evaluate
 test_var <- c("hhinc", "pct_bl", "pct_wh", "pct_novhc", "r_tot", "ln_pop_den")
 
-map_chr(test_var, function(x){
-  cor.object <- cor.test(buffer_per_tract2[['pct_served1']], 
-                         buffer_per_tract2[[x]])
+# Custom function that runs correlation analysis
+# This function takes one vector as input (because the other vector is pct_served in our case)
+# and outputs a character string that summarizes correlation analysis results
+map_cor <- function(x){
+  cor.object <- cor.test(buffer_by_tract[['pct_served']], 
+                         buffer_by_tract[[x]])
+  df <- cor.object$parameter
   r <- round(cor.object$estimate,3)
   t <- round(cor.object$statistic,3)
   p <- round(cor.object$p.value,3)
-  return(paste0("for ",x ,", r=", r, " (t=", t, ", p=", p, ")"))
-})
+  # return(paste0("for ",x ,", r=", r, " (t=", t, ", p=", p, ")"))
+  return(glue::glue("for {var_name[x]}, r({df})={r} (t={t}, p={p})"))
+}
+
+# Apply custom function to test_var
+map_chr(test_var, map_cor)
 
 ```
 
+# Using stops + their frequency differences
+Using the geometry of bus routes may be less accurate a measure for transit service quality, because the **access point** is the stops. Being close to routes with very sparsely distributed stops would not be very useful. Let's refine what we did above and use stops instead of routes.
 
-# Reflecting the frequency differences
-
-Since some stops have more frequent services than others, it is useful to consider the service frequency. 
-Here, we are doing to focus on the morning commute time (7AM to 10 AM) and count the number of departures at each stops.
+Furthermore, since some stops have more frequent services than others, it is useful to consider the service frequency. Here, we are going to focus on the morning commute time (7AM to 10 AM) and count the number of departures at each stops. The tidytransit package provide convenient functions that makes this analysis a breeze.
 
 ```{r}
 service_ids <- atl$.$dates_services %>% pull(service_id)

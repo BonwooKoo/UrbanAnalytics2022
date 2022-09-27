@@ -520,7 +520,7 @@ yelp_all <- yelp_all_list %>% bind_rows() %>% as_tibble()
 yelp_all %>% print(width=1000)
 ```
 
-```{r eval=F}
+```{r eval=F, include=F}
 # Error-catching function
 get_yelp_poss <- purrr::possibly(.f = get_yelp, otherwise = NULL)
 

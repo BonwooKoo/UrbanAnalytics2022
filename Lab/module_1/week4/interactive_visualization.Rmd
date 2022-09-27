@@ -1,0 +1,530 @@
+---
+title: "Visualization for data exploration & communication"
+author: "Bonwoo Koo & Subhrajit Guhathakurta"
+date: '2022-09-27'
+output:
+  rmdformats::downcute:
+    downcute_theme: "chaos"
+---
+
+<style>
+font-family: Arial;
+</style>
+
+```{r, message=FALSE, results='hide'}
+library(tidyverse)
+library(sf)
+library(tmap)
+library(leaflet)
+library(here)
+library(tidycensus)
+```
+
+
+
+```{r, results='hide'}
+# Let's prepare data
+yelp <- read_rds(here("Lab", "module_1", "week4", "yelp_in.rds"))
+# Census data
+census_api_key(Sys.getenv("census_api"))
+
+census_var <- c(hhincome = 'B19019_001',
+                race.tot = "B02001_001",
+                race.white = "B02001_002", 
+                race.black = 'B02001_003'
+                )
+
+census <- get_acs(geography = "tract", state = "GA", county = c("Fulton", "DeKalb"),
+                 output = "wide", geometry = TRUE, year = 2020,
+                 variables = census_var)
+  
+summarise_mean <- c(str_c(names(census_var), "E"), 
+                    "rating", "review_count")
+
+census_yelp <- census %>% 
+  separate(col = NAME, into=c("tract","county","state"), sep=', ') %>% 
+  # Spatial join
+  st_join(yelp %>% 
+            mutate(n = 1,
+                   price = nchar(price)) %>% 
+            st_transform(crs = st_crs(census))) %>% 
+  # Group_by
+  group_by(GEOID, county) %>% 
+  # Mean for all census variables, sum for n
+  summarise(across(
+    all_of(summarise_mean), mean), 
+    n = sum(n),
+    price = median(price)) %>% 
+  # Release grouping
+  ungroup() %>% 
+  # Drop 'E' from column names
+  rename_with(function(x) str_sub(x,1,nchar(x)-1), str_c(names(census_var), "E")) %>% # rename_with() renames with a function
+  # Replace NA in column n&review_count with 0
+  mutate(across(c(n, review_count), function(x) case_when(is.na(x) ~ 0, TRUE ~ x)))
+```
+
+As usual, using tmap to visualize the data.
+
+```{r}
+tmap_mode("view");
+a <- tm_shape(census_yelp) + 
+  tm_polygons(col = "review_count", style = "quantile")
+
+b <- tm_shape(yelp) +
+  tm_dots(col = "review_count", style="quantile")
+
+tmap_arrange(a,b, sync = TRUE)
+```
+
+Or we can use leaflet() package for mapping.
+
+```{r}
+ library(leaflet)
+ library(htmlwidgets)
+ library(htmltools)
+
+tag.map.title <- tags$style(HTML("
+  .leaflet-control.map_title { 
+    position: absolute;
+    left: 50px;
+    width: 400px;
+    text-align: left;
+    color: white;
+    left-padding: 20px;
+    background: rgba(255,255,255,0.05);
+    font-weight: bold;
+    font-size: 20px;
+    font-family: Helvetica;
+  }"))
+
+title <- tags$div(
+  class="map_title", tag.map.title, HTML("<p>Restaurants in Fulton and DeKalb Counties from Yelp</p>")
+)  
+
+# map_leaflet <- leaflet() %>%
+#   addTiles() %>%
+#   addControl(title, position = "topleft", className="map-title")
+
+
+fill_pal <- colorQuantile(palette = "YlOrRd", domain=yelp$review_count)
+
+yelp_labels <- paste(
+  "<a href=",yelp$url,">",yelp$name, "</a><br>",
+  "<strong>Review Count: </strong>", yelp$review_count,"<br>",
+  "<strong>Rating: </strong>", yelp$rating) %>%
+  lapply(htmltools::HTML)
+
+leaflet() %>% 
+  setView(lng = -84.3903996350635, lat = 33.77074368998939, zoom = 11) %>% 
+  
+  addProviderTiles(providers$CartoDB.DarkMatterNoLabels) %>% 
+  
+  addPolygons(data = census %>% st_union(), 
+              opacity=0.2,
+              fillOpacity=0,
+              weight=1,
+              color="white") %>% 
+  
+  addCircleMarkers(data = yelp, 
+             radius = yelp$rating*1.5, 
+             opacity=0.2,
+             fillColor=~fill_pal(review_count),
+             weight=1,
+             color= ~fill_pal(review_count),
+             popup= ~yelp_labels,
+             label= ~yelp_labels) %>% 
+  
+  addLegend("bottomright", pal = fill_pal, values = yelp$review_count,title = "Review Count",opacity = 1) %>% 
+  
+  addControl(title, className="map_title")
+```
+
+<br><br>
+For static maps with a lot of customizeability - ggplot2 can also create maps.See [this example](https://github.com/grssnbchr/bivariate-maps-ggplot2-sf) for an inspiration.
+
+```{r, include=FALSE}
+library(viridis)
+
+ggplot(data = yelp) +
+  geom_point(mapping = aes(color = log(review_count+1), x = st_coordinates(yelp)[,1], y = st_coordinates(yelp)[,2]), 
+             size=2, alpha=0.9) +
+  theme_void() +
+  scale_color_viridis(trans = "log",  
+                      name="Review Count (logged)", guide = guide_legend(keyheight = unit(3, units = "mm"),
+                                                               keywidth=unit(12, units = "mm"), 
+                                                               label.position = "bottom", 
+                                                               title.position = 'top', nrow=1)) +
+  labs(
+    title = "Restaurant Distribution in Fulton & DeKalb Counties, GA",
+    subtitle = "Review Count from Yelp API",
+    caption = "Data: Yelp | Created by Bonwoo Koo"
+  ) +
+  theme(
+    text = element_text(color = "#22211d"),
+    plot.background = element_rect(fill = "#f5f5f2", color = NA),
+    panel.background = element_rect(fill = "#f5f5f2", color = NA),
+    legend.background = element_rect(fill = "#f5f5f2", color = NA),
+
+    plot.title = element_text(size= 12, color = "black", 
+                              margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
+    plot.subtitle = element_text(size= 10, color = "black", 
+                                 margin = margin(b = -0.1, t = 0.43, l = 2, unit = "cm")),
+  plot.caption = element_text( size=7, hjust=0, color = "black", 
+                                 margin = margin(b = 0.3, r=-99, unit = "cm") )
+  ) +
+  coord_map()
+
+```
+
+
+# Creating a ggplot
+In tmap package, two functions always go hand-in-hand, namely tm_shape() and tm_polygons() (or tm_lines, tm_dots, etc.). The tm_shape() function declares the data object to be displayed. Then, the tm_polygons() function defines the geometry shape and other associated characteristics.
+
+A similar structure is used in ggplot2 package. Creating a plot needs at least two functions that are connected by +: ggplot() function and geom_point() (or other geometry types, such as geom_line, geom_boxplot, etc.). In the example below, `ggplot(data = yelp)` indicates that we are drawing ggplot using yelp data. Then, `geom_point(aes(x = review_count, y = rating))` shows that we are going to draw a scatterplot using `review_count` and `rating` columns.
+
+```{r}
+ggplot(data = census_yelp) +
+  geom_point(mapping = aes(x = review_count, y = rating))
+```
+
+
+We can add additional information to this plot using a few different strategies, including colors, sizes, and shapes inside the `aes()` part of the code. For example, we can add `price` information using color.
+
+```{r}
+ggplot(data = census_yelp) +
+  geom_point(mapping = aes(x=review_count, y=rating, 
+                           color=price)) #<<
+```
+
+```{r}
+ggplot(data = census_yelp) +
+  geom_point(mapping = aes(x=review_count, y=rating, 
+                          size=price)) #<<
+```
+
+
+
+
+```{r}
+fig1 <- ggplot(data = census_yelp) +
+  geom_point(mapping = aes(x=review_count, y=rating, 
+                           alpha=price)) #<<
+
+fig2 <- ggplot(data = census_yelp) +
+  geom_point(mapping = aes(x=review_count, y=rating, alpha=price, 
+                           size=price)) #<<
+
+gridExtra::grid.arrange(fig1, fig2, ncol= 1)
+```
+
+If you put, for example, color and size arguments outside of `aes()`, the visual property from those arguments are not mapped to your data; it is applied direct to the plot. 
+```{r}
+fig2 <- ggplot(data = census_yelp) +
+  geom_point(mapping = aes(x=review_count, y=rating), 
+             color = "orange") #<<
+
+fig3 <- ggplot(data = census_yelp) +
+  geom_point(mapping = aes(x=review_count, y=rating), 
+             size = 5) #<<
+
+gridExtra::grid.arrange(fig2, fig3, ncol = 1)
+```
+
+Remember that if you use `facet_wrap` with a continuous data, it will generate as many plots as the unique values in the continuous data.
+
+```{r}
+ggplot(data = census_yelp) +
+  geom_point(mapping = aes(x=review_count, y=rating)) +
+  facet_wrap(~county) #<<
+```
+
+
+```{r}
+ggplot(data = census_yelp) +
+  geom_point(mapping = aes(x=review_count, y=rating)) +
+  facet_grid(price~county) #<<
+# price will be rows; county will be columns.
+# try swapping price and county
+```
+
+```{r}
+ggplot(data = census_yelp) +
+  geom_smooth(mapping = aes(x=review_count, y=rating), method = "lm")
+```
+
+```{r}
+# More than one layers
+ggplot(data = census_yelp) +
+  geom_point(mapping = aes(x=review_count, y=rating)) + 
+  geom_smooth(mapping = aes(x=review_count, y=rating), method = "lm")
+```
+In the code above, we are repeating `aes(x=review_count, y=rating)` twice. If we know that mapping will be the same in multiple layers, we can define it in `ggplot()`. 
+```{r}
+ggplot(data = census_yelp, mapping = aes(x=review_count, y=rating)) + #<<
+  geom_point() + 
+  geom_smooth(method = "lm")
+```
+
+If you want to add a specific mapping to a layer, you provide additional mapping to individual layers. 
+
+```{r}
+ggplot(data = census_yelp, mapping = aes(x=review_count, y=rating)) +
+  geom_point() + 
+  geom_smooth(mapping = aes(color = county), #<<
+              method = "lm")
+```
+You can append `labs()` to specify labels. 
+```{r}
+ggplot(data = census_yelp, mapping = aes(x=review_count, y=rating)) +
+  geom_point() + 
+  geom_smooth(mapping = aes(color = county), method = "lm") +
+  labs(x = "Review Count in Yelp", #<<
+       y = "Rating in Yelp",
+       color = "County in Census",
+       title = "Do better rated restaurants have more reviews?")
+```
+
+## Aesthetic options
+We can change the overall theme of the plot using `theme_<...>`.
+```{r}
+ggplot(data = census_yelp) +
+  geom_point(mapping = aes(x=review_count, y=rating, color = county)) + 
+  labs(x = "Review Count in Yelp",
+       y = "Rating in Yelp",
+       color = "County in Census",
+       title = "Do better rated restaurants have more reviews?") +
+  theme_bw()
+```
+
+Of course, dark is always cooler.
+```{r}
+ggplot(data = census_yelp) +
+  geom_point(mapping = aes(x=review_count, y=rating, color = county)) + 
+  labs(x = "Review Count in Yelp",
+       y = "Rating in Yelp",
+       color = "County in Census",
+       title = "Do better rated restaurants have more reviews?") +
+  ggdark::dark_theme_gray()
+```
+
+If you want to use your custom color choices - for a discrete variable.
+```{r}
+ggplot(data = census_yelp) +
+  geom_point(mapping = aes(x=review_count, y=rating, color = county)) + 
+  labs(x = "Review Count in Yelp",
+       y = "Rating in Yelp",
+       color = "County in Census",
+       title = "Do better rated restaurants have more reviews?") +
+  scale_color_manual(values = c("green", "darkblue")) + #<<
+  theme_bw()
+```
+If you want to use your custom color choices - for a continuous variable.
+```{r}
+ggplot(data = census_yelp) +
+  geom_point(mapping = aes(x=review_count, y=rating, color = hhincome)) + 
+  labs(x = "Review Count in Yelp",
+       y = "Rating in Yelp",
+       color = "Annual Household Income",
+       title = "Do better rated restaurants have more reviews?") +
+  scale_color_gradient(low="darkblue", high="red") + #<<
+  theme_bw()
+```
+
+# Other plots
+
+Bar chart is also very frequently used. Note that ggplot creates y-axis automatically by examining how many rows there are for each category of x. You can try `yelp %>% group_by(price) %>% tally()` to check the exact Y value for this plot.
+```{r}
+ggplot(data = yelp) +
+  geom_bar(mapping = aes(x=price)) 
+
+yelp %>% 
+  group_by(price) %>% 
+  tally()
+```
+
+We can also further break each price level by another categorical variable. We use rating to see the relative frequency of each rating for each price level. This is done by adding `fill=rating` in the mapping.
+```{r}
+ggplot(data = yelp %>% 
+         st_set_geometry(NULL) %>% 
+         mutate(rating = round(rating,0) %>% #<<
+                  factor(ordered = TRUE))) + #<<
+         # delete %>% factor(ordered = T) and see what happens
+  geom_bar(mapping = aes(x=price, fill=rating), position = "stack")
+```
+
+By changing `position="stack"` = `position="fill"`, we convert the Y-axis to the proportion within each level of price and fill it up to the top. This shows more clearly how different rating levels are distributed within each price level.
+```{r}
+ggplot(data = yelp %>% 
+         st_set_geometry(NULL) %>% 
+         mutate(rating = round(rating,0) %>% 
+                  factor(ordered = TRUE))) + #<<
+  geom_bar(mapping = aes(x=price, fill=rating), position = "fill") #<<
+```
+
+We want rating=5 to be on the top because (I think) it is more intuitive to see higher value on top. We can flip the bar chart vertically by adjusting the `levels` when we declare `rating` variable into a factor.
+```{r}
+ggplot(data = yelp %>% 
+         st_set_geometry(NULL) %>% 
+         mutate(rating = round(rating,0) %>% 
+                  factor(levels = c(5,4,3,2,1), #<<
+                         ordered = TRUE))) +
+  geom_bar(mapping = aes(x=price, fill=rating), position = "fill")
+```
+
+
+Sometimes we want to see the exact figures on top of the bar chart. So, let's add the percentage within each level of price as labels.
+```{r}
+ggplot(data = yelp %>% 
+         st_set_geometry(NULL) %>% 
+         mutate(rating = round(rating,0) %>% factor(levels = c(5,4,3,2,1), ordered = TRUE))) +
+  geom_bar(mapping = aes(x=price, fill=rating), position = "fill") +
+  geom_text(data = . %>% 
+              # Grouping to calculate % by price and by rating 
+              group_by(price, rating) %>% #<<
+              # Count rows
+              tally() %>%                 #<<
+              # Convert to p
+              mutate(p = n / sum(n)) %>%  #<<
+              # Re-order to match the order in bar chart
+              arrange(desc(rating)),      #<<
+            aes(x = price, y = p, label = str_c(round(p,3)*100,"%")), color = "white",
+            position = position_stack(vjust=0.5)) +
+  ggdark::dark_theme_gray() # Dark theme because texts are not visible against white bg
+```
+
+You can flip it 90-degrees.
+```{r}
+ggplot(data = yelp %>% 
+         st_set_geometry(NULL) %>% 
+         mutate(rating = round(rating,0) %>% factor(levels = c(5,4,3,2,1), ordered = TRUE))) +
+  geom_bar(mapping = aes(x=price, fill=rating), position = "fill") +
+  geom_text(data = . %>% 
+              # Grouping to calculate % by price and by rating 
+              group_by(price, rating) %>% #<<
+              # Count rows
+              tally() %>%                 #<<
+              # Convert to p
+              mutate(p = n / sum(n)) %>%  #<<
+              # Re-order to match the order in bar chart
+              arrange(desc(rating)),      #<<
+            aes(x = price, y = p, label = str_c(round(p,3)*100,"%")), color = "white",
+            position = position_stack(vjust=0.5)) +
+  coord_flip() +
+  ggdark::dark_theme_gray() # Dark theme because texts are not visible against white bg
+```
+
+## Customization example (Optional)
+I saw this beautiful example by CÉDRIC SCHERER and wanted to show you a Yelp version of the code.
+```{r}
+# Code & ideas borrowed heavily from CÉDRIC SCHERER's personal website: 
+# https://www.cedricscherer.com/2021/07/05/a-quick-how-to-on-labelling-bar-graphs-in-ggplot2/
+
+max_city_n <- 10
+
+rest_by_city <- yelp %>% 
+  st_set_geometry(NULL) %>% 
+  group_by(location.city) %>% 
+  tally() %>% 
+  arrange(desc(n)) %>% 
+  slice(1:max_city_n) %>% 
+  mutate(location.city = factor(location.city, levels = .$location.city[seq(max_city_n,1)])) %>% 
+  # Format text label
+  mutate(pct = scales::percent(n / sum(n),accuracy = 0.1),
+         pct = case_when(row_number() == 1 ~ str_c(pct, " of all businesses"), TRUE ~ pct)) %>% 
+  # Define aesthetic properties - label location
+  mutate(nudge = case_when(row_number()==1 ~ 1.05, TRUE ~ -0.2)) %>% 
+  # Define aesthetic properties - color
+  mutate(color = case_when(row_number()==1 ~ "gray30", TRUE ~ "gray70")) %>% 
+  # Color palette
+  mutate(pal = c(rep('gray70', max_city_n-4), "coral2", "mediumpurple1", "mediumpurple1", "goldenrod1")) %>% 
+  # with() is required to be able to call variables with referencing to data frame
+  with(
+    # ggplot
+    ggplot(data = .) +
+      # Bars
+      geom_col(mapping = aes(y = location.city, x = n, fill = location.city)) +
+      # Text
+      geom_text(mapping = aes(y = location.city, x = n, label = pct), 
+                # Calling aesthetic properties defined above
+                hjust=nudge, color=color, 
+                # Font styling
+                fontface="bold.italic") + 
+      # Stretch x axis
+      scale_x_continuous(limits = c(NA, 2200)) +
+      # Custom palette
+      scale_fill_manual(values = pal, guide="none") +
+      # Labels
+      labs(x = "Count", y = "Cities", title = "Top 10 cities with most restaurants in Fulton & DeKalb Counties\n") +
+      # Dark theme
+      ggdark::dark_theme_classic()
+  )
+
+rest_by_city
+```
+
+
+
+# Histogram, boxplot, violin
+
+Histogram:
+```{r}
+ggplot(yelp) +
+  geom_histogram(mapping = aes(x = review_count),
+                 color = "gray50")
+```
+
+Boxplot:
+```{r}
+ggplot(yelp) + 
+  geom_boxplot(mapping = aes(x = price, y = review_count, fill=price), color = "black") +
+  scale_fill_manual(values = c("#999999", "#E69F00", "#56B4E9", "#AF3FF4")) +
+  theme_classic()
+```
+Violin plot:
+```{r}
+ggplot(census_yelp) + 
+  geom_violin(mapping = aes(x = county, y = review_count, fill=county), color = "black")
+```
+
+Something I recently found out..
+```{r}
+scat_plot <- ggplot(data = census_yelp) +
+  geom_point(mapping = aes(x=review_count, y=rating, color = county)) + 
+  labs(x = "Review Count in Yelp",
+       y = "Rating in Yelp",
+       color = "County in Census",
+       title = "Do better rated restaurants have more reviews?") +
+  scale_color_manual(values = c("green", "darkblue")) + #<<
+  theme_bw()
+
+plotly::ggplotly(scat_plot)
+```
+
+
+
+```{r}
+census_yelp %>% 
+  mutate(review_count_cut = cut(review_count, breaks = quantile(review_count, prob = c(0,0.5,0.75,1)), include.lowest=TRUE)) %>%
+  mutate(pct_white = race.white / race.tot) %>% 
+  ggplot(data = ., aes(x = hhincome, y = rating)) +
+  geom_point(mapping = aes(color = review_count_cut)) +
+  scale_color_manual(values = c("gray50", "orange", "red"), labels = c("0 - 50th", "50th- 75th", "75th - 100th")) +
+  labs(x = "Annual Household Income", y = "Yelp Rating", color = "Review County (discrete)", title = "Household Income vs. Rating") +
+  ggpubr::stat_cor(method = "pearson", label.x = 160000, label.y = 1.5) + 
+  ggdark::dark_theme_gray()
+```
+
+What other 
+
+```{r}
+census_yelp %>% 
+  mutate(review_count_cut = cut(review_count, breaks = quantile(review_count, prob = c(0,0.5,0.75,1)), include.lowest=TRUE)) %>%
+  mutate(pct_white = race.white / race.tot) %>% 
+  ggplot(data = ., aes(x = pct_white, y = rating)) +
+  geom_point(mapping = aes(color = review_count_cut)) +
+  scale_color_manual(values = c("gray50", "orange", "red"), labels = c("0 - 50th", "50th- 75th", "75th - 100th")) +
+  labs(x = "Proportion of White Residents", y = "Yelp Rating", color = "Review County (discrete)", title = "Proportion of White Residents vs. Rating") +
+  ggpubr::stat_cor(method = "pearson", label.x = 0.7, label.y = 1.5) + 
+  ggdark::dark_theme_gray()
+```
+
