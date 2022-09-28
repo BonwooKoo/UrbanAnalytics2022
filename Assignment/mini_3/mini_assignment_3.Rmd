@@ -39,7 +39,7 @@ For this assignment, imagine that you are a bicycle enthusiast and want to set u
 1. Write your report and R code in a R Markdown document. 
 2. Use the Knit button in R Studio to render it as a HTML document.
 3. Publish the rendered document to RPubs.
-4. <font color="pink">Submit the URL of the RPubs document through Canvas by **9/30/2022 Friday midnight (11:59 PM on Friday).** </font>
+4. <font color="pink">Submit the URL of the RPubs document through Canvas by **10/02/2022 Friday midnight (11:59 PM on Sunday).** </font>
 5. To submit, go to Canvas > Assignments > Mini assignment 3.
 6. Grades and feedback will be posted through Canvas.
 

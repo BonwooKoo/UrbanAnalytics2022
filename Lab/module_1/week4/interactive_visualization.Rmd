@@ -361,7 +361,7 @@ ggplot(data = census_yelp,
        color = "Annual Household Income",
        title = "Do better rated restaurants have more reviews?") +
   scale_color_gradient(low="darkblue", high="red") + #<<
-  theme_bw()
+  theme_light()
 ```
 
 # Other plots
