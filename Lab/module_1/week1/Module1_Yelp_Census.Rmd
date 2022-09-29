@@ -390,7 +390,6 @@ test <- business_search(api_key = Sys.getenv('yelp_api'), # like we did for cens
 lapply(test, head)
 ```
 
-
 What we received from just this one request is a lot of information. First of all, `test` object is a list. By running `names(test)`, we can see that it contains (1) businesses, (2) total, and (3) region. **Businesses** contains the main information about restaurants. **Total** tells you that there are `r test$total` restaurants in Yelp's database within the given radius from the centroid of Census Tract Bounding box. **Region** gives us back the center of the search -- the centroid of the first Census Tract bounding box.
 
 Looking at the businesses, it is a data frame (you can test is using `is.data.frame(test$businesses)`) with 50 rows and 16 columns (this data frame is actually a nested data frame with list-columns in which one data frame is containing another data frame(s), list(s), etc. We will deal with it later). This 50 is the artifact of setting `limit = 50` above in the previous code chuck. This means that we need to request `r ceiling(test$total/50)` times in total to collect data on all `r test$total` restaurants, because `r test$total`/50 = `r test$total/50`.
@@ -505,7 +504,7 @@ Now that we have a function that successfully downloaded Yelp data for the first
 yelp_all_list <- vector("list", nrow(ready_4_yelp))
 
 # Looping through all Census Tracts
-for (row in 1:nrow(ready_4_yelp)){
+for (row in 1:50){
   yelp_all_list[[row]] <- suppressMessages(get_yelp(ready_4_yelp[row,], "restaurants"))
   if (row %% 10 == 0){
     Sys.sleep(10)

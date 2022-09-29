@@ -1,0 +1,351 @@
+---
+title: "Visualization for data exploration & communication - 2"
+author: "Bonwoo Koo & Subhrajit Guhathakurta"
+date: '2022-09-27'
+output:
+  rmdformats::downcute:
+    downcute_theme: "chaos"
+---
+
+<style type="text/css">
+  body{
+  font-family: Arial;
+  }
+</style>
+
+```{r, message=FALSE, results='hide'}
+library(tidyverse)
+library(sf)
+library(tmap)
+library(leaflet)
+library(here)
+library(tidycensus)
+```
+
+
+```{r, results='hide', message=FALSE}
+# Let's prepare data
+yelp <- read_rds("https://github.com/BonwooKoo/UrbanAnalytics2022/blob/main/Lab/module_1/week4/yelp_in.rds?raw=true")
+# Census data
+census_api_key(Sys.getenv("census_api"))
+
+census_var <- c(hhincome = 'B19019_001',
+                race.tot = "B02001_001",
+                race.white = "B02001_002", 
+                race.black = 'B02001_003'
+                )
+
+census <- get_acs(geography = "tract", state = "GA", county = c("Fulton", "DeKalb"),
+                 output = "wide", geometry = TRUE, year = 2020,
+                 variables = census_var)
+  
+summarise_mean <- c(str_c(names(census_var), "E"), 
+                    "rating", "review_count")
+
+census_yelp <- census %>% 
+  separate(col = NAME, into=c("tract","county","state"), sep=', ') %>% 
+  # Spatial join
+  st_join(yelp %>% 
+            mutate(n = 1,
+                   price = nchar(price)) %>% 
+            st_transform(crs = st_crs(census))) %>% 
+  # Group_by
+  group_by(GEOID, county) %>% 
+  # Mean for all census variables, sum for n
+  summarise(across(
+    all_of(summarise_mean), mean), 
+    n = sum(n),
+    price = median(price)) %>% 
+  # Release grouping
+  ungroup() %>% 
+  # Drop 'E' from column names
+  rename_with(function(x) str_sub(x,1,nchar(x)-1), str_c(names(census_var), "E")) %>% # rename_with() renames with a function
+  # Replace NA in column n&review_count with 0
+  mutate(across(c(n, review_count), function(x) case_when(is.na(x) ~ 0, TRUE ~ x)))
+```
+
+# Other plots
+Bar chart is also very frequently used. Note that ggplot creates y-axis automatically by examining how many rows there are for each category of x. You can try `yelp %>% group_by(price) %>% tally()` to check the exact Y value for this plot.
+```{r}
+ggplot(data = yelp) +
+  geom_bar(mapping = aes(x=price)) 
+
+yelp %>% 
+  group_by(price) %>% 
+  tally()
+```
+
+We can also further break each price level by another categorical variable. We use rating to see the relative frequency of each rating for each price level. This is done by adding `fill=rating` in the mapping.
+```{r}
+ggplot(data = yelp %>% 
+         st_set_geometry(NULL) %>% 
+         mutate(rating = round(rating,0) %>% #<<
+                  factor(ordered = TRUE))) + #<<
+         # delete %>% factor(ordered = T) and see what happens
+  geom_bar(mapping = aes(x=price, fill=rating), position = "stack")
+```
+
+By changing `position="stack"` = `position="fill"`, we convert the Y-axis to the proportion within each level of price and fill it up to the top. This shows more clearly how different rating levels are distributed within each price level.
+```{r}
+ggplot(data = yelp %>% 
+         st_set_geometry(NULL) %>% 
+         mutate(rating = round(rating,0) %>% 
+                  factor(ordered = TRUE))) + #<<
+  geom_bar(mapping = aes(x=price, fill=rating), position = "fill") #<<
+```
+
+We want rating=5 to be on the top because (I think) it is more intuitive to see higher value on top. We can flip the bar chart vertically by adjusting the `levels` when we declare `rating` variable into a factor.
+```{r}
+ggplot(data = yelp %>% 
+         st_set_geometry(NULL) %>% 
+         mutate(rating = round(rating,0) %>% 
+                  factor(levels = c(5,4,3,2,1), #<<
+                         ordered = TRUE))) +
+  geom_bar(mapping = aes(x=price, fill=rating), position = "fill")
+```
+
+
+Sometimes we want to see the exact figures on top of the bar chart. So, let's add the percentage within each level of price as labels.
+```{r}
+ggplot(data = yelp %>% 
+         st_set_geometry(NULL) %>% 
+         mutate(rating = round(rating,0) %>% factor(levels = c(5,4,3,2,1), ordered = TRUE))) +
+  geom_bar(mapping = aes(x=price, fill=rating), position = "fill") +
+  geom_text(data = . %>% 
+              # Grouping to calculate % by price and by rating 
+              group_by(price, rating) %>% #<<
+              # Count rows
+              tally() %>%                 #<<
+              # Convert to p
+              mutate(p = n / sum(n)) %>%  #<<
+              # Re-order to match the order in bar chart
+              arrange(desc(rating)),      #<<
+            aes(x = price, y = p, label = str_c(round(p,3)*100,"%")), color = "white",
+            position = position_stack(vjust=0.5)) +
+  ggdark::dark_theme_gray() # Dark theme because texts are not visible against white bg
+```
+
+You can flip it 90-degrees.
+```{r}
+ggplot(data = yelp %>% 
+         st_set_geometry(NULL) %>% 
+         mutate(rating = round(rating,0) %>% factor(levels = c(5,4,3,2,1), ordered = TRUE))) +
+  geom_bar(mapping = aes(x=price, fill=rating), position = "fill") +
+  geom_text(data = . %>% 
+              # Grouping to calculate % by price and by rating 
+              group_by(price, rating) %>% #<<
+              # Count rows
+              tally() %>%                 #<<
+              # Convert to p
+              mutate(p = n / sum(n)) %>%  #<<
+              # Re-order to match the order in bar chart
+              arrange(desc(rating)),      #<<
+            aes(x = price, y = p, label = str_c(round(p,3)*100,"%")), color = "white",
+            position = position_stack(vjust=0.5)) +
+  coord_flip() +
+  ggdark::dark_theme_gray() # Dark theme because texts are not visible against white bg
+```
+
+## Customization example (Optional)
+I saw this beautiful example by CÉDRIC SCHERER and wanted to show you a Yelp version of the code.
+```{r}
+# Code & ideas borrowed heavily from CÉDRIC SCHERER's personal website: 
+# https://www.cedricscherer.com/2021/07/05/a-quick-how-to-on-labelling-bar-graphs-in-ggplot2/
+
+max_city_n <- 10
+
+rest_by_city <- yelp %>% 
+  st_set_geometry(NULL) %>% 
+  group_by(location.city) %>% 
+  tally() %>% 
+  arrange(desc(n)) %>% 
+  slice(1:max_city_n) %>% 
+  mutate(location.city = factor(location.city, levels = .$location.city[seq(max_city_n,1)])) %>% 
+  # Format text label
+  mutate(pct = scales::percent(n / sum(n),accuracy = 0.1),
+         pct = case_when(row_number() == 1 ~ str_c(pct, " of all businesses"), TRUE ~ pct)) %>% 
+  # Define aesthetic properties - label location
+  mutate(nudge = case_when(row_number()==1 ~ 1.05, TRUE ~ -0.2)) %>% 
+  # Define aesthetic properties - color
+  mutate(color = case_when(row_number()==1 ~ "gray30", TRUE ~ "gray70")) %>% 
+  # Color palette
+  mutate(pal = c(rep('gray70', max_city_n-4), "coral2", "mediumpurple1", "mediumpurple1", "goldenrod1")) %>% 
+  # with() is required to be able to call variables with referencing to data frame
+  with(
+    # ggplot
+    ggplot(data = .) +
+      # Bars
+      geom_col(mapping = aes(y = location.city, x = n, fill = location.city)) +
+      # Text
+      geom_text(mapping = aes(y = location.city, x = n, label = pct), 
+                # Calling aesthetic properties defined above
+                hjust=nudge, color=color, 
+                # Font styling
+                fontface="bold.italic") + 
+      # Stretch x axis
+      scale_x_continuous(limits = c(NA, 2200)) +
+      # Custom palette
+      scale_fill_manual(values = pal, guide="none") +
+      # Labels
+      labs(x = "Count", y = "Cities", title = "Top 10 cities with most restaurants in Fulton & DeKalb Counties\n") +
+      # Dark theme
+      ggdark::dark_theme_classic()
+  )
+
+rest_by_city
+```
+
+
+
+
+# Histogram, boxplot, violin
+
+Histogram displays the distribution of a variable. It first assigns observations (i.e., rows) of the given variable (i.e., a column) into bins (0~99, 100~199, 200~299, etc.) and count the number of observations that fall into each bin. So, the taller a bar is, more observations fell into that bin. For example, in the histogram below, the first bar that touches 0 is much taller than other bars because most of the observations had zero or near-zero reviews. 
+
+```{r}
+ggplot(census_yelp) +
+  geom_histogram(mapping = aes(x = review_count))
+```
+
+```{r}
+ggplot(census_yelp) +
+  geom_histogram(mapping = aes(x = review_count), 
+                 bins = 60) #<< increase the number of bins from 30 to 50. You get more bars.
+```
+
+
+```{r}
+ggplot(census_yelp) +
+  geom_histogram(mapping = aes(x = review_count), 
+                 bins = 60,
+                 color="black")  #<< color of the outline
+```
+
+```{r}
+ggplot(data = census_yelp) +
+  geom_histogram(mapping = aes(x = review_count, fill=county), #<<
+                 bins = 60,
+                 color="black") +
+  scale_x_continuous(breaks=seq(0,1300, by=100))
+```
+
+
+```{r}
+ggplot(data = census_yelp) +
+  geom_histogram(mapping = aes(x = review_count, fill=county), 
+                 bins = 60,
+                 color="black",
+                 position = "identity", #<<
+                 alpha = 0.2) #<<
+  scale_x_continuous(breaks=seq(0,1300, by=100))
+```
+
+```{r}
+ggplot(data = census_yelp) +
+  geom_histogram(mapping = aes(x = review_count, fill=county), 
+                 bins = 60,
+                 color="black",
+                 position = "dodge") + #<< #<<
+  scale_x_continuous(breaks=seq(0,1300, by=100))
+```
+
+```{r}
+ggplot(data = census_yelp) +
+  geom_histogram(mapping = aes(x = review_count, fill=county), 
+                 bins = 60,
+                 color="black",
+                 position = "dodge") + #<< #<<
+  scale_x_continuous(breaks=seq(0,1300, by=100)) + 
+  scale_fill_manual(values=c("#999999", "#E69F00"))
+```
+
+Although the histogram above allows us to effectively see the distribution, comparing **multiple distributions** are often easier with a boxplot. You need to understand what each component of a boxplot means to read it properly. Plotly::ggplotly() provides a good interactive visualization about how to read the plot. Note that upper fence = Q3 + (1.5\*IQR), where IQR is interquartile range (Q3-Q1). The lower fence is Q1 - (1.5\*IQR).
+
+```{r}
+bxplot <- ggplot(data = yelp) +
+  geom_boxplot(aes(x=price, y=review_count),
+               color="black",fill="white")
+
+plotly::ggplotly(bxplot)
+```
+
+
+```{r}
+a <- ggplot(data = yelp) +
+  geom_boxplot(aes(x=price, y=review_count), 
+               fill = "white", color = "black")
+
+b <- ggplot(data = yelp) +
+  geom_boxplot(aes(x=review_count, y=price), 
+               fill="white", color="black") 
+
+gridExtra::grid.arrange(a, b)
+```
+
+Of course, you can use `scale_fill_manual()` to use your custom color. To do this, however, you need to have specified `fill` inside `aes()`. If it is not specified at all or is specified outside of `aes()`, custom color won't work.
+```{r}
+ggplot(data = yelp %>%
+         st_join(census %>% st_transform(crs = st_crs(yelp))) %>% 
+         separate(col = NAME, into=c("tract","county","state"),sep=", ") %>% 
+         drop_na(county)
+       ) +
+  geom_boxplot(aes(x = price, y=review_count, fill = price), 
+               color = "black") +
+  facet_wrap(~county) +
+  scale_fill_brewer(palette = "Blues")
+```
+
+
+
+Violin plot is yet another plot for visualizing the distribution of variables. While a boxplot allows you to see where the upper/lower fences are and where the median and quartiles are, a violin plot allows you to see the concentration of observations at a certain bins (or range if you will) of values.
+
+```{r}
+vplot <- ggplot(data = yelp %>%
+         st_join(census %>% st_transform(crs = st_crs(yelp))) %>% 
+         separate(col = NAME, into=c("tract","county","state"),sep=", ") %>% 
+         drop_na(county)
+       ) +
+  geom_violin(aes(x = price, y=review_count, fill = price), 
+               color = "black") +
+  facet_wrap(~county) +
+  scale_fill_brewer(palette = "Blues")
+
+plotly::ggplotly(vplot)
+```
+
+
+# So, do restaurants in wealthy neighborhoods get higher Yelp ratings?
+As we've seen so far, data visualization is an indispensable tool for urban analysts. If we have some time left in the class, think about socioeconomic/demographic variables in American Community Survey that may associate with review count, rating, and/or price of Yelp data. Then, get the data, plot them, and draw insights from them.
+
+
+```{r}
+census_yelp %>% 
+  mutate(review_count_cut = cut(review_count, breaks = quantile(review_count, prob = c(0,0.5,0.75,1)), include.lowest=TRUE)) %>%
+  mutate(pct_white = race.white / race.tot) %>% 
+  ggplot(data = ., aes(x = hhincome, y = rating)) +
+  geom_point(mapping = aes(color = review_count_cut)) +
+  scale_color_manual(values = c("gray50", "orange", "red"), labels = c("0 - 50th", "50th- 75th", "75th - 100th")) +
+  labs(x = "Annual Household Income", y = "Yelp Rating", color = "Review County (discrete)", title = "Household Income vs. Rating") +
+  ggdark::dark_theme_gray() +
+  
+  # ------------------------------------------------------------------
+  # This line of code adds the correlation analysis result to the plot
+  ggpubr::stat_cor(method = "pearson", label.x = 160000, label.y = 1.5)
+```
+
+
+```{r}
+census_yelp %>% 
+  mutate(review_count_cut = cut(review_count, breaks = quantile(review_count, prob = c(0,0.5,0.75,1)), include.lowest=TRUE)) %>%
+  mutate(pct_white = race.white / race.tot) %>% 
+  ggplot(data = ., aes(x = pct_white, y = rating)) +
+  geom_point(mapping = aes(color = review_count_cut)) +
+  scale_color_manual(values = c("gray50", "orange", "red"), labels = c("0 - 50th", "50th- 75th", "75th - 100th")) +
+  labs(x = "Proportion of White Residents", y = "Yelp Rating", color = "Review County (discrete)", title = "Proportion of White Residents vs. Rating") +
+  ggdark::dark_theme_gray() + 
+  
+  # ------------------------------------------------------------------
+  # This line of code adds the correlation analysis result to the plot
+  ggpubr::stat_cor(method = "pearson", label.x = 0.7, label.y = 1.5) 
+```
+
