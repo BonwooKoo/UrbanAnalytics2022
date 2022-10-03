@@ -185,7 +185,6 @@ The plan is:
 
 Because Step 1 will be done automatically in a for-loop, let's perform step 2 ~ 3 first. **st_centroid()** in sf package gives you the centroid of any sf geometry. For `radius`, we define a function that calculates the `radius` value.
 
-> **Geometric measurements** <br> The sf package has st_area, st_length, and st_distance to measure geometric measures. These functions output measurements in the same unit as the input sf object. If the input has geographic coordinate system (e.g., WGS 84), st_distance will give you distance measured in degree. If you transform it to a projected coordinate system that uses meters, st_distance will return distance in meters. <br><br> There are numerous coordinate reference systems (CRS). EPSG code is a four- or five-digit codes that uniquely identifies different CRS. <br><br>You might want to memorize 4326 and 26967 for this class. 4326 is geographic coordinate system in degree that GPS and Google Earth uses (World Geodetic System 1984). 26967 is North American Datum 1983 for Georgia West in meters.
 
 
 ### Step 2 + 3
@@ -504,7 +503,7 @@ Now that we have a function that successfully downloaded Yelp data for the first
 yelp_all_list <- vector("list", nrow(ready_4_yelp))
 
 # Looping through all Census Tracts
-for (row in 1:50){
+for (row in 1:nrow(ready_4_yelp)){
   yelp_all_list[[row]] <- suppressMessages(get_yelp(ready_4_yelp[row,], "restaurants"))
   if (row %% 10 == 0){
     Sys.sleep(10)
@@ -518,24 +517,6 @@ yelp_all <- yelp_all_list %>% bind_rows() %>% as_tibble()
 # print
 yelp_all %>% print(width=1000)
 ```
-
-```{r eval=F, include=F}
-# Error-catching function
-get_yelp_poss <- purrr::possibly(.f = get_yelp, otherwise = NULL)
-
-# Looping through all Census Tracts
-yelp_all_list <- map(1:nrow(ready_4_yelp), ~{ get_yelp_poss(ready_4_yelp[.x,], "restaurants"); Sys.sleep(5) } )
-
-# Collapsing the list into a data.frame
-yelp_all <- yelp_all_list %>% bind_rows() %>% as_tibble()
-
-# Saving the downloaded data
-yelp_all %>% write_rds(here("Lab", "module_1", "week1", "yelp_all_restaurants.rds"))
-
-# print
-yelp_all %>% print(width=1000)
-```
-
 
 # Glimpse
 We have yelp information on restaurant in data frame format. We have 16 columns. We will take a closer look at them next week. For now, let's just map them.

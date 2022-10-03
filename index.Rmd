@@ -8,6 +8,12 @@ output:
     code_folding: show
 ---
 
+<style type="text/css">
+  body{
+  font-family: Arial;
+  }
+</style>
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(gt)
@@ -47,6 +53,8 @@ After successfully completing this course, students will:
 
 ```{r include=F}
 total_week = 17
+guha <- c(1,5,13,14) %>% as.character()
+koo <- c(2,3,4,6,7,8,9,10,11,12) %>% as.character()
 
 weeks <- tibble(
   Module = c(
@@ -60,7 +68,9 @@ weeks <- tibble(
     rep("Reading weeks", 2)
   ),
   Week = as.character(rep(1:total_week))
-  )
+  ) %>% 
+  mutate(Week = case_when(Week %in% guha ~ paste0(Week, "<br> <font size=3 color=gray>Guhathakurta</font>"),
+                          Week %in% koo ~ paste0(Week, "<br> <font size=3 color=gray>Koo</font>")))
 ```
 
 ```{r, echo=FALSE}
@@ -128,7 +138,7 @@ reading_col <- c(
   "[1](https://www.researchgate.net/publication/215990669_Tidy_data), [2](https://r4ds.had.co.nz/tidy-data.html), [3]()",
   "[1](https://r4ds.had.co.nz/model-intro.html), [2](https://r4ds.had.co.nz/model-basics.html), [3](https://r4ds.had.co.nz/model-building.html), [4](https://r4ds.had.co.nz/many-models.html)",# 5
   "[1](https://r4ds.had.co.nz/data-visualisation.html), [2](https://r4ds.had.co.nz/graphics-for-communication.html)",# 6
-  "TBD",# 7
+  "",# 7
   "",# 8
   "[1](https://www.sciencedirect.com/science/article/pii/S0264275119308443?casa_token=ttj9fEoFey4AAAAA:nR_Wf8tJHv8vfLv93cIlRHlsIqGdUMWByA3AyXcP_zWEYwJAPGKaxZ9TsdwiZlfX1-L8Z0Y7ag), [2](https://www.researchgate.net/profile/Bon-Woo-Koo/publication/351636921_How_are_Neighborhood_and_Street-Level_Walkability_Factors_Associated_with_Walking_Behaviors_A_Big_Data_Approach_Using_Street_View_Images/links/618548fba767a03c14f92f6f/How-are-Neighborhood-and-Street-Level-Walkability-Factors-Associated-with-Walking-Behaviors-A-Big-Data-Approach-Using-Street-View-Images.pdf), [3](https://link.springer.com/content/pdf/10.1007/978-3-030-84459-2_7.pdf)",# 9
   "",# 10
@@ -191,8 +201,6 @@ weeks %>%
 
 *NOTE 3: For readings, TU = readings for Tuesday & TH = readings for Thursday*
 
-<font size="3px" color="grey">Modification history</font><br>
-<font size="3px" color="grey"> &bull; 8/25/2022: Moved Mini-presentation 1 from week 3 to 4</font>
 
 
 # How to succeed in this class

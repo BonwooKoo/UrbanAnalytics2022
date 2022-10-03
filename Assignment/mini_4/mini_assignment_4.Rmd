@@ -15,9 +15,6 @@ output:
 </style>
 
 # Instructions
-In this mini-assignment, you will use Yelp + Census data to conduct the following tasks. This data is for Fulton and DeKalb counties. The category used for the API request was "restaurants". This data is not cleaned in anyway. 
-
-<br>
 **Point of Interests**
 
 Point-of-interests (POI) are important for urban residents in various ways. POIs can add economic and social vitality to the neighborhood in which they locate. POIs that are close to residential locations can functions as destinations that people can potentially walk to, creating more walkable environment; in fact, Walk Score of a location is calculated based on how many/diverse POIs are found within the walkable distance from that location. **These benefits are likely to be greater if POIs are attractive and popular**. 
@@ -50,9 +47,9 @@ However, attractive POIs may not be distributed evenly across different neighbor
         (5) average price (avg_price)
 
 2. Using this data, re-create the following plots as closely as possible. Make sure you provide the code you wrote to generate the plot. When you re-create them, you DO NOT need to make plots aesthetics similar. For example, 
-    * When custom color is used, the choice of colors do not matter as long as you use appropriately use some custom colors of your choice to display the designated data; 
+    * When custom colors are used, the choice of colors does not matter as long as you appropriately use some custom colors of your choice to display the designated data; 
     * When opacity is used, the actual level of opacity doesn't matter as long as a reasonable level of opacity is applied. 
-    * Other minor aesthetics (e.g., aspect ratio of plots) do not matter. If you want to modify them for aesthetics, feel free to do so.
+    * Other minor aesthetics, such as the aspect ratio and theme of the plots, do not matter. If you want to modify them for aesthetics, feel free to do so.
     
 3. For each of the plot, write a few sentences to describe your findings.
 
