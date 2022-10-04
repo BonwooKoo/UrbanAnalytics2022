@@ -1,0 +1,673 @@
+---
+title: "GTFS, OSM, and Equity - 1"
+author: "Bon Woo Koo & Subhrajit Guhathakurta"
+date: '2022-07-14'
+output:
+  rmdformats::downcute:
+    downcute_theme: "chaos"
+    code_folding: show
+---
+
+# Environment Setting
+```{r message=FALSE, warning=FALSE}
+# Import required packages
+library(tidytransit)
+library(tidyverse)
+library(tmap)
+library(ggplot2)
+library(here)
+library(units)
+library(sf)
+library(leaflet)
+library(tidycensus)
+library(plotly)
+library(tidygraph)
+library(leafsync)
+library(here)
+```
+
+<style type="text/css">
+  body{
+  font-family: Arial;
+  }
+</style>
+
+# What is the General Transit Feed Specification (GTFS)?
+
+| The GTFS is a common format for public transit schedules and associated geographic information provided by transit agencies.
+
+Before GTFS, there wasn't (to the best of my knowledge, at least) a standardized format for transit timetables other associated information. Users of transit data across multiple transit agencies had to deal with different data formats. With GTFS, feeds from different agencies became standardized (although not perfect), making applications of the data easy.
+
+Useful Links:
+
+* [tidytransit (i.e., R package) Vignettes](https://cran.r-project.org/web/packages/tidytransit/index.html)
+* [Google GTFS](https://developers.google.com/transit/gtfs/reference)
+* [Open Mobility Data - Archive of GTFS feeds from around the world](https://transitfeeds.com/)
+* [transitland - Another archive of GTFS & other feeds](https://www.transit.land/)
+
+
+Let's download some GTFS feed provided by Metropolitan Atlanta Rapid Transit Authority (MARTA). 
+
+```{r, results='hide'}
+# This GTFS file is downloaded from
+# https://opendata.atlantaregional.com/datasets/marta-gtfs-latest-feed/about
+atl <- read_gtfs(here("Lab", "module_2", 'MARTA_GTFS_Latest_Feed.zip'))
+```
+
+
+<br>
+
+
+# Understand GTFS
+GTFS consists of multiple tables and comes in a zip file as a single package. Transit is a complex system that contains multiple components (e.g., routes, stops, service schedules) working together. The table below shows a brief description of what each data.frame contains. This table is taken from [Google](https://developers.google.com/transit/gtfs/reference).
+
+**Table 1. Description of tables in GTFS feed**
+
+Table name                Defines
+----------------------    ---------------------    
+agency                    (Required) Transit agencies with service represented in this dataset.                     
+stops                     (Required) Stops where vehicles pick up or drop off riders. Also defines stations and station entrances.
+routes                    (Required) Transit routes. A route is a group of trips that are displayed to riders as a single service.
+trips                     (Required) Trips for each route. A trip is a sequence of two or more stops that occur during a specific time period.
+stop_times                (Required) Times that a vehicle arrives at and departs from stops for each trip.
+calendar                  Service dates specified using a weekly schedule with start and end dates. This file is required unless all dates of service are defined in calendar_dates.txt.
+calendar_dates            Exceptions for the services defined in the calendar.txt. If calendar.txt is omitted, then calendar_dates.txt is required and must contain all dates of service.
+fare_attributes           Fare information for a transit agency's routes.
+fare_rules                Rules to apply fares for itineraries.
+shapes                    Rules for mapping vehicle travel paths, sometimes referred to as route alignments.
+frequencies               Headway (time between trips) for headway-based service or a compressed representation of fixed-schedule service.
+transfer                  Rules for making connections at transfer points between routes.
+pathways                  Pathways linking together locations within stations.
+levels                    Levels within stations.
+feed_into                 Dataset metadata, including publisher, version, and expiration information.
+translations              Translated information of a transit agency.
+attributions              Specifies the attributions that are applied to the dataset.
+----------------------    ---------------------    
+
+These tables are *relational table* that are connected through a system of join keys. The schematic below shows which tables are linked to which tables, through which join keys. Understanding this structure is essential in using GTFS.
+
+![](GTFS_relational_structure.png)
+
+Figure 1. GTFS relational table structure
+IMAGE SOURCE: http://tidytransit.r-transit.org/articles/introduction.html
+
+When joining tables using join keys, `tidyverse` offers a set of functions, including left_join(), right_join(), inner_join(), full_join(). 
+
+Consider the table below. While the number of rows are the same for df.x and df.y, only three names (i.e., Andrew, Olivia, and Emily) are on both tables. `full_join(x, y)`	returns all rows and all columns from both x and y. Where there are not matching values, returns NA for the one missing. `left_join(x, y)`	returns all rows from x, and all columns from x and y. Rows in x with no match in y will have NA values in the new columns. If there are multiple matches between x and y, all combinations of the matches are returned.
+`right_join(x, y)`	return all rows from y, and all columns from x and y. Rows in y with no match in x will have NA values in the new columns. If there are multiple matches between x and y, all combinations of the matches are returned. `inner_join(x, y)` returns all rows from x where there are matching values in y, and all columns from x and y.
+
+
+![](table_join_1.png)
+
+![](table_join_2.png)
+
+
+
+
+## What's inside `atl` object
+
+Now, let's take a look the `atl` object in which we read the GTFA feed from MARTA. This object is a list. In it, `names(atl)` shows that there are `r length(atl)` data.frames. Notice that there are many tables displayed in Table 1 above, but only some of them are in `atl`. Notice in Table 1 that only some are required;  others are optional. 
+
+```{r}
+typeof(atl)
+names(atl)
+print(head(atl))
+```
+
+<br>
+
+
+# Converting GTFS Into Geospatial Format
+
+The function `gtfs_as_sf` converts **shapes** and **stops** tables in GTFS data into sf objects. In the print out below, you will notice that all other tables have not changed, but 'shapes' and 'stops' tables are now **Simple feature collection** and have added column 'geometry' that contains a series of coordinates. Under the hood, `gtfs_as_sf` is no special function; this function uses `st_as_sf()` to do the conversion, the same way we have been doing so far in this class.
+
+Even though we have 9 tables but only 2 of them are in sf format, that's fine. We can still figure out other tables' spatial properties because we can **join** the non-sf tables to **shapes** and/or **stops**. We can join other tables to 'shapes' and 'stops' table using **join keys**. 
+
+
+```{r}
+# Converting GTFS data into sf objects
+atlsf <- tidytransit::gtfs_as_sf(atl, crs = 4326)
+atlsf$stops %>% head() # Notice that this is POINT
+atlsf$shapes %>% head() # This is LINESTRING
+```
+
+Let's take a look at their maps of their routes and stops, respectively. These maps (route shapes on the left; stop locations on the right) show the coverage of MARTA. 
+
+Notice that I am using **leaflet()** for mapping instead of **tmap()**. Of course, you can make the same map with tmap package as well; I am using **leaflet()** in this module just to expose you to different packages. As you follow along this R Mark Down, feel free to make these maps in whichever package you prefer to use. **Through this course, you can use whatever package you like to use for interactive mapping and visualization; it won't affect your grade in any way.**
+
+```{r}
+# Visualize
+a <- leaflet(atlsf$shapes) %>% # add data to display
+  addProviderTiles(providers$CartoDB.DarkMatter) %>% # add BaseMap
+  addPolylines(weight = 1, color = "red") %>% # add lines
+  addControl(htmltools::HTML("Route shapes")) # add Title 
+
+b <- leaflet(atlsf$stops) %>% # add data to display
+  addProviderTiles(providers$CartoDB.DarkMatter) %>% # add BaseMap
+  addCircles(weight = 3, color = "red") %>% # add circles
+  addControl(htmltools::HTML("Stop shapes")) # add Title 
+
+leafsync::sync(a,b)
+```
+
+&nbsp;
+&nbsp;
+&nbsp;
+
+# Calculating Transit Service Quality
+There are, of course, many different analyses that can be done using GTFS. Among nearly infinite numbers of analyses that can be done, this class will look at the equity aspect of transit services. There are numerous studies on transit service equity that uses much more sophisticated methods (e.g., [this paper](https://www.sciencedirect.com/science/article/pii/S0966692317303794?casa_token=u5ystJxKU8sAAAAA:EW3L6ZODX0eq0yVXYl-FWcphYRzcbyD71KEVu9uRWL8PxaL79ebuNKS12KDB_tyfeRrtcbhWuQ)). This course will present more simple (but intuitive) methods to evaluate this issue.
+
+&nbsp;
+
+
+One of the simplest ways to calculate transit service quality is to look at the areas within each neighborhood that is within a certain distance from transit stops or routes. 
+
+In this section, we will 
+
+1. Extract transit lines (and stops) for rail and bus transit,
+2. Draw buffers around them,
+3. Intersect the buffer with Census Tracts, 
+4. Calculate the proportion of each Census Tract that are within the buffers.
+
+## Step 1: Extracting lines
+GTFS from MARTA contains information about various transit types, including rails and buses. The `routes` table in `atl` has a column named `route_type`, which contains integer values denoting types of transit service (e.g., bus vs. rail transit). To see what each integer means, you will need to look at the link to the Reference provided above (or see below for a screen capture from the Reference). 
+
+![Reference from Google](GTFS_route_types.JPG)
+
+`routes` table contains route_types, which is needed for separating rail transit from bus transit.`shapes` table contains the geographic information needed for geo-operations such as buffer, intersections, etc. Because `routes` and `shapes` table do not contain a common key, they need to be joined through `trips` table as intermediate table. 
+
+Notice that there can be multiple trips that runs on the same routes. If we join `trips` and `routes`, one rows in `routes` table will be matched with multiple rows in `trips` table and create duplicated. 
+
+```{r}
+# Join routes table with trips table with shapes table
+trip_routes <- atl$trips %>% 
+  full_join(atl$routes, by = "route_id")
+
+trip_shape <- atlsf$shapes %>% 
+  full_join(atl$trips %>% 
+              select(shape_id, trip_id), 
+            by = "shape_id")
+
+# Merging the two into one and then taking only one row for each
+# unique combination of route_id and shape_id.
+route_trip_shape <- trip_shape %>% 
+  select(-shape_id) %>% 
+  full_join(trip_routes, by = c("trip_id")) %>% 
+  group_by(shape_id, route_id) %>% 
+  slice(1)
+
+# Route type is not really intuitive - let's fix that
+route.shape <- route_trip_shape %>% 
+  mutate(route_type = case_when(
+    route_type == "0" ~ 'Tram, Streetcar',
+    route_type == "1" ~ 'Subway, Metro',
+    route_type == "2" ~ 'Rail',
+    route_type == "3" ~ 'Bus'
+  ))
+```
+
+```{r}
+pal <- leaflet::colorFactor(c("red", "orange", "pink"), domain = route.shape$route_type)
+
+route.shape %>% 
+  leaflet::leaflet(data = .) %>% 
+    leaflet::addProviderTiles(providers$CartoDB.DarkMatter) %>% 
+    leaflet::addPolylines(color = ~pal(route_type), 
+                 weight = 3,
+                 opacity = 0.9,
+                 popup = paste0("Route type: ", route.shape$route_type))
+  
+```
+
+## Step 2: Drawing buffers
+We can use **st_buffer()** function from sf package to draw buffers from the transit routes. To be more precise, we would need to draw buffers around each stop, as people cannot just hop on bus or train between stations. For this class, however, we will simplify the process by drawing buffers around the line geometry given the fact that bus stations are so closely located to one another and their 400 meter buffer (i.e., commonly used distance for walking) would be almost the same as buffer around the line.
+
+Drawing buffers is a simple process, but there is a caveat to it which is rooted in the recent change in sf package. Until Version 1.0, the sf package used 'equirectangular projection' using GEOS library for many operations that involve, for example, `st_intersects`, `st_intersection`, `st_union`, `st_nearest_point`, `st_join`, etc. What this means is that sf package carried out these operations assuming that the Earth is a flat surface. It did so even when the given data is in geographical coordinates. 
+
+From Version 1.0, sf package started using S2 spherical geometry for spatial operations, based on S2 geometry library written by Google. For our purposes, the difference introduced in Version 1.0. is unlikely to have huge impacts. However, we may see some glitches here and there. For example, in the code chunks below I transform `route.shape` from crs = 4326 to crs = 26967. If we use crs = 4326, the buffer polygons will have rough outlines with zig-zag patterns. You can try it yourself. For more information on what all of these means, you can read [this post](https://r-spatial.org/r/2020/06/17/s2.html#sf-10-goodbye-flat-earth-welcome-s2-spherical-geometry).
+
+```{r}
+# If we do not convert CRS to a projected one, the buffer may generate a ragged boundaries. 
+# https://r-spatial.github.io/sf/articles/sf7.html#buffers-1
+# https://r-spatial.org/r/2020/06/17/s2.html#sf-10-goodbye-flat-earth-welcome-s2-spherical-geometry
+
+# Buffering LINESTRING ---------------------------------------
+sf::sf_use_s2(TRUE) # This is default to TRUE when we load SF package. So this code is not really needed. I added it here just to make it more explicit.
+MARTA_buffer <- route.shape %>% 
+  sf::st_transform(crs = 26967) %>% 
+  sf::st_buffer(dist = units::set_units(400, "m")) 
+
+# To union the buffer polygons by route_type
+MARTA_buffer_group <- MARTA_buffer %>% 
+  group_by(route_type) %>% 
+  summarise()
+
+# Buffering POINTS ---------------------------------------
+# Just to show that lines & points overlap well
+MARTA_stop_buffer <- atlsf$stops %>% 
+  st_transform(crs = 26967) %>% 
+  st_buffer(dist = units::set_units(400, "m")) %>% 
+  st_union()
+```
+
+
+```{r}
+pal <- colorFactor(palette = c("red", "yellow", "blue"), domain = MARTA_buffer_group$route_type)
+
+leaflet() %>% 
+  addProviderTiles(providers$CartoDB.DarkMatter) %>% 
+  
+  addPolygons(data = MARTA_buffer_group %>% st_transform(crs = 4326), col = ~pal(route_type),
+              popup = MARTA_buffer_group$route_type,
+              group = "Buffer from Line") %>%
+  
+  addPolygons(data = MARTA_stop_buffer %>% st_transform(crs = 4326),
+              weight = 0.5, 
+              color = "white",
+              group = "Buffer from Point") %>% 
+  addLayersControl(
+    overlayGroups = c("Buffer from Line", "Buffer from Point"),
+    options = layersControlOptions(collapsed = FALSE)
+  )
+```
+
+
+
+## Step 3: Intersect the buffer with Census Tracts, 
+We will use `tidycensus` package again to download Census data at Tract-level. 
+
+```{r message=FALSE, warning=FALSE, echo=FALSE, results='hide'}
+# Your API key
+tidycensus::census_api_key(Sys.getenv('census_api'))
+
+# Get American Community Survey
+acs2020 <- tidycensus::get_acs(geography = "tract",
+                   variables = c("hhinc" = 'B19013_001',
+                                 "r_tot" = "B02001_001",
+                                 "r_wh" = "B02001_002",
+                                 "r_bl" = "B02001_003",
+                                 "tot_hh" = "B25044_001",
+                                 "own_novhc" = "B25044_003",
+                                 "rent_novhc" = "B25044_010"),
+                   year = 2020,
+                   output = "wide",
+                   state = "GA",
+                   county = c("Fulton", "DeKalb", "Clayton"),
+                   geometry = TRUE) 
+```
+
+And then, of course, we do some data cleaning. In the code, I use **st_area()** to calculate the area of the polygon. Note that I **unclass()** the output from **st_area()** because **st_area()** does not return a plain numeric value; the return is of 'units' class. This is to provide not only the area value in numeric but also the unit in which the area is measured in. While this is highly useful, having something other than plain numeric values may cause some complications later. So I *drop* the class 'unit' and convert it to plain numeric values.
+
+```{r, out.width="100%"}
+# Cleaning Census data
+acs2020c <- acs2020 %>% 
+  select(GEOID,
+         hhinc = hhincE,
+         r_tot = r_totE,
+         r_wh = r_whE,
+         r_bl = r_blE,
+         tot_hh = tot_hhE,
+         own_novhc = own_novhcE,
+         rent_novhc = rent_novhcE) %>% 
+  mutate(pct_wh = r_wh / r_tot,
+         pct_bl = r_bl / r_tot,
+         pct_novhc = (own_novhc + rent_novhc)/tot_hh) %>% 
+  # Calculate area of the Census Tract polygons
+  mutate(area = st_area(.) %>% unclass) %>% 
+  mutate(ln_pop_den = log((r_tot / (area/1000^2)) + 1)) %>% 
+  filter(!is.na(hhinc), !is.na(r_tot), !is.na(own_novhc))
+
+pal1 <- colorNumeric(palette = "YlOrRd", domain = acs2020c$hhinc)
+pal2 <- colorFactor("Spectral", domain = MARTA_buffer_group$route_type)
+
+# Mapping
+leaflet() %>% 
+  addProviderTiles(providers$CartoDB.DarkMatter) %>% 
+  addPolygons(group = "ACS",
+              data = acs2020c, 
+              color = "grey", 
+              fillColor = ~pal1(hhinc), 
+              fillOpacity = 0.5,
+              weight = 1, 
+              popup = leafpop::popupTable(round(st_drop_geometry(acs2020c[,c("hhinc", "pct_wh", "pct_bl")]),2))) %>% 
+  addPolygons(group = "MARTA",
+              data = MARTA_buffer_group %>% 
+                st_transform(crs = st_crs(acs2020c)), 
+              color = ~pal2(route_type),
+              weight = 1,
+              opacity = 0.9) %>% 
+  addLayersControl(
+    overlayGroups = c("ACS", "MARTA"),
+    options = layersControlOptions(collapsed = FALSE)
+  )
+```
+
+Then we merge the Census data and the buffers from the GTFS. This requires **st_intersection()**, not st_join(), because we want to 'cut' the Census polygons by the shape of GTFS buffers so that we will be able to calculate the area of the intersection. 
+
+**Notice that the output from st_intersection()** can be different from the input. While **st_join** returns the same geometry as the input data (although the same geometry can be duplicated), **st_intersection()** directly edits the geometry (see the image below). 
+
+```{r, echo=FALSE}
+knitr::include_graphics("http://postgis.net/workshops/postgis-intro/_images/intersection.jpg")
+```
+
+
+```{r}
+# Intersect buffer with tract 
+buffer_intersect_tract <- acs2020c %>% 
+  # Unify the CRS
+  st_transform(crs = st_crs(MARTA_buffer_group)) %>% 
+  # Intersection
+  st_intersection(MARTA_buffer_group) %>% 
+  # Extract bus routes only
+  filter(route_type == "Bus")
+
+# Visualize
+pal_buf <- colorFactor(palette = "Spectral", domain = buffer_intersect_tract$route_type)
+
+leaflet() %>% 
+  addProviderTiles(providers$CartoDB.DarkMatter) %>% 
+  addPolygons(data = acs2020c %>% st_transform(crs = 4326), fillOpacity = 0.2, color = "white", weight = 0.5, group = 'Census') %>% 
+  addPolygons(data = MARTA_buffer_group %>% st_transform(crs = 4326), fillOpacity = 0.2, color = "yellow", weight  = 0.5, group = 'GTFS') %>% 
+  addPolygons(data = buffer_intersect_tract %>% st_transform(crs = 4326), group = "Intersection",
+              fillColor = ~pal_buf(route_type), fillOpacity = 0.9, weight = 1, opacity = 0.3, color = "grey") %>%     # leaflet takes 4326
+  addLayersControl(overlayGroups = c("Census", "GTFS", "Intersection"), options = layersControlOptions(collapsed = FALSE))
+
+```
+
+## Step 4. Calculate the proportion of each Census Tract that are within the buffers.
+Finally, we need to calculate the proportion of each Census Tract that overlaps with the GTFS buffers. We will need to know the (1) total area of Census Tracts, which we calculated above and (2) the area of the intersected polygons. We will then divide the intersected polygons' area by the total area and put that into a column named `pct_served`.
+
+```{r}
+# Area of intersected area
+buffer_intersect_tract2 <- buffer_intersect_tract %>% 
+  mutate(subarea = unclass(st_area(.)),
+         pct_served = subarea/area) %>% 
+  # Back to WGS84
+  st_transform(crs = 4326)
+
+# Joining the intersected information back to the original Census Data.
+# This is needed because we may have lost a few polygons during intersection.
+buffer_by_tract <- acs2020c %>% 
+  # In left_join(A, B), B must be non-sf object.
+  left_join(buffer_intersect_tract2 %>% 
+              select(GEOID, pct_served) %>% 
+              st_set_geometry(NULL),
+            by = "GEOID") %>% 
+  # There are many NAs in the pct_served column because there are many Census Tracts
+  # that do not overlap with the GTFS buffer. They would have NA in pct_served column.
+  # This code converts the NAs into 0.
+  mutate(pct_served = case_when(is.na(pct_served) ~ 0,
+                                 TRUE ~ pct_served))
+
+# Map it!
+pal_serv <- colorNumeric(palette = "Spectral", domain = buffer_by_tract$pct_served, reverse = TRUE)
+
+leaflet() %>% 
+  addProviderTiles(providers$CartoDB.DarkMatter) %>% 
+  addPolygons(data = buffer_by_tract, 
+              fillColor = ~pal_serv(pct_served), fillOpacity = 0.9, 
+              color = "white", opacity = 0.2, 
+              weight = 1) %>% 
+  addLegend("bottomright",
+            pal = pal_serv,
+            values = buffer_by_tract$pct_served,
+            title = "% Area within 400m from transit line") 
+```
+
+# Get statistical insights
+Now that the data is ready, we can use various methods to examine whether transit service area is equitably distributed. We will use
+
+1. Drawing scatterplots
+2. Correlation Analysis
+3. Multiple regression analysis
+
+to evaluate the equity. Let's first draw scatterplots to visualize the relationship between % service area and various socioeconomic/demographic variables. These variables are by no means complete; feel free to test other variables that represent population characteristics that you are interested in.
+
+Here we will draw multiple scatterplots **automatically** by using **facet_wrap()** in ggplot2 package. To use this function, ggplot requires that the input data is in a long-form where one column shows the variable name and the other column shows the data value. Then, ggplot draws multiple scatterplots by grouping the rows by variable names. Also notice the labeller; we provide formatted titles for each variable name so that the plots get proper titles.
+
+Looking at the scatterplots below, some variables have clear relationships with % service area, such as annual household income, population density, and % household without vehicle. Other variables are not as clear. The visual inspection is very intuitive and powerful, but it is limited in telling us how strong the relationships are and how confident we can be that there exist these relationships.
+
+```{r}
+# Readable plot title  
+var_name <- c(
+  'hhinc'="Annual Household Income",
+  'pct_bl'="% Black population",
+  'pct_novhc'="% Household without vehicle",
+  'pct_wh'="% White population",
+  'r_tot'="Total population",
+  'ln_pop_den' = "(log) Population density"
+)
+
+var_name_labeller <-  as_labeller(var_name)
+
+buffer_by_tract %>% 
+  #filter(na_index) %>% 
+  pivot_longer(cols = c('hhinc', 'pct_wh', 'pct_bl', 'pct_novhc', "r_tot", "ln_pop_den"), names_to = "variable", values_to = "value") %>% 
+  ggplot(aes(x = pct_served, y = value)) +
+  facet_wrap(~variable, scales = "free_y", labeller = var_name_labeller) +
+  geom_point(alpha = 0.4) +
+  geom_smooth(method = "lm", se = FALSE, color="red") +
+  labs(x = "\n % Area with 400m beffer from transit line") +
+  theme_bw()
+```
+Correlation analysis can provide how strong the relationship between two variables is and how much confidence we can have about that knowledge. R has built-in function **cor.test()** that runs correlation analysis. It takes two vectors (i.e., variables) as input and outputs various statistics such as correlation coefficients, degrees of freedom, and t- and p-values.   
+
+Notice that the code below shows two different syntax to perform the same task. Feel free to pick up whichever syntax you feel more comfortable.
+
+```{r}
+## Correlation analysis for just two variables
+# Syntax 1: not using pipe
+cor.test(buffer_by_tract$pct_served, 
+         buffer_by_tract$hhinc)
+
+# Syntax 2: using pipe, useful when you want to do 
+# something first and then do correlation with the result
+buffer_by_tract %>%
+  with(cor.test(pct_served, hhinc)) # (you can use whichever syntax you prefer). 
+```
+
+
+When we have many variables to evaluate, the fact that **cor.test()** can examine only two variables at a time can be cumbersome. We can write a custom function to automate correlation analysis. Let's do one correlation analysis first, and then look at how we can automate it.
+
+<font color='pink'> If you do not understand map_cor() function below, that's okay as long as you can run and interpret cor.test() functions </font>
+
+
+```{r}
+## Correlation analysis for multiple variables
+# Define a vector with the variable names that you want to evaluate
+test_var <- c("hhinc", "pct_bl", "pct_wh", "pct_novhc", "r_tot", "ln_pop_den")
+
+# Custom function that runs correlation analysis
+# This function takes one vector as input (because the other vector is pct_served in our case)
+# and outputs a character string that summarizes correlation analysis results
+map_cor <- function(x){
+  cor.object <- cor.test(buffer_by_tract[['pct_served']], 
+                         buffer_by_tract[[x]])
+  df <- cor.object$parameter
+  r <- round(cor.object$estimate,3)
+  t <- round(cor.object$statistic,3)
+  p <- round(cor.object$p.value,3)
+  return(glue::glue("Between pct_served and {var_name[x]}: r({df})={r} (t={t}, p={p})"))
+}
+
+# Apply custom function to test_var
+map_chr(test_var, map_cor)
+
+```
+
+# Using stops + their frequency differences
+Using the geometry of bus routes may be a less accurate measure for transit service quality, because some stops have more frequent services than others. We can calculate how many Here, we are going to focus on the morning commute time (7AM to 10 AM) and count the number of departures at each stops. The tidytransit package provide convenient functions that makes this analysis a breeze.
+
+```{r}
+service_ids <- atl$calendar %>% pull(service_id)
+stop_freq <- get_stop_frequency(atl, start_time = 3600*7, end_time = 10*3600, service_ids = service_ids, by_route = T) 
+stop_freq_sf <- atlsf$stops %>% 
+  left_join(stop_freq, by="stop_id") %>% 
+  filter(!is.na(n_departures))
+
+freq_pal <- colorNumeric("Reds", stop_freq_sf$n_departures)
+
+leaflet() %>% 
+  addProviderTiles(providers$CartoDB.DarkMatter) %>% 
+  addCircles(data = stop_freq_sf,
+             fillColor = freq_pal(stop_freq_sf$n_departures),
+             fillOpacity = 0.8,
+             weight = 10,
+             stroke = FALSE,
+             popup = str_c(stop_freq_sf$stop_name, ": ", stop_freq_sf$n_departures)) %>% 
+  addLegend(position = "bottomright",
+            pal = freq_pal,
+            values = stop_freq_sf$n_departures,
+            title = "Count of Departures <br> between 7AM and 10AM")
+```
+
+
+
+
+## Merge frequency by stop information with ACS data
+
+We use spatial join to merge GTFS service frequency data to Census.
+
+```{r}
+stop_tract <- acs2020c %>% 
+  st_transform(crs = 4326) %>% 
+  st_join(stop_freq_sf) %>% 
+  group_by(GEOID) %>% 
+  summarise(avg_n_departures = mean(n_departures),
+            sum_n_departures = sum(n_departures),
+            hhinc = mean(hhinc),
+            r_tot = mean(r_tot),
+            pct_wh = mean(pct_wh),
+            pct_bl = mean(pct_bl),
+            pct_novhc = mean(pct_novhc),
+            r_tot = mean(r_tot),
+            ln_pop_den = mean(ln_pop_den))
+
+knitr::kable(head(stop_tract))
+```
+
+```{r}
+sum_n_depart <- colorQuantile(palette = "Reds", domain = stop_tract$sum_n_departures)
+
+sum_depart_map <- leaflet() %>% 
+  addProviderTiles(providers$CartoDB.DarkMatter) %>% 
+  addPolygons(data = stop_tract, 
+              fillColor = sum_n_depart(stop_tract$sum_n_departures),
+              fillOpacity = 0.8,
+              color = 'grey',
+              weight = 1, 
+              popup = paste0("ID: ", stop_tract$GEOID, ", Value: ", stop_tract$sum_n_departures)) %>% 
+  addLegend(position = "bottomright",
+            values = stop_tract$sum_n_departures,
+            pal = sum_n_depart)
+
+sum_depart_map
+
+message(str_c("there are ", sum(is.na(stop_tract$sum_n_departures)), " NAs in n_departures"))
+```
+
+
+```{r fig.align="center", echo = FALSE, out.width="100%", fig.height=10}
+# Is there any correlation between SES and service area?
+stop_tract_plot <- stop_tract %>% 
+  mutate(hhinc = log(hhinc),
+         pct_novhc = log(pct_novhc + 0.05),
+         n_departure_log = log(sum_n_departures + 1)) %>% 
+  pivot_longer(cols = c('hhinc', 'pct_wh', 'pct_bl', 'pct_novhc', "r_tot", "ln_pop_den"), 
+               names_to = "variable", values_to = "value") %>%
+  mutate(variable = factor(variable, labels = c('Household Income', "Population Density", "% Black", 
+                                      "% No car", "% White", "Total Population")))
+
+departure_count <- stop_tract_plot %>% 
+  ggplot(aes(x = n_departure_log, y = value)) +
+  geom_point(alpha = 0.2) +
+  geom_smooth(method = "lm") +
+  facet_wrap(~variable, scales = "free_y") +
+  labs(x = "Count of departures between 7AM and 10AM", title = "Departure Count VS. Socio-demographics") +
+  theme_bw() 
+```
+
+
+```{r}
+plotly::ggplotly(departure_count)
+```
+
+
+
+
+
+
+
+## Calculate travel times from one station to all other stations (Optional)
+The tidytransit package offers a very convenient function that calculates the shortest travel times from a stop to all other stops. Try `?tidytransit::travel_times` to see what this function does and what arguments it takes. Notice that only two out of nine arguments are required arguments, and the rest are optional. The required arguments are 'filtered_stop_times' and 'stop_name.' If you do not provide the optional arguments, the function will use the pre-populated values for the calculation.
+
+
+
+**But if you run the function right away, there will be an error.** The error is caused by the fact that there are stations that share names but are far from each other. There may be more than one stations in different parts of the city that share their names, which sometimes actually happen in real world. If duplicate names in our dataset is caused by these legitimate cases, the duplicate names should not be considered as errors. However, if in reality there are no such stations, the duplicate names would be actual flaws in your data. 
+
+The `travel_times()` function calculates travel time based on station names. This function is designed to throw an error if there are stops with the same name **regardless** of whether the duplicate names are legitimate reflection of the real world or flaws in the data. One exceptional case when duplicated names don't cause error is when the stations with duplicate names are within 300 meters from each other -- in this case, the function considers the two stations may actually be the same station and merges them. 
+
+For all other cases (duplicate names that are 200-meters apart), we need to modify the duplicate names so that the names are actually different. We do that through the following steps:
+
+1. For each unique station names in **stops** table, calculate how many duplicates there are and, if there are duplicates, calculate distances to the duplicate stops. `stop_group_distances()` function can do this.
+2. Get names of the stops that have duplicates far from each other. If stops with duplicate names are close (e.g., within 200 meters), they may actually be same stations.
+3. For all stops with duplicates > 200-meter distances, change their station names by appending (1), (2), ... (n) where n is the number of duplicates. For example, if there are two "MIDTOWN STATION"s, they will each be "MIDTOWN STATION (1)" and "MIDTOWN STATION (2)". 
+4. One of the requirements for `travel_times()` function is that `atl` object contains a **transfer** table, which is absent when freshly imported from the hard drive. This is NOT always the case -- the transfer table is an optional table in GTFS definition. Some entities include transfer table by default, some don't. MARTA is among those who don't include transfer table. We can use `gtfs_transfer_table()` function from gtfsrouter package to *create* this table and include it to the `atl` object.
+5. Finally, one of the two required arguments, 'filtered_stop_times', takes an output from a function called `tidytransit::filter_stop_times()`. This function takes two required arguments: (1) our `atl` object and (2) a date for which we'd like calculate travel time. You can also choose to specify (3) minimum departure time and (4) maximum arrival time.
+
+Finally, you are ready to calculate travel times!
+
+```{r message=FALSE}
+# Step 1:
+stop_dist <- stop_group_distances(atlsf$stops, by='stop_name') %>% 
+
+# Step 2:  
+  filter(dist_max > 200)
+
+# Step 3
+atl$stops <- atl$stops %>% 
+  group_by(stop_name) %>% 
+  mutate(stop_name = case_when(stop_name %in% stop_dist$stop_name ~ paste0(stop_name, " (", seq(1,n()), ")"),
+                               TRUE ~ stop_name)) 
+
+# Step 4
+atl$transfers <- gtfsrouter::gtfs_transfer_table(atl, 
+                                     d_limit = 200, 
+                                     min_transfer_time = 120)
+# Step 5
+am_stop_time <- filter_stop_times(gtfs_obj = atl, 
+                                  extract_date = "2021-08-14",
+                                  min_departure_time = 3600*7, # input unit is in second. So 3500*7 is 7AM
+                                  max_arrival_time = 3600*10)  # similarly, this is 10AM 
+
+# travel_times
+trvt <- travel_times(filtered_stop_times = am_stop_time,
+                     stop_name = "MIDTOWN STATION",
+                     return_coords = TRUE)
+``` 
+
+```{r}
+# ..and visualize the output
+trvt_pal <- colorQuantile(palette = "Reds", domain = trvt$travel_time)
+
+leaflet() %>% 
+  addProviderTiles(providers$CartoDB.DarkMatter) %>% 
+  addCircles(data = trvt %>% st_as_sf(coords = c("to_stop_lon", "to_stop_lat"), crs = 4326), # converting trvt into sf object on the fly.
+             fillColor = ~trvt_pal(travel_time), # Define color
+             stroke = F, # Turn off the outer border lines of circles
+             radius = 300, # Size of the circle
+             fillOpacity = 0.7, # Transparency
+             popup = paste0("Travel Time from <br> <strong> MIDTOWN: ", round(trvt$travel_time/60, 2), " minutes <strong>") %>% # Defines what's displayed on popup
+               lapply(htmltools::HTML))
+```
+
+
+On average, you can see that it takes `r round(mean(trvt$travel_time)/60,1)` minutes from the Midtown Station to other stations. On the map, you can see that it takes longer time to get to stops that are further away from the Midtown Station. 
+
+```{r}
+# Average time to get to other stations
+print(str_c("On average, it takes ", 
+            round(mean(trvt$travel_time)/60,1), 
+            " minutes to travel from the Midtown Station to all other stations."))
+```
+
