@@ -48,7 +48,6 @@ After successfully completing this course, students will:
 * Create a basic data visualization
 * Be critical about who is creating and using data
 
-
 # Course schedules
 
 ```{r include=F}
@@ -70,7 +69,8 @@ weeks <- tibble(
   Week = as.character(rep(1:total_week))
   ) %>% 
   mutate(Week = case_when(Week %in% guha ~ paste0(Week, "<br> <font size=3 color=gray>Guhathakurta</font>"),
-                          Week %in% koo ~ paste0(Week, "<br> <font size=3 color=gray>Koo</font>")))
+                          Week %in% koo ~ paste0(Week, "<br> <font size=3 color=gray>Koo</font>"),
+                          TRUE ~ Week))
 ```
 
 ```{r, echo=FALSE}
