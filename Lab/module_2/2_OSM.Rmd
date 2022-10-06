@@ -24,22 +24,27 @@ library(sfnetworks)
 library(tigris)
 library(tidygraph)
 library(plotly)
-
-wd <- file.path(Sys.getenv('setwd'),"work/working/School/UA_2022/external/Lab/module_2")
-setwd(eval(wd))
+library(osmdata)
 ```
 
 # What is Open Street Map
 
-https://journal.r-project.org/archive/2013/RJ-2013-005/RJ-2013-005.pdf
+Open Street Map (OSM) is a "collaborative project to create a free editable geographic database of the world" ([Wikipedia](https://en.wikipedia.org/wiki/OpenStreetMap)). OSM is free and has been adapted widely in academia as a reliable source of data. OSM provides various types of data, ranging from raster map tiles to geographic features in vector forms. We will focus on the vector data.
 
-https://r-spatial.org/r/2019/09/26/spatial-networks.html
+**Overview**
 
-https://cran.r-project.org/web/packages/dodgr/vignettes/dodgr.html
+This document will walk to you through:
+* How to download OSM vector data.
+* How to clean the geometry vectors.
+* How to convert the cleaned geometry vectors into a network.
+* How to calculate centrality measures
+* How to do route finding (shortest path)
+
+## Downloading the data
+
+We will use **getbb()** function to define the bounding box within which we will get OSM data. According to the [documentation](https://www.rdocumentation.org/packages/osmdata/versions/0.1.1/topics/getbb) of this function, it uses the free Nominatim API provided by OpenStreetMap to find the bounding box (bb) associated with place names. Of course, you can create your own bounding box - we do it a few code chunks below.
 
 ```{r}
-library(osmdata)
-
 # Get bounding box coordinates for Atlanta
 bb <- getbb('Atlanta, GA')
 
@@ -54,7 +59,19 @@ tmap_mode('view')
 tm_shape(bb_sf) + tm_borders()
 ```
 
-[OSM wiki](https://wiki.openstreetmap.org/wiki/Map_features) provides a detailed description on various 'key-value' pairs. To download all possible key:value pairs, you can insert `available_tags("highway")` instead of manually specifying a list of values. One caveat is that, using all available tags will generate a large data, significantly slowing down the processing speed.
+[OSM wiki](https://wiki.openstreetmap.org/wiki/Map_features) states that OMS represents physical features on the ground using **tags** attached to its basic data structures (i.e., nodes, ways, and relations). Although there can be infinite number of attributes (i.e., tags) describing each feature, there are some **key-value** pairs that are agreed upon by the community and are widely used. Although it might not be accruate description, but thinking the **key** as a category and **value** as entries within the category would be reasonably accurate desciption. Some of the widely used keys include Amenity, Buildings, Highway, and Shop. Then there are values attached to each of the key. For Amenity, there are education, transportation, financial, healthcare, and entertainment, etc. 
+
+For Highway (which means road in OSM), the followings are some examples of the values:
+  * motorway
+  * trunk
+  * primary
+  * secondary
+  * tertiary
+  * unclassified
+  * residential
+  * various links, including motorway_link, trunk_link, primary_link, etc.
+
+For the full list of the key-pair values, please refer to the wiki. To download all possible key:value pairs for highway, you can insert `available_tags("highway")` instead of manually specifying a list of values. One caveat is that, using all available tags will generate a large data, significantly slowing down the processing speed. Here, we download seven values under key = 'highway' and convert it into sf format. The last function in the code below, `osm_poly2line()` is added because "Street networks downloaded with add_osm_object(key = "highway") will store any circular highways in osm_polygons. this function combines those with the osm_lines component to yield a single sf data.frame of all highways, whether polygonal or not" ([source](https://rdrr.io/cran/osmdata/man/osm_poly2line.html)).
 
 ```{r}
 # Get OSM road data
@@ -69,6 +86,9 @@ osm_road <- opq(bbox = bb) %>%
 names(osm_road)
 ```
 
+This object `osm_road` is a list that has multiple elements, including bbox, osm_points, osm_lines, osm_polygons, etc. We can extract `osm_lines` and see what it looks like. The `prop.table()` function below shows that 'residential' tag is roughly 70%.
+
+
 ```{r}
 ## Plot--
 tmap_mode('plot')
@@ -82,7 +102,7 @@ round( prop.table(table(osm_road$osm_lines$highway)) * 100, 1 )
 
 ## Defining a custom bounding box 
 
-Displaying (and some computations) the entire network we just downloaded can slow down R environment. For class exercise, we will do the calculation for the whole network but limit the display to a smaller area. For that, we will create a custom bbox using coordinates of our selection. This technique of generating your own bounding box can also be useful if you have a specific area of interest that doesn't overlap well with commonly used boundaries.
+Displaying (and some computations) the entire network we just downloaded can slow down R environment. For class exercise (for students to be able to follow along), we will limit the bounding box to a smaller area. We will create a custom bbox using coordinates of our selection. This technique of generating your own bounding box can also be useful if you have a specific area of interest that doesn't overlap well with commonly used boundaries.
 
 You need to define two points for bounding box, one point at the lower left corner and the other at the upper right corner. You can go to Google Maps, right-click on a point on map, and copy the XY coordinate. Let's store them in `p1` and `p2`.
 
@@ -108,23 +128,30 @@ my_bb_sf <- my_bb %>% t %>% data.frame() %>%
   st_bbox() %>% 
   st_as_sfc()
 
-## Plot--
-tmap_mode('view')
-tm_shape(bb_sf) + tm_borders(col = "black") +  # Black = larger bbox
-  tm_shape(my_bb_sf) + tm_borders(col = "red")  # Red = smaller bbox
-```
-
-# Converting OSM data into a graph
-
-
-```{r}
 # Extract a smaller network for exercise purpose
 osm_small <- osm_road$osm_lines[my_bb_sf,]
 
-# Converting the line component of OSM data into a graph (using a projected coordinate system for filtering below)
+## Plot--
+tmap_mode('view')
+tm_shape(bb_sf) + tm_borders(col = "black") +  # Black = larger bbox
+  tm_shape(my_bb_sf) + tm_borders(col = "red") +  # Red = smaller bbox
+  tm_shape(osm_small) + tm_lines(col = "black") # Black line = small network
+```
+
+# Converting OSM data into network using sfnetworks package
+
+Now we have OSM network geometry. This network geometry, however, has many issues that need to be resolved before it can be used for analysis. We will use sfnetworks package to do both cleaning and analysis. We can pass `osm_small` to **as_sfnetwork()** to convert it to sfnetwork object. It is important to note that the sf object you pass to **as_sfnetwork()** function should be *LINESTRING*. When using **as_sfnetwork()**, it creates a directed network by default. For simplicity, we will set this to FALSE.
+
+In the print out, you can see that there are two parts in `net` object: Node Data and Edge Data. Also notice that Node Data is denoted as 'active'. The sfnetworks objects is made of nodes and edges that connect the nodes. When you do data manipulation using, for example, dplyr verbs such as mutate,
+
+```{r}
+# Converting the line component of OSM data into a network
 net <- sfnetworks::as_sfnetwork(osm_small, directed = FALSE) 
 print(net)
+```
 
+
+```{r}
 ## Plot--
 leaflet() %>% 
   addProviderTiles(providers$CartoDB.DarkMatter) %>% 
@@ -133,7 +160,6 @@ leaflet() %>%
     addCircles(data = net %>% st_as_sf('nodes'), fillColor = 'yellow', 
                stroke = F, radius = 20, fillOpacity = 0.7) 
 ```
-
 
 
 # Cleaning network
