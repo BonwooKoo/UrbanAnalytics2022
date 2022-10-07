@@ -30,7 +30,7 @@ However, attractive POIs may not be distributed evenly across different neighbor
 
 **To complete this assignment, follow the directions below:**
 
-1. Download the data prepared for this assignment from [here](https://bonwookoo.github.io/UrbanAnalytics2022/Assignment/mini_4/yelp_coffee.rds). This data was prepared using the following steps:
+1. Download the data prepared for this assignment from [here](https://bonwookoo.github.io/UrbanAnalytics2022/Assignment/mini_4/coffee.csv). This data was prepared using the following steps:
     * Yelp data was downloaded for categories = 'coffee'. This data covers Fulton, DeKalb, Clayton, Cobb, and Gwinnett counties. 
     * American Community Survey 5-Year Estimate for 2019 was downloaded for the counties specified above. It contains 
         (1) median annual household income (hhincome)

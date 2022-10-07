@@ -74,25 +74,6 @@ weeks <- tibble(
 ```
 
 ```{r, echo=FALSE}
-# col_formatter <- function(df, col_name){
-#   out <- df %>% 
-#     rbind(data.frame('desc'=c(rep("", total_week - nrow(df))), 
-#                      "link"=c(rep("", total_week - nrow(df))))) 
-#   out <- out %>% 
-#     mutate(temp_col = case_when(
-#       nchar(desc)  > 0 & nchar(link)  > 0 ~ glue::glue("[{desc}]({link})"),
-#       nchar(desc) == 0 & nchar(link) == 0 ~ ""
-#       )) %>% 
-#   mutate(temp_col = map(temp_col, gt::md)) %>% 
-#   select(-desc, -link)
-#   
-#   names(out) <- col_name
-#   
-#   return(out)
-# }
-```
-
-```{r, echo=FALSE}
 topic_col <- c(
   "Intro to Urban Analytics in R [(Slide)](https://github.gatech.edu/pages/sguhathakurta3/UA-Lecture1/Untitled/LectureONE.html), <br> Data ethics [(Slide)](https://github.gatech.edu/pages/sguhathakurta3/UA-Lecture1/Lecture-2/LectureTWO.html)",# 1
   
