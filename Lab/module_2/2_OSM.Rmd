@@ -1,7 +1,7 @@
 ---
-title: "Intro to Urban Analytics"
+title: "Open Street Map"
 author: "Bon Woo Koo & Subhrajit Guhathakurta"
-date: '2022-08-20'
+date: '2022-10-11'
 output: 
   rmdformats::downcute:
     downcute_theme: "chaos"
@@ -25,6 +25,7 @@ library(tigris)
 library(tidygraph)
 library(plotly)
 library(osmdata)
+library(here)
 ```
 
 # What is Open Street Map
@@ -142,7 +143,7 @@ tm_shape(bb_sf) + tm_borders(col = "black") +  # Black = larger bbox
 
 Now we have OSM network geometry. This network geometry, however, has many issues that need to be resolved before it can be used for analysis. We will use sfnetworks package to do both cleaning and analysis. We can pass `osm_small` to **as_sfnetwork()** to convert it to sfnetwork object. It is important to note that the sf object you pass to **as_sfnetwork()** function should be *LINESTRING*. When using **as_sfnetwork()**, it creates a directed network by default. For simplicity, we will set this to FALSE.
 
-In the print out, you can see that there are two parts in `net` object: Node Data and Edge Data. Also notice that Node Data is denoted as 'active'. The sfnetworks objects is made of nodes and edges that connect the nodes. When you do data manipulation using, for example, dplyr verbs such as mutate,
+In the print out, you can see that there are two parts in `net` object: Node Data and Edge Data. Also notice that Node Data is denoted as 'active'. The sfnetworks objects is made of nodes and edges that connect the nodes. When you do data manipulation using, for example, dplyr verbs such as mutate, you can choose whether to apply it to nodes or edges by **activating** the one that you want to modify.
 
 ```{r}
 # Converting the line component of OSM data into a network
@@ -150,13 +151,14 @@ net <- sfnetworks::as_sfnetwork(osm_small, directed = FALSE)
 print(net)
 ```
 
+You can also extract nodes and edges as separate sf objects using **st_as_sf()** function. To extract sf objects representing edges and nodes and store them separately, you can do (1) `net %>% activate("nodes") %>% st_as_sf()` or, equivalently, (2) `net %>% st_as_sf("nodes")`. The result is the same. In the leaflet() function below which takes sf objects but not sfnetworks objects, you need to extract nodes and edges separately and pass the extraction. The yellow points are nodes and gray lines are edges.
 
 ```{r}
 ## Plot--
 leaflet() %>% 
   addProviderTiles(providers$CartoDB.DarkMatter) %>% 
   setView( -84.3854, 33.7668, zoom = 14) %>% # zooming in to show more details
-  addPolylines(data = net %>% st_as_sf('edges'), col = "grey", weight = 3, opacity = 0.9) %>% 
+  addPolylines(data = net %>% st_as_sf('edges'), col = "gray", weight = 3, opacity = 0.9, popup = net %>% st_as_sf('edges') %>% pull(osm_id)) %>% 
     addCircles(data = net %>% st_as_sf('nodes'), fillColor = 'yellow', 
                stroke = F, radius = 20, fillOpacity = 0.7) 
 ```
@@ -186,15 +188,26 @@ message(str_c("Before simplification, there were ", net %>% st_as_sf("edges") %>
 
 ## Subdivide edges
 
-When `as_sfnetwork()` function converts an sf linestrings, the nodes are defined as the *endpoints* of each linestring. If you zoom into Midtown in the map above, you will see that there are many intersections that do not have nodes, which are errors. We can use `to_spatial_subdivision` predicate to create points at the intersections and cut the edges accordingly.
+**Why subdivide?**
 
-To better understand
+When `as_sfnetwork()` function converts an sf linestrings, the nodes are defined as the *endpoints* of each linestring. If you zoom into Midtown in the map above, there are many edges that crosses (i.e., intersections) but do not have nodes. The absence of nodes at what appears to be intersections would be legitimate data if the two crossing roads are, for example, bridges that have different elevations. However, we anecdotally know that there aren't that many such overhead bridges in our study area.
+
+We can use `to_spatial_subdivision` predicate to create points at the intersections and cut the edges accordingly. 
+
+> "Construct a subdivision of the network by subdividing edges at each interior point that is equal to any other interior or boundary point in the edges table. Interior points in this sense are those points that are included in their linestring geometry feature but are not endpoints of it, while boundary points are the endpoints of the linestrings. The network is reconstructed after subdivision such that edges are connected at the points of subdivision." ([source](https://luukvdmeer.github.io/sfnetworks/reference/spatial_morphers.html)) 
+
+This `to_spatial_subdivision` function is a part of functions called [spatial morphers](https://luukvdmeer.github.io/sfnetworks/reference/spatial_morphers.html). Morphers are rooted in tidygraph, which allows you to temporarily morph the topology of the original network, do some work to the "morphed state" of the network, and merge the results back to the original network using unmorph() (See [this document](https://cran.r-project.org/web/packages/sfnetworks/vignettes/sfn05_morphers.html) from which I borrowed heavily from). <font color=pink> It is by design that morphers are used not directly but by passing them to `morph()` function. </font>
+
+Although morphing is meant to be temporary, we can also make the changes **permanent** by passing them to `convert()` function instead of `morph()` function. Because we are wanting to make permanent changes to our network (i.e., create nodes at intersections), we will use `convert()`. 
+
 
 ```{r}
-# Subdivision
+# # Using spatial morpher
 subdiv_net <- convert(simple_net, sfnetworks::to_spatial_subdivision)
 
-# Add a custom index -> This will be used for visualization purposes later
+# -------------------------------------------
+# Below is done for visualization purpose
+# Add a flag -> This will be used for visualization purposes later
 subdiv_net <- subdiv_net %>% 
   activate("nodes") %>% 
   mutate(custom_id = seq(1, subdiv_net %>% st_as_sf("nodes") %>% nrow()),
@@ -218,73 +231,46 @@ subdiv_map
 
 ## Delete pseudo nodes
 
+Notice that there are nodes on edges that are unnecessary nodes called pseudo nodes. For directed networks, pseudo nodes are those that have only one incoming and one outgoing edge. For undirected networks, pseudo nodes are those that have two incident edges. If these edges connected by these pseudo nodes are identical in their attributes, these nodes are unnecessary in any ways. These nodes can be delete using **to_spatial_smooth** predicate. 
 
 ```{r}
+# Using spatial morpher
 smoothed_net <- convert(subdiv_net, sfnetworks::to_spatial_smooth)
 
-# Extract removed points
+# -------------------------------------------
+# Below is done for visualization purpose
+# Extract removed points for mapping purposes
 removed <- setdiff(subdiv_net %>% st_as_sf('nodes') %>% pull(custom_id), 
                    smoothed_net %>% st_as_sf('nodes') %>% pull(custom_id))
 
 smooth_map <- leaflet() %>% 
   addProviderTiles(providers$CartoDB.DarkMatter) %>% 
   setView( -84.3854, 33.7668, zoom = 14) %>% # zooming in to show more details
-  addPolylines(data = smoothed_net %>% st_as_sf('edges'), col = "grey", weight = 3, opacity = 0.9) %>% 
-    addCircles(data = smoothed_net %>% st_as_sf('nodes'), fillColor = 'yellow', stroke = F, radius = 20, fillOpacity = 0.7) %>% 
+  addPolylines(data = smoothed_net %>% st_as_sf('edges'), col = "grey", weight = 3, opacity = 0.9, popup = smoothed_net %>% st_as_sf('edges') %>% rownames()) %>% 
+    addCircles(data = smoothed_net %>% st_as_sf('nodes'), fillColor = 'yellow', stroke = F, radius = 20, fillOpacity = 0.7, group = "kept") %>% 
     addCircles(data = subdiv_net %>% st_as_sf("nodes") %>% filter(custom_id %in% removed), 
-               fillColor = "red", stroke = F, radius = 15, fillOpacity = 0.8) %>% 
-  addControl(html = htmltools::HTML("<b>Red points denote removed nodes</b>"), position = "bottomright")
+               fillColor = "red", stroke = F, radius = 15, fillOpacity = 0.8, group = "removed") %>% 
+  addControl(html = htmltools::HTML("<b>Red points denote removed nodes</b>"), position = "bottomright") %>% 
+  addLayersControl(overlayGroups = c("kept", "removed"))
 
 smooth_map
 ```
 
-<!-- ## Simplify intersections (optional) -->
-
-<!-- ```{r} -->
-<!-- # Extract node coordinates -->
-<!-- node_coords = smoothed_net %>% -->
-<!--   st_transform(crs = 26967) %>%  -->
-<!--   activate("nodes") %>% -->
-<!--   st_coordinates() -->
-
-<!-- # Cluster nodes -->
-<!-- clusters = dbscan(node_coords, eps = 10, minPts = 1)$cluster -->
-
-<!-- # Add the cluster information back to the original network -->
-<!-- clustered = smoothed_net %>% -->
-<!--   activate("nodes") %>% -->
-<!--   mutate(cls = clusters) %>%  -->
-<!--   #  -->
-<!--   mutate(cmp = group_components()) -->
-
-<!-- contracted = convert( -->
-<!--   clustered, -->
-<!--   sfnetworks::to_spatial_contracted, -->
-<!--   cls, cmp, -->
-<!--   simplify = TRUE -->
-<!-- ) -->
-
-<!-- net_plot <- net %>% st_filter(my_bb_sf %>% st_transform(crs = 26967), .pred = st_intersects) %>% st_transform(crs = 4326) -->
-<!-- contracted_plot <- contracted %>% st_filter(my_bb_sf %>% st_transform(crs = 26967), .pred = st_intersects) %>% st_transform(crs = 4326) -->
-
-<!-- before <- leaflet() %>%  -->
-<!--   addProviderTiles(providers$CartoDB.DarkMatter) %>%  -->
-<!--   setView( -84.3854, 33.7668, zoom = 14) %>% # zooming in to show more details -->
-<!--   addPolylines(data = net_plot %>% st_as_sf('edges'), col = "grey", weight = 3, opacity = 0.9) %>%  -->
-<!--     addCircles(data = net_plot %>% st_as_sf('nodes'), fillColor = 'yellow', stroke = F, radius = 20, fillOpacity = 0.7) %>%  -->
-<!--   addControl(html = htmltools::HTML("Raw download from OSM")) -->
-
-<!-- after <- leaflet() %>%  -->
-<!--   addProviderTiles(providers$CartoDB.DarkMatter) %>%  -->
-<!--   setView( -84.3854, 33.7668, zoom = 14) %>% # zooming in to show more details -->
-<!--   addPolylines(data = contracted_plot %>% st_as_sf('edges'), col = "grey", weight = 3, opacity = 0.9) %>%  -->
-<!--     addCircles(data = contracted_plot %>% st_as_sf('nodes'), fillColor = 'yellow', stroke = F, radius = 20, fillOpacity = 0.7) %>%  -->
-<!--   addControl(html = htmltools::HTML("Fully processed")) -->
-
-<!-- leafsync::sync(before, after) -->
-<!-- ``` -->
 
 # Calculate centrality
+
+One of the most common ways for analyzing the characteristics of networks are centrality measures. These algorithms assigns some numbers to nodes within a graph based on their position in the given network. There are many centrality measures, each with their own characteristics, as illustrated in the images below. We will try degree centrality and betweenness centrality. Degree centrality is the simplest centrality measure to compute: it is a count of how many connections a node has ([Golbeck 2005, p.226](https://www.sciencedirect.com/science/article/pii/B9780128016565000214)). Betweenness centrality measures "the percentage of shortest paths that must go through the specific node ([Golbeck 2005, p.229](https://www.sciencedirect.com/science/article/pii/B9780128016565000214))".
+
+
+```{r, echo=FALSE}
+knitr::include_graphics("https://upload.wikimedia.org/wikipedia/commons/1/11/6_centrality_measures.png")
+```
+(Source: [wikipedia](https://en.wikipedia.org/wiki/Centrality))
+
+
+
+![](centrality.jpg)
+(Source: Figure 1 in [Cordeiro et al. (2018)](https://arxiv.org/abs/1808.02960v1))
 
 ```{r}
 # Calculate centrality measures
@@ -301,6 +287,7 @@ bet_pal_edge <- colorNumeric(palette = "Reds", domain = network_char %>% activat
 # Node betweenness
 bet_pal_node <- colorNumeric(palette = "Reds", domain = network_char %>% activate("nodes") %>% pull(node_bc), n = 6)
 
+
 # Map
 leaflet() %>% 
   addProviderTiles(providers$CartoDB.DarkMatter) %>%
@@ -310,12 +297,13 @@ leaflet() %>%
   addCircles(data = network_char %>% st_as_sf("nodes"), 
                fillColor = ~bet_pal_node(network_char %>% st_as_sf('nodes') %>% pull(node_bc)), stroke = F, fillOpacity = 0.7, 
              radius = network_char %>% st_as_sf("nodes") %>% with(.$node_bc/(max(.$node_bc)/100))) # denominator is selected to make the max value roughly equal to 100
-
-# Try 2 more other centrality measures.
-# Find good ways to calculate the radius argument in addCircles() function for visually pleasing maps for the 2 centrality measures.
 ```
 
 ## Shortest path
+
+One of the most widely performed task with road networks is to find a route between A and B, often the shortest path. Using sfnetworks package's `st_network_paths()`, it is a very easy task. 
+
+First, you need to create sf objects with POINT geometry that represent origin and destination. These points do not need to be ON the network - the `sf_network_paths()` will find the nearest node and use them for the calculation. You can also supply multiple destinations to a single call of `st_network_paths()`, but the origin has to be the same. Then, you can pass them to `st_network_paths()` along with the network. The output is a data frame (a tibble to be more specific) with two columns, node_paths and edge_paths. This data frame will have as many rows as the number of origin-destination pairs. Opening up the content of the data frame, you will notice that it is just a sequence of nodes and edges through which the shortest path runs.
 
 ```{r}
 # Change crs for convenience
@@ -324,20 +312,37 @@ smoothed_net <- smoothed_net %>% st_transform(4326)
 # Start point
 start_p <- st_point(c(-84.40364459476174,33.776160322717544)) %>% st_sfc(crs = 4326) # CRC at Georgia Tech
 # End point
-target_p <- st_point(c(-84.37639335217811, 33.75718076235044)) %>% st_sfc(crs = 4326) # MLK National Historical Park
+target_p1 <- st_point(c(-84.37639335217811, 33.75718076235044)) %>% st_sfc(crs = 4326) # MLK National Historical Park
+target_p2 <- st_point(c(-84.36498732714422, 33.753394567879816)) %>% st_sfc(crs = 4326) # Krog Street Tunnel
+
 # Get the shortest path
-paths = st_network_paths(smoothed_net, from = start_p, to = target_p)
+paths = st_network_paths(smoothed_net, from = start_p, to = c(target_p1, target_p2), type = "shortest")
+
 # Extract shortest path
-paths_sf <- smoothed_net %>%
+paths_sf1 <- smoothed_net %>%
   slice(paths$node_paths[[1]])
+
+paths_sf2 <- smoothed_net %>%
+  slice(paths$node_paths[[2]])
+
 
 # Visualize
 leaflet() %>% 
   addProviderTiles(providers$CartoDB.DarkMatter) %>% 
   setView( -84.3854, 33.7668, zoom = 14) %>% # zooming in to show more details
+  # Base network in grey
   addPolylines(data = smoothed_net %>% st_as_sf("edges"), color = 'grey', weight = 2, opacity = 0.7) %>% 
-  addPolylines(data = paths_sf %>% st_as_sf("edges"), color = "red", weight = 4, opacity = 0.8) %>% 
-  addCircles(data = paths_sf %>% st_as_sf("nodes"), stroke = F, fillColor = "red", fillOpacity = 0.8, radius = 50)
+  
+  # Chosen edges
+  addPolylines(data = paths_sf1 %>% st_as_sf("edges"), color = "red", weight = 10, opacity = 0.5) %>% 
+  # Chosen nodes
+  addCircles(data = paths_sf1 %>% st_as_sf("nodes"), stroke = F, fillColor = "red", fillOpacity = 0.8, radius = 50) %>% 
+  
+  # Chosen edges
+  addPolylines(data = paths_sf2 %>% st_as_sf("edges"), color = "green", weight = 4, opacity = 0.5) %>% 
+  # Chosen nodes
+  addCircles(data = paths_sf2 %>% st_as_sf("nodes"), stroke = F, fillColor = "green", fillOpacity = 0.8, radius = 50)
+
 
 ## Assignment: sample one point from each tract, calculate average travel time from one census tract to all others. Repeat for all tracts.
 ## See if there is any patterns to the accessibility.
@@ -345,30 +350,136 @@ leaflet() %>%
 
 
 
-## Extract intersections
+## If we need intersection points (Optional)
+
+Intersections are used in various measures of the built environment. For example, intersection density (number of intersections divided by the area) is used to calculate a walkability index ([Frank et al., 2005](https://www.sciencedirect.com/science/article/pii/S0749379704003253?casa_token=kHCOrJaK25UAAAAA:KQqIuoVNIpubIKO8q8cGSzkHSGZK_b-LYi6qd5wvcXxG3cftTdhgPZ6tpLV-1yxWKCla2_F0QA)) as well as in the well-known 5D framework ([Ewing and Cervero, 2010](https://www.tandfonline.com/doi/full/10.1080/01944361003766766)). Remember that (unweighted) degree centrality simply means the number of edges each node has. Because we have cleaned the network by dropping pseudo nodes, the intersection would be those nodes with degree centrality greater than 1.
 
 ```{r}
-end_points <- smoothed_net %>% 
-  st_as_sf('nodes') %>% 
-  st_join(smoothed_net %>% activate("edges") %>% st_as_sf())
-
-intersections <- end_points %>% 
-  group_by(.tidygraph_node_index) %>% 
-  summarise(n = n()) %>% 
-  filter(n > 1) 
+intersections <- smoothed_net %>%
+  st_transform(crs = 4326) %>% 
+  activate("nodes") %>% 
+  mutate(degree = centrality_degree(weights = NULL)) %>% 
+  filter(degree > 1)
 
 leaflet() %>% 
   addProviderTiles(providers$CartoDB.DarkMatter) %>% 
   setView( -84.3854, 33.7668, zoom = 14) %>% # zooming in to show more details
   addPolylines(data = smoothed_net %>% st_as_sf('edges'), col = "grey", weight = 3, opacity = 0.9) %>% 
-    addCircles(data = intersections %>% st_as_sf('nodes'), fillColor = 'red', stroke = F, radius = 20, fillOpacity = 0.7) 
+    addCircles(data = intersections %>% st_as_sf('nodes'), fillColor = 'yellow', stroke = F, radius = 20, fillOpacity = 0.7) 
+```
+
+# Using GTFS and OSM together
+
+Although GTFS and OSM are different data sources and may seem to reside in totally separate world, people in the real world frequently mix the two as they nagivate in a city. For example, one might drive from home to the nearest MARTA rail transit station, park their car there, and ride transit to their work. To analyze such movement, we need to be able to somehow connect the two datasets. 
+
+For exercise, let's examine how to compute the shortest path from one location to MARTA bus and rail stations, respectively. Because we will calculate the distance to bus and rail transit station separately, we first need to extract transit stops for bus and rail separately. As we discussed last week, GTFS is a relational table. The information on whether a transit facility is for bus or rail is contained in `routes` table, but it is not possible to link `stops` table and `routes` table directly. We will join routes -> trips -> stop_times -> stops. Then, we will extract the *stop_id* of bus stations and rail stations.
+
+```{r}
+# Read GTFS
+transit <- tidytransit::read_gtfs(here("Lab", "module_2", 'MARTA_GTFS_Latest_Feed.zip')) %>% 
+  tidytransit::gtfs_as_sf()
+
+# Extract route id for rail and bus transits
+rail_route <- transit$routes %>% filter(route_type %in% c(0,1,2)) %>% pull(route_id)
+bus_route <- transit$routes %>% filter(route_type==3) %>% pull(route_id)
+
+# Get stop_id for rails and buses
+rail_stops <- transit$routes %>% 
+  filter(route_type %in% c(0,1,2)) %>% 
+  inner_join(transit$trips, by = "route_id") %>% 
+  inner_join(transit$stop_times, by = "trip_id") %>% 
+  inner_join(transit$stops, by = "stop_id") %>% 
+  group_by(stop_id) %>% 
+  slice(1) %>% 
+  pull(stop_id)
+
+bus_stops <- transit$routes %>% 
+  filter(route_type %in% c(3)) %>% 
+  inner_join(transit$trips, by = "route_id") %>% 
+  inner_join(transit$stop_times, by = "trip_id") %>% 
+  inner_join(transit$stops, by = "stop_id") %>% 
+  group_by(stop_id) %>% 
+  slice(1) %>% 
+  pull(stop_id)
+
+tm_shape(transit$stops %>% filter(stop_id %in% bus_stops)) + tm_dots(col = "gray", size=0.01, alpha = 0.3) +
+  tm_shape(transit$stops %>% filter(stop_id %in% rail_stops)) + tm_dots(col = "red")
+```
+
+Now, we need a OSM network for the city (because we have been working with a small subset). 
+
+```{r}
+# Using the full network file 
+atl_net <- osm_road$osm_lines %>%
+  sfnetworks::as_sfnetwork(directed = FALSE) %>% 
+  activate("edges") %>%
+  filter(!edge_is_multiple()) %>%
+  filter(!edge_is_loop()) %>% 
+  convert(., sfnetworks::to_spatial_subdivision) %>% 
+  convert(., sfnetworks::to_spatial_smooth)
+```
+
+Next the remaining steps are:
+
+1. Define the starting point.
+2. Define the ending points (which are MARTA rail stations).
+3. Fine the shortest paths from the start to all ending points.
+4. Calculate the distance of each route between the starting point to each MARTA rail stations.
+5. Replace those with 0 distances with some large number (e.g., maximum distance). These are those for which the algorithm could not find connecting routes.
+6. Find the one with the minimum distance.
+7. Map it!
+
+```{r}
+# Change crs for convenience
+atl_net <- atl_net %>% st_transform(4326) %>% activate("edges") %>% mutate(length = edge_length())
+
+# Step 1. Start point
+start_p <- st_point(c(-84.43719856972648,33.87382745113857)) %>% st_sfc(crs = 4326) # Some random residential location
+
+# Step 2. End point
+rail_stops_point <- transit$stops %>% filter(stop_id %in% rail_stops) %>% st_geometry()
+
+# Step 3. Get the shortest path
+paths = st_network_paths(atl_net, from = start_p, to = rail_stops_point, type = "shortest")
+
+# Step 4. Find the distances
+dist_all <- map_dbl(1:nrow(paths), function(x){
+  atl_net %>% slice(paths$node_paths[[x]]) %>% st_as_sf("edges") %>% pull(length) %>% sum()
+}) %>% unlist() 
+
+# Step 5. Replace zeros with a large values
+dist_all[dist_all == 0] <- max(dist_all)
+
+# Step 6. Find the smallest one
+closest_index <- which.min(dist_all)
+
+# Extract shortest path
+paths_closest <- atl_net %>%
+  activate("nodes") %>% 
+  slice(paths$node_paths[[closest_index]])
+
+# Step 7. Map it!
+leaflet() %>% 
+  addProviderTiles(providers$CartoDB.DarkMatter) %>% 
+  # Base network in grey
+  addPolylines(data = atl_net %>% st_as_sf("edges"), color = 'grey', weight = 2, opacity = 0.7) %>% 
+  
+  # Chosen edges
+  addPolylines(data = paths_closest %>% st_as_sf("edges"), color = "red", weight = 10, opacity = 0.5) %>% 
+  # Chosen nodes
+  addCircles(data = paths_closest %>% st_as_sf("nodes"), stroke = F, fillColor = "red", fillOpacity = 0.8, radius = 50) %>% 
+  # Chosen station
+  addCircles(data = transit$stops %>% filter(stop_id %in% rail_stops) %>% slice(closest_index), fillColor = "blue", radius = 300)
+  
+  
 ```
 
 
 
-# Merge it with Census data
 
-Let's recycle the code for downloading Census data through API from last week.
+# Merge it with Census data (Optional)
+
+Now at this point, there is nothing new to this really.
 
 ```{r message=FALSE, warning=FALSE, echo=FALSE, results='hide'}
 # Get American Community Survey
@@ -417,7 +528,7 @@ acs2020c <- acs2020 %>%
 # Before we do the join, let's use centrality measures that were calculated on the entire network.
 # It takes time, so I calculated it and saved it.
 # You can read the data back in
-load("D:/Dropbox (GaTech)/Work/Working/School/UA_2022/external/Lab/module_2/network_char.RData")
+load(here("Lab", "module_2", "network_char.RData"))
 
 
 census_centrality <- acs2020c %>%
