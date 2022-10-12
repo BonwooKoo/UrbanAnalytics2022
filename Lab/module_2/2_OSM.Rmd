@@ -436,7 +436,7 @@ Next the remaining steps are:
 atl_net <- atl_net %>% st_transform(4326) %>% activate("edges") %>% mutate(length = edge_length())
 
 # Step 1. Start point
-start_p <- st_point(c(-84.43719856972648,33.87382745113857)) %>% st_sfc(crs = 4326) # Some random residential location
+start_p <- st_point(c(-84.35000890418652,33.78475904234446)) %>% st_sfc(crs = 4326) # Some random residential location
 
 # Step 2. End point
 rail_stops_point <- transit$stops %>% filter(stop_id %in% rail_stops) %>% st_geometry()
