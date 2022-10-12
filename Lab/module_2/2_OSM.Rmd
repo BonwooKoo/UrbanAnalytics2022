@@ -320,9 +320,11 @@ paths = st_network_paths(smoothed_net, from = start_p, to = c(target_p1, target_
 
 # Extract shortest path
 paths_sf1 <- smoothed_net %>%
+  activate("nodes") %>% 
   slice(paths$node_paths[[1]])
 
 paths_sf2 <- smoothed_net %>%
+  activate("nodes") %>% 
   slice(paths$node_paths[[2]])
 
 
@@ -444,7 +446,7 @@ paths = st_network_paths(atl_net, from = start_p, to = rail_stops_point, type = 
 
 # Step 4. Find the distances
 dist_all <- map_dbl(1:nrow(paths), function(x){
-  atl_net %>% slice(paths$node_paths[[x]]) %>% st_as_sf("edges") %>% pull(length) %>% sum()
+  atl_net %>% activate("nodes") %>% slice(paths$node_paths[[x]]) %>% st_as_sf("edges") %>% pull(length) %>% sum()
 }) %>% unlist() 
 
 # Step 5. Replace zeros with a large values
