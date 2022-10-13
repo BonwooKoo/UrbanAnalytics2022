@@ -8,6 +8,12 @@ output:
     code_folding: show
 ---
 
+<style type="text/css">
+  body{
+  font-family: Arial;
+  }
+</style>
+
 # Environment Setting
 ```{r message=FALSE, warning=FALSE}
 # Import required packages
@@ -381,10 +387,6 @@ For exercise, let's examine how to compute the shortest path from one location t
 transit <- tidytransit::read_gtfs(here("Lab", "module_2", 'MARTA_GTFS_Latest_Feed.zip')) %>% 
   tidytransit::gtfs_as_sf()
 
-# Extract route id for rail and bus transits
-rail_route <- transit$routes %>% filter(route_type %in% c(0,1,2)) %>% pull(route_id)
-bus_route <- transit$routes %>% filter(route_type==3) %>% pull(route_id)
-
 # Get stop_id for rails and buses
 rail_stops <- transit$routes %>% 
   filter(route_type %in% c(0,1,2)) %>% 
@@ -460,6 +462,9 @@ paths_closest <- atl_net %>%
   activate("nodes") %>% 
   slice(paths$node_paths[[closest_index]])
 
+# Selected station
+closest_station <- transit$stops %>% filter(stop_id %in% rail_stops) %>% slice(closest_index)
+
 # Step 7. Map it!
 leaflet() %>% 
   addProviderTiles(providers$CartoDB.DarkMatter) %>% 
@@ -471,7 +476,7 @@ leaflet() %>%
   # Chosen nodes
   addCircles(data = paths_closest %>% st_as_sf("nodes"), stroke = F, fillColor = "red", fillOpacity = 0.8, radius = 50) %>% 
   # Chosen station
-  addCircles(data = transit$stops %>% filter(stop_id %in% rail_stops) %>% slice(closest_index), fillColor = "blue", radius = 300)
+  addCircles(data = closest_station, fillColor = "blue", radius = 300)
   
   
 ```
