@@ -432,6 +432,5 @@ wh <- ggplot(data = home_done %>%
   theme_bw()
 
 ggpubr::ggarrange(inc, wh)
-  # =========== NO MODIFY ZONE ENDS HERE ========================================
 ```
 
