@@ -88,11 +88,15 @@ draw_map("p.building",colorQuantile)
 5. Apply computer vision to the images
 6. Merge the results back to the points from Step 2.
 
+* Download [this file](https://github.com/BonwooKoo/UrbanAnalytics2022/tree/main/Lab/module_3/downloaded_image/sample_image), unzip it.
+* Create in the root folder of your Google Drive a folder named demo_image.
+* Drag-drop the unzipped file (four images) in the folder.
+
 ---
 ## Why Street View Images
 
 * Measuring street environment is important for numerous reasons - public health, public safety, environmental sustainability, economic vitality, tourism, etc.
-* The (urban) built environment has been measured using e.g., residential density, street connectivity, land use mix, distance to transit, Walk Score, etc. 
+* Residential density, street connectivity, land use mix, Sprawl Walk Score, etc. 
 * In urban environment, street-by-street variation can be huge. E.g., even in areas with the same Walk Score, the quality of the streetscapes can be very different (e.g., [this paper](https://www.mdpi.com/2071-1050/9/7/1233)).
 * Street View Images allow us to examine (e.g., audit) the streetscapes without traveling. 
 
@@ -125,6 +129,7 @@ knitr::include_graphics("street_view_car.png")
 * Maximum Queries per Minute (QPM): 30,000. Requests up to 25,000 per day require an API key.
 * Do not distribute images nor use it for commercial purposes.
 * You should **.red[NEVER EXPOSE]** your API key. You can get charged for a lot of money.
+* Get your key [here](https://github.com/BonwooKoo/UrbanAnalytics2022/blob/main/Lab/module_3/how_to_get_your_key.pptx)
 
 ---
 
@@ -163,7 +168,7 @@ https://maps.googleapis.com/maps/api/streetview?.red[size=600x300].blue[&locatio
 
 This URL (with your key added) will give you an image at Tech Square.
 
-https://maps.googleapis.com/maps/api/streetview?size=640x640&location=33.7768249,-84.388767&heading=224.96&fov=90&pitch=0&key=YOUR_API_KEY
+https://maps.googleapis.com/maps/api/streetview?size=640x640>&location=33.7768249,-84.388767&heading=224.96&<br>fov=90&pitch=0&key=YOUR_API_KEY
 
 ---
 ## Computer Vision
