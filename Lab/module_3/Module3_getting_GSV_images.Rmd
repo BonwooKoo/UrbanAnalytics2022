@@ -1,0 +1,184 @@
+---
+title: "Census & Yelp API"
+author: "Bonwoo Koo & Subhrajit Guhathakurta"
+date: '2022-09-06'
+output:
+  rmdformats::downcute:
+    downcute_theme: "chaos"
+---
+
+<style type="text/css">
+  body{
+  font-family: Arial;
+  }
+</style>
+
+# Understanding Google Street View API
+
+## Overview
+
+## API Keys
+
+## Metadata
+
+## Request & Response
+
+```{r}
+library(tidyverse)
+library(osmdata)
+library(sfnetworks)
+library(units)
+library(sf)
+library(tidygraph)
+library(tmap)
+library(here)
+```
+# Preparing GSV download point
+```{r}
+bb_atl <- getbb("Atlanta,GA")
+
+osm_road <- opq(bbox = bb_atl) %>%
+  add_osm_feature(key = 'highway', 
+                  value = c("motorway", "trunk", "primary", 
+                            "secondary", "tertiary", "unclassified",
+                            "residential")) %>%
+  osmdata_sf() %>% 
+  osm_poly2line()
+
+net <- sfnetworks::as_sfnetwork(osm_road$osm_lines ,directed = FALSE) %>% 
+  activate("edges") %>%
+  filter(!edge_is_multiple()) %>%
+  filter(!edge_is_loop()) %>% 
+  convert(., sfnetworks::to_spatial_subdivision) %>% 
+  convert(., sfnetworks::to_spatial_smooth) %>% 
+  mutate(legnth = edge_length())
+```
+
+```{r}
+edges <- net %>% 
+  st_as_sf("edges") %>% 
+  select(osm_id, highway) %>% 
+  mutate(length = st_length(.) %>% unclass()) %>% 
+  filter(length > 100) %>% 
+  mutate(edge_id = seq(1,nrow(.)))
+
+nodes <- net %>% 
+  st_as_sf("nodes") %>% 
+  mutate(node_id = seq(1,nrow(.)))
+```
+
+```{r}
+start_p <- edges$geometry[[100]] %>% 
+  st_coordinates() %>% 
+  .[1:2,1:2]
+
+start_azi <- atan2(start_p[2,"X"] - start_p[1, "X"],
+                   start_p[2,"Y"] - start_p[1, "Y"])*180/pi
+
+end_p <- edges$geometry[[100]] %>% 
+  st_coordinates() %>% 
+  .[(nrow(.)-1):nrow(.),1:2]
+
+end_azi <- atan2(end_p[2,"X"] - end_p[1, "X"],
+                 end_p[2,"Y"] - end_p[1, "Y"])*180/pi
+```
+
+```{r}
+get_azi <- function(line){
+  # end point 1 ----------------------------------------------
+  start_p <- line %>% 
+  st_coordinates() %>% 
+  .[1:2,1:2]
+
+  start_azi <- atan2(start_p[2,"X"] - start_p[1, "X"],
+                     start_p[2,"Y"] - start_p[1, "Y"])*180/pi
+  
+  # end point 2 ----------------------------------------------
+  end_p <- line %>% 
+    st_coordinates() %>% 
+    .[(nrow(.)-1):nrow(.),1:2]
+  
+  end_azi <- atan2(end_p[2,"X"] - end_p[1, "X"],
+                   end_p[2,"Y"] - end_p[1, "Y"])*180/pi
+  
+  end_azi <- if (end_azi < 180) {end_azi + 180} else {end_azi - 180}
+  
+  # mid point 1 ---------------------------------------------
+  mid_p <- line %>% 
+    st_line_sample(sample = c(0.45, 0.55)) %>% 
+    st_cast("POINT") %>% 
+    st_coordinates()
+  
+  mid_azi <- atan2(mid_p[2,"X"] - mid_p[1, "X"],
+                   mid_p[2,"Y"] - mid_p[1, "Y"])*180/pi
+  
+  mid_p <- line %>% 
+    st_line_sample(sample = 0.5) %>% 
+    st_coordinates() %>% 
+    .[1,1:2]
+    
+  
+  # return in data frame ------------------------------------
+  return(tribble(
+    ~type,    ~X,            ~Y,             ~azi,
+    "start",   start_p[1,"X"], start_p[1,"Y"], start_azi,
+    "mid1",    mid_p["X"],   mid_p["Y"],   mid_azi,
+    "mid2",    mid_p["X"],   mid_p["Y"],   ifelse(mid_azi < 180, mid_azi + 180, mid_azi - 180),
+    "end",     end_p[2,"X"],   end_p[2,"Y"],   end_azi))
+}
+```
+
+```{r}
+endp_azi <- edges %>% 
+  st_geometry() %>% 
+  map_df(get_azi) 
+
+endp <- endp_azi %>% 
+  cbind(edges %>% st_drop_geometry() %>% .[rep(1:nrow(edges),each=4),]) %>% 
+  st_as_sf(coords = c("X", "Y"), crs = 4326, remove=FALSE) %>% 
+  mutate(node_id = seq(1, nrow(.)))
+
+st_write(endp, "C:/Users/bonwo/Downloads/endp.geojson", delete_dsn = T)
+st_write(edges, "C:/Users/bonwo/Downloads/edges.geojson", delete_dsn = T)
+```
+
+```{r}
+get_image <- function(iterrow){
+  type = iterrow$type
+  location <- paste0(iterrow$Y %>% round(4), ",", iterrow$X %>% round(4))
+  heading <- iterrow$azi %>% round(1)
+  edge_id <- iterrow$edge_id
+  node_id <- iterrow$node_id
+  highway <- iterrow$highway
+  key <- Sys.getenv("google_api")
+  
+  furl <- glue::glue("https://maps.googleapis.com/maps/api/streetview?size=640x640&location={location}&heading={heading}&fov=90&pitch=0&key={key}")
+  fname <- glue::glue("GSV-nid_{node_id}-eid_{edge_id}-type_{type}-Location_{location}-heading_{heading}-highway_{highway}.jpg")
+  fpath <- here("Lab", "module_3", "downloaded_image", fname)
+  download.file(furl, fpath, mode = 'wb')
+}
+```
+
+```{r}
+segment <- endp %>% filter(edge_id == 16261)
+
+for (i in seq(1,nrow(segment))){
+  get_image(segment[i,])
+}
+```
+
+
+# (From Google Colab) Join the prediction to the data frame
+
+
+```{r}
+pred_output <- read.csv(here("Lab", "module_3", "pred", "seg_output.csv"))
+
+pred <- endp %>% 
+  left_join(pred_output, by = "node_id")
+```
+
+
+
+
+
