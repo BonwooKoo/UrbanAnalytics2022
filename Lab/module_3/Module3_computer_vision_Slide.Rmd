@@ -88,7 +88,7 @@ draw_map("p.building",colorQuantile)
 5. Apply computer vision to the images
 6. Merge the results back to the points from Step 2.
 
-* Download [this file](https://github.com/BonwooKoo/UrbanAnalytics2022/tree/main/Lab/module_3/downloaded_image/sample_image), unzip it.
+* Download [this file](https://github.com/BonwooKoo/UrbanAnalytics2022/raw/main/Lab/module_3/downloaded_image/sample_image.zip), unzip it.
 * Create in the root folder of your Google Drive a folder named demo_image.
 * Drag-drop the unzipped file (four images) in the folder.
 
