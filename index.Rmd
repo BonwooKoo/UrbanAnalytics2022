@@ -95,7 +95,7 @@ topic_col <- c(
   
   "<b>(Thu) Mini-presentation 3 [(Slide)](https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_3/Urban Analytics Presentation_ Urban Image Processing.pdf)</b>, Urban images and computer vision [(Slide)](https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_3/Module3_computer_vision_Slide.html), <br> Computer vision in Colab ([1](https://colab.research.google.com/drive/1G9m85QNlMqAHNuw854qhZQTFAqetrnYG?usp=sharing), [2](https://colab.research.google.com/drive/16Da-YywiLVS5IY3NXlYWxQbH7TaKsoeW?usp=sharing))",# 9
   
-  "Sampling images [(RMD)]()",# 10
+  "Sampling images [(RMD)](https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_3/Module3_getting_GSV_images.html)",# 10
   
   "<b>(Tue) Mini-presentation 4 (Slide)</b>, <br> User-generated text data - Twitter (Slide), <br> Getting live feeds from Twitter (RMD)",# 11
   
