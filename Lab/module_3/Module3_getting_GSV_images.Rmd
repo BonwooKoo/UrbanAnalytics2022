@@ -1,7 +1,7 @@
 ---
-title: "Census & Yelp API"
+title: "Downloading GSV Images"
 author: "Bonwoo Koo & Subhrajit Guhathakurta"
-date: '2022-09-06'
+date: '2022-10-25'
 output:
   rmdformats::downcute:
     downcute_theme: "chaos"
@@ -21,7 +21,7 @@ The first thing we need to do to use GSV images for urban analytics is to prepar
 
 ![](GSV_sampling.JPG)
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(osmdata)
 library(sfnetworks)
@@ -101,7 +101,7 @@ e %>% st_coordinates() %>%
   )
 ```
 
-![](atan.png)
+![](atan.jpg)
 
 ```{r}
 # -----------------------------------------------------------
@@ -234,8 +234,10 @@ get_image <- function(iterrow){
 }
 ```
 
+To reduce the number of images you'd be downloading, I pre-filtered the points so that it includes only Georgia Tech & Atlantic Station. Download endp_gt.geojson from [here](https://raw.githubusercontent.com/BonwooKoo/UrbanAnalytics2022/main/Lab/module_3/endp_gt.geojson). 
+
 ```{r, eval=FALSE}
-# Download images
+# Download images 
 edges_gt <- st_read(here("Lab", "module_3", "endp_gt.geojson"))
 
 # Loop!
@@ -245,14 +247,6 @@ for (i in seq(1,nrow(edges_gt))){
 ```
 
 
-# (From Google Colab) Join the prediction to the data frame
-```{r, message=FALSE}
-pred_output <- read.csv(here("Lab", "module_3", "pred", "seg_output.csv"))
-
-pred <- endp %>% 
-  left_join(pred_output, by = "node_id")
-```
-
 # Another way to sample GSV images
 
 Previously, we sampled four points per street segment. However, other studies have used different methods of sampling GSV images. One of the most widely used sampling method is to download one panoramic image at some fixed distance interval, such as 20 meters. This can be easily achieved by a small change to the code shown above.
@@ -261,7 +255,7 @@ Here, two sets of points are generated, (1) for actual location of points and (2
 
 ```{r}
 # Extract a curvy line
-z <- edges %>% filter(edge_id == 27739)
+z <- edges %>% filter(edge_id == test_edge)
 tm_shape(z) + tm_lines()
 
 # calculate what proportion equals 40 in the given segment
