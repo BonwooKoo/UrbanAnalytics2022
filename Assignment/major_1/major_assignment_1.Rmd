@@ -24,7 +24,7 @@ You are tasked to perform this calculation of travel time using data from OSM, G
 1. Write your report and R code in a R Markdown document. 
 2. Use the Knit button in R Studio to render it as a HTML document.
 3. Publish the rendered document to RPubs.
-4. <font color="pink">Submit the URL of the RPubs document through Canvas by **10/29/2022 Sunday midnight (11:59 PM on Sunday).** </font>
+4. <font color="pink">Submit the URL of the RPubs document through Canvas by **10/30/2022 Sunday midnight (11:59 PM on Sunday).** </font>
 5. To submit, go to Canvas > Assignments > Major assignment 1.
 6. Grades and feedback will be posted through Canvas.
 
