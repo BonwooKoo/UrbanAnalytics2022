@@ -238,12 +238,14 @@ To reduce the number of images you'd be downloading, I pre-filtered the points s
 
 ```{r, eval=FALSE}
 # Download images 
-edges_gt <- st_read(here("Lab", "module_3", "endp_gt.geojson"))
+edges_gt <- st_read(here("Lab", "module_3", "endp_atlantic_station.geojson"))
 
 # Loop!
+tic()
 for (i in seq(1,nrow(edges_gt))){
   get_image(edges_gt[i,])
 } 
+toc()
 ```
 
 
@@ -297,3 +299,17 @@ for (i in 1:nrow(point_azi)){
 
 
 
+# Merging the processed data back to R
+
+```{r}
+# Download the output from the computer vision models
+pspnet <- read.csv(here("Lab", "Module_3", "seg_output.csv"))
+
+# Join them back to the template used to download images
+pspnet_nodes <- endp %>% inner_join(pspnet, by="node_id")
+
+# Map!
+tm_shape(pspnet_nodes %>% 
+           mutate(pct_tree = tree/(640*640))) + 
+  tm_dots(col = "pct_tree", style="quantile")
+```
