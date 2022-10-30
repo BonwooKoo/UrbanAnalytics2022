@@ -63,7 +63,7 @@ weeks <- tibble(
     rep("Preparation", 2),
     rep("Module 1: <br> POI & Census", 4), # 2 days, 4 weeks
     rep("Module 2: <br> Transportation", 2),
-    rep("Module 3: <br> Image & <br>computer vision", 2),
+    rep("Module 3: <br> Image & computer vision", 2),
     rep("Module 4: <br> Social media", 2),
     rep("Module 5: <br> Storytelling", 2),
     rep("Student <br> Presentations", 1),
