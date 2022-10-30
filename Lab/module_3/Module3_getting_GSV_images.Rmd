@@ -306,10 +306,41 @@ for (i in 1:nrow(point_azi)){
 pspnet <- read.csv(here("Lab", "Module_3", "seg_output.csv"))
 
 # Join them back to the template used to download images
-pspnet_nodes <- endp %>% inner_join(pspnet, by="node_id")
+pspnet_nodes <- edges_gt %>% inner_join(pspnet, by="node_id")
 
 # Map!
 tm_shape(pspnet_nodes %>% 
            mutate(pct_tree = tree/(640*640))) + 
   tm_dots(col = "pct_tree", style="quantile")
 ```
+
+```{r}
+compare_df <- pspnet_nodes %>% 
+  mutate(type = case_when(rownames(.) < 163 ~ "first",
+                          TRUE ~ "second")) 
+
+compare_df %>% 
+  group_by(type) %>% 
+  summarise(across(c("building", "tree", "road", "sidewalk", "sky"), mean))
+```
+
+```{r}
+compare_df %>% 
+  pivot_longer(cols = c(building, sky, tree, road, sidewalk), names_to = 'variable', values_to = "value") %>% 
+  ggplot() +
+  geom_boxplot(mapping = aes(x = type, y = value)) +
+  facet_wrap(~variable, scales = "free_y")
+```
+
+```{r}
+compare_df %>% 
+  select(type, building, sky, tree, road, sidewalk) %>% 
+  st_drop_geometry() %>% 
+  group_by(type) %>% 
+  summarise(across(c(building, sky, tree, road, sidewalk), list)) %>% 
+  pivot_longer(cols = building:sidewalk) %>% 
+  pivot_wider(names_from=type, values_from=value) %>% 
+  mutate(test = t.test(unlist(first), unlist(second))$statistic)
+
+```
+

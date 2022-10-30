@@ -7,9 +7,9 @@
 
         <meta name="author" content="Bon Woo Koo &amp; Subhrajit Guhathakurta" />
     
-        <meta name="date" content="2022-08-20" />
+        <meta name="date" content="2022-10-30" />
     
-    <title>Intro to Urban Analytics</title>
+    <title>Major-Assignment 2</title>
 
         <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -1551,230 +1551,6 @@ Prism.languages.python={comment:{pattern:/(^|[^\\])#.*/,lookbehind:!0},"string-i
 Prism.languages.r={comment:/#.*/,string:{pattern:/(['"])(?:\\.|(?!\1)[^\\\r\n])*\1/,greedy:!0},"percent-operator":{pattern:/%[^%\s]*%/,alias:"operator"},boolean:/\b(?:TRUE|FALSE)\b/,ellipsis:/\.\.(?:\.|\d+)/,number:[/\b(?:NaN|Inf)\b/,/(?:\b0x[\dA-Fa-f]+(?:\.\d*)?|\b\d+\.?\d*|\B\.\d+)(?:[EePp][+-]?\d+)?[iL]?/],keyword:/\b(?:if|else|repeat|while|function|for|in|next|break|NULL|NA|NA_integer_|NA_real_|NA_complex_|NA_character_)\b/,operator:/->?>?|<(?:=|<?-)?|[>=!]=?|::?|&&?|\|\|?|[+*\/^$@~]/,punctuation:/[(){}\[\],;]/};
 !function(e){var n=/[*&][^\s[\]{},]+/,t=/!(?:<[\w\-%#;/?:@&=+$,.!~*'()[\]]+>|(?:[a-zA-Z\d-]*!)?[\w\-%#;/?:@&=+$.~*'()]+)?/,r="(?:"+t.source+"(?:[ \t]+"+n.source+")?|"+n.source+"(?:[ \t]+"+t.source+")?)",a="(?:[^\\s\\x00-\\x08\\x0e-\\x1f!\"#%&'*,\\-:>?@[\\]`{|}\\x7f-\\x84\\x86-\\x9f\\ud800-\\udfff\\ufffe\\uffff]|[?:-]<PLAIN>)(?:[ \t]*(?:(?![#:])<PLAIN>|:<PLAIN>))*".replace(/<PLAIN>/g,function(){return"[^\\s\\x00-\\x08\\x0e-\\x1f,[\\]{}\\x7f-\\x84\\x86-\\x9f\\ud800-\\udfff\\ufffe\\uffff]"}),d="\"(?:[^\"\\\\\r\n]|\\\\.)*\"|'(?:[^'\\\\\r\n]|\\\\.)*'";function o(e,n){n=(n||"").replace(/m/g,"")+"m";var t="([:\\-,[{]\\s*(?:\\s<<prop>>[ \t]+)?)(?:<<value>>)(?=[ \t]*(?:$|,|]|}|\\s*#))".replace(/<<prop>>/g,function(){return r}).replace(/<<value>>/g,function(){return e});return RegExp(t,n)}e.languages.yaml={scalar:{pattern:RegExp("([\\-:]\\s*(?:\\s<<prop>>[ \t]+)?[|>])[ \t]*(?:((?:\r?\n|\r)[ \t]+)[^\r\n]+(?:\\2[^\r\n]+)*)".replace(/<<prop>>/g,function(){return r})),lookbehind:!0,alias:"string"},comment:/#.*/,key:{pattern:RegExp("((?:^|[:\\-,[{\r\n?])[ \t]*(?:<<prop>>[ \t]+)?)<<key>>(?=\\s*:\\s)".replace(/<<prop>>/g,function(){return r}).replace(/<<key>>/g,function(){return"(?:"+a+"|"+d+")"})),lookbehind:!0,greedy:!0,alias:"atrule"},directive:{pattern:/(^[ \t]*)%.+/m,lookbehind:!0,alias:"important"},datetime:{pattern:o("\\d{4}-\\d\\d?-\\d\\d?(?:[tT]|[ \t]+)\\d\\d?:\\d{2}:\\d{2}(?:\\.\\d*)?[ \t]*(?:Z|[-+]\\d\\d?(?::\\d{2})?)?|\\d{4}-\\d{2}-\\d{2}|\\d\\d?:\\d{2}(?::\\d{2}(?:\\.\\d*)?)?"),lookbehind:!0,alias:"number"},boolean:{pattern:o("true|false","i"),lookbehind:!0,alias:"important"},null:{pattern:o("null|~","i"),lookbehind:!0,alias:"important"},string:{pattern:o(d),lookbehind:!0,greedy:!0},number:{pattern:o("[+-]?(?:0x[\\da-f]+|0o[0-7]+|(?:\\d+\\.?\\d*|\\.?\\d+)(?:e[+-]?\\d+)?|\\.inf|\\.nan)","i"),lookbehind:!0},tag:t,important:n,punctuation:/---|[:[\]{}\-,|>?]|\.\.\./},e.languages.yml=e.languages.yaml}(Prism);
 </script>
-        <script>$(document).ready(function(){
-    if (typeof $('[data-toggle="tooltip"]').tooltip === 'function') {
-        $('[data-toggle="tooltip"]').tooltip();
-    }
-    if ($('[data-toggle="popover"]').popover === 'function') {
-        $('[data-toggle="popover"]').popover();
-    }
-});
-</script>
-        <style type="text/css">
-.lightable-minimal {
-border-collapse: separate;
-border-spacing: 16px 1px;
-width: 100%;
-margin-bottom: 10px;
-}
-.lightable-minimal td {
-margin-left: 5px;
-margin-right: 5px;
-}
-.lightable-minimal th {
-margin-left: 5px;
-margin-right: 5px;
-}
-.lightable-minimal thead tr:last-child th {
-border-bottom: 2px solid #00000050;
-empty-cells: hide;
-}
-.lightable-minimal tbody tr:first-child td {
-padding-top: 0.5em;
-}
-.lightable-minimal.lightable-hover tbody tr:hover {
-background-color: #f5f5f5;
-}
-.lightable-minimal.lightable-striped tbody tr:nth-child(even) {
-background-color: #f5f5f5;
-}
-.lightable-classic {
-border-top: 0.16em solid #111111;
-border-bottom: 0.16em solid #111111;
-width: 100%;
-margin-bottom: 10px;
-margin: 10px 5px;
-}
-.lightable-classic tfoot tr td {
-border: 0;
-}
-.lightable-classic tfoot tr:first-child td {
-border-top: 0.14em solid #111111;
-}
-.lightable-classic caption {
-color: #222222;
-}
-.lightable-classic td {
-padding-left: 5px;
-padding-right: 5px;
-color: #222222;
-}
-.lightable-classic th {
-padding-left: 5px;
-padding-right: 5px;
-font-weight: normal;
-color: #222222;
-}
-.lightable-classic thead tr:last-child th {
-border-bottom: 0.10em solid #111111;
-}
-.lightable-classic.lightable-hover tbody tr:hover {
-background-color: #F9EEC1;
-}
-.lightable-classic.lightable-striped tbody tr:nth-child(even) {
-background-color: #f5f5f5;
-}
-.lightable-classic-2 {
-border-top: 3px double #111111;
-border-bottom: 3px double #111111;
-width: 100%;
-margin-bottom: 10px;
-}
-.lightable-classic-2 tfoot tr td {
-border: 0;
-}
-.lightable-classic-2 tfoot tr:first-child td {
-border-top: 3px double #111111;
-}
-.lightable-classic-2 caption {
-color: #222222;
-}
-.lightable-classic-2 td {
-padding-left: 5px;
-padding-right: 5px;
-color: #222222;
-}
-.lightable-classic-2 th {
-padding-left: 5px;
-padding-right: 5px;
-font-weight: normal;
-color: #222222;
-}
-.lightable-classic-2 tbody tr:last-child td {
-border-bottom: 3px double #111111;
-}
-.lightable-classic-2 thead tr:last-child th {
-border-bottom: 1px solid #111111;
-}
-.lightable-classic-2.lightable-hover tbody tr:hover {
-background-color: #F9EEC1;
-}
-.lightable-classic-2.lightable-striped tbody tr:nth-child(even) {
-background-color: #f5f5f5;
-}
-.lightable-material {
-min-width: 100%;
-white-space: nowrap;
-table-layout: fixed;
-font-family: Roboto, sans-serif;
-border: 1px solid #EEE;
-border-collapse: collapse;
-margin-bottom: 10px;
-}
-.lightable-material tfoot tr td {
-border: 0;
-}
-.lightable-material tfoot tr:first-child td {
-border-top: 1px solid #EEE;
-}
-.lightable-material th {
-height: 56px;
-padding-left: 16px;
-padding-right: 16px;
-}
-.lightable-material td {
-height: 52px;
-padding-left: 16px;
-padding-right: 16px;
-border-top: 1px solid #eeeeee;
-}
-.lightable-material.lightable-hover tbody tr:hover {
-background-color: #f5f5f5;
-}
-.lightable-material.lightable-striped tbody tr:nth-child(even) {
-background-color: #f5f5f5;
-}
-.lightable-material.lightable-striped tbody td {
-border: 0;
-}
-.lightable-material.lightable-striped thead tr:last-child th {
-border-bottom: 1px solid #ddd;
-}
-.lightable-material-dark {
-min-width: 100%;
-white-space: nowrap;
-table-layout: fixed;
-font-family: Roboto, sans-serif;
-border: 1px solid #FFFFFF12;
-border-collapse: collapse;
-margin-bottom: 10px;
-background-color: #363640;
-}
-.lightable-material-dark tfoot tr td {
-border: 0;
-}
-.lightable-material-dark tfoot tr:first-child td {
-border-top: 1px solid #FFFFFF12;
-}
-.lightable-material-dark th {
-height: 56px;
-padding-left: 16px;
-padding-right: 16px;
-color: #FFFFFF60;
-}
-.lightable-material-dark td {
-height: 52px;
-padding-left: 16px;
-padding-right: 16px;
-color: #FFFFFF;
-border-top: 1px solid #FFFFFF12;
-}
-.lightable-material-dark.lightable-hover tbody tr:hover {
-background-color: #FFFFFF12;
-}
-.lightable-material-dark.lightable-striped tbody tr:nth-child(even) {
-background-color: #FFFFFF12;
-}
-.lightable-material-dark.lightable-striped tbody td {
-border: 0;
-}
-.lightable-material-dark.lightable-striped thead tr:last-child th {
-border-bottom: 1px solid #FFFFFF12;
-}
-.lightable-paper {
-width: 100%;
-margin-bottom: 10px;
-color: #444;
-}
-.lightable-paper tfoot tr td {
-border: 0;
-}
-.lightable-paper tfoot tr:first-child td {
-border-top: 1px solid #00000020;
-}
-.lightable-paper thead tr:last-child th {
-color: #666;
-vertical-align: bottom;
-border-bottom: 1px solid #00000020;
-line-height: 1.15em;
-padding: 10px 5px;
-}
-.lightable-paper td {
-vertical-align: middle;
-border-bottom: 1px solid #00000010;
-line-height: 1.15em;
-padding: 7px 5px;
-}
-.lightable-paper.lightable-hover tbody tr:hover {
-background-color: #F9EEC1;
-}
-.lightable-paper.lightable-striped tbody tr:nth-child(even) {
-background-color: #00000008;
-}
-.lightable-paper.lightable-striped tbody td {
-border: 0;
-}
-</style>
     
     
     
@@ -1866,19 +1642,9 @@ margin-left: 0 !important;
         <div class="Sidebar">
           <div class="SidebarItems" id="toc">
             <ul>
-            <li><a href="#prerequisites" id="toc-prerequisites">Prerequisites</a></li>
-            <li><a href="#course-goals-and-learning-outcomes" id="toc-course-goals-and-learning-outcomes">Course Goals and
-            Learning Outcomes</a></li>
-            <li><a href="#course-schedules" id="toc-course-schedules">Course schedules</a></li>
-            <li><a href="#how-to-succeed-in-this-class" id="toc-how-to-succeed-in-this-class">How to succeed in this
-            class</a></li>
-            <li><a href="#grading-breakdown" id="toc-grading-breakdown">Grading breakdown</a></li>
-            <li><a href="#textbooksresources" id="toc-textbooksresources">Textbooks/resources</a></li>
-            <li><a href="#technology" id="toc-technology">Technology</a></li>
-            <li><a href="#student-faculty-expectations" id="toc-student-faculty-expectations">Student-Faculty
-            expectations</a></li>
-            <li><a href="#academic-integrity" id="toc-academic-integrity">Academic integrity</a></li>
-            <li><a href="#ada-accommodations" id="toc-ada-accommodations">ADA accommodations</a></li>
+            <li><a href="#instructions" id="toc-instructions">Instructions</a></li>
+            <li><a href="#logistics" id="toc-logistics">Logistics</a></li>
+            <li><a href="#notes" id="toc-notes">Notes</a></li>
             </ul>
           </div>
           <div data-position="sidebar:post-end" class="InjectedComponents"><div class="dark-theme-toggler"><div class="toggle checked"><div class="toggle-track"><div class="toggle-track-check"><img src="data:image/png;base64,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" role="presentation" style="pointer-events: none;" width="16" height="16"></div> <div class="toggle-track-x"><img src="data:image/png;base64,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" role="presentation" style="pointer-events: none;" width="16" height="16"></div></div> <div class="toggle-thumb"></div></div> <input type="checkbox" aria-label="Switch between Dark and Default theme" class="toggler-screen-reader-only"></div></div>
@@ -1895,13 +1661,13 @@ margin-left: 0 !important;
    </div>
    
         
-      <h1 class="title">Intro to Urban Analytics</h1>
+      <h1 class="title">Major-Assignment 2</h1>
       
       <p class="authors">
            <span class="glyphicon glyphicon-user"></span> Bon Woo Koo
 &amp; Subhrajit Guhathakurta
       </p>
-         <p class="date"><span class="glyphicon glyphicon-calendar"></span> 2022-08-20</p>
+         <p class="date"><span class="glyphicon glyphicon-calendar"></span> 2022-10-30</p>
            
 
    
@@ -1914,506 +1680,43 @@ body{
 font-family: Arial;
 }
 </style>
-<p><br> <strong>Class room:</strong> Room 358 in Arch-West | TR 5PM -
-6:15PM</p>
-<p><strong>Office hours</strong><br />
-* <strong>Bon Woo Koo</strong>: Wed 10AM - 12PM<br />
-* <strong>Subhrajit Guhathakurta</strong>: Tue 11AM-12PM<br />
-* <strong>Location</strong>: The Center for Spatial Planning Analytics
-and Visualization (760 Spring St NW, suite 217). <br> <br></p>
-<p>This course introduces students to the field of urban analytics. The
-main objective of this course is for students to master important
-theories and concepts emerging in the field of urban analytics. Students
-will complete this course with a working knowledge of how data and
-advanced analytical techniques can enhance the planning and operation of
-cities.</p>
-<ul>
-<li>URL of this syllabus: <a href="https://bonwookoo.github.io/UrbanAnalytics2022/" class="uri">https://bonwookoo.github.io/UrbanAnalytics2022/</a></li>
-</ul>
-<div id="prerequisites" class="section level1">
-<h1>Prerequisites</h1>
-<p>There are no prerequisites to this course, but the followings are
-encouraged.<br />
-* Basic understanding of geographic information systems (GIS) and
-applied statistics<br />
-* Working knowledge of any programming language, preferably the R (or
-Python)</p>
+<div id="instructions" class="section level1">
+<h1>Instructions</h1>
+<p>With the advent of widespread street view services and computer
+vision technology, automatically quantifying the streetscapes at
+street-level has become possible.</p>
+<p>As one of early adopters of this new technological advance, you are
+tasked to utilize OSM, GSV, and computer vision to gain insights about
+what built enviornmental characteristics create walkable neighborhoods.
+This assignment provides a code template (download it from <a href="https://bonwookoo.github.io/UrbanAnalytics2022/Assignment/major_2/major_assignment_2_template.Rmd">here</a>).
+The template will explain how to use the template, what tasks you will
+be performing, and detailed steps. There can be many unpredictable
+obstacles that need troubleshooting (e.g., with regards to API calls,
+free credits on Google Cloud Console, etc), so <strong>start
+early</strong>.</p>
 </div>
-<div id="course-goals-and-learning-outcomes" class="section level1">
-<h1>Course Goals and Learning Outcomes</h1>
-<p>After successfully completing this course, students will:</p>
-<ul>
-<li>List sources of data from urban areas and why each of them would be
-used</li>
-<li>Explain what is on the cutting edge of urban analytics research</li>
-<li>Describe a few types of measurements for spatial data</li>
-<li>Explain characteristics of data types</li>
-<li>Learn how to clean and manipulate spatial data using technical
-analysis skills</li>
-<li>Create a basic data visualization</li>
-<li>Be critical about who is creating and using data</li>
-</ul>
-</div>
-<div id="course-schedules" class="section level1">
-<h1>Course schedules</h1>
-<table class="table table-condensed" style="margin-left: auto; margin-right: auto;">
-<thead>
-<tr>
-<th style="text-align:left;">
-Module
-</th>
-<th style="text-align:left;">
-Week
-</th>
-<th style="text-align:left;">
-Topic
-</th>
-<th style="text-align:left;">
-Reading
-</th>
-<th style="text-align:left;">
-To do
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;width: 12em; vertical-align: top !important;" rowspan="2">
-Preparation
-</td>
-<td style="text-align:left;">
-1 <br><font size="2" color="gray"> Aug 23,25 </font>
-</td>
-<td style="text-align:left;">
-Intro to Urban Analytics in R <a href="https://github.gatech.edu/pages/sguhathakurta3/UA-Lecture1/Untitled/LectureONE.html">(Slide)</a>,
-<br> Data ethics <a href="https://github.gatech.edu/pages/sguhathakurta3/UA-Lecture1/Lecture-2/LectureTWO.html">(Slide)</a>
-</td>
-<td style="text-align:left;">
-<a href="https://journals.sagepub.com/doi/full/10.1177/2399808319839494">T</a>
-<br> <a href="https://scholarship.law.gwu.edu/cgi/viewcontent.cgi?article=1159&amp;context=faculty_publications">R1</a>,
-<a href="https://openyls.law.yale.edu/handle/20.500.13051/7808">R2</a>,
-<br> <a href="https://web.stanford.edu/dept/HPS/Design%20AI%20so%20that%20it%27s%20fair.pdf">R3</a>,
-<a href="https://www.nature.com/articles/541458a">R4</a>
-</td>
-<td style="text-align:left;">
-<a href="https://forms.gle/4BBtMfrvr5yJLebK9">Survey</a>,<br><a href="https://forms.gle/sGVfDgLR6yLLmb4S8">Group</a>
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2 <br><font size="2" color="gray"> Aug30,Nov1 </font>
-</td>
-<td style="text-align:left;">
-Data for Urban Analytics <a href="./Lab/module_0/w2_d2_modern_data.html">(Slide)</a>, <br> Intro to
-R - 1 <a href="./Lab/module_0/w2_d1_Intro_to_R_1.html">(Slide)</a>, 2 <a href="./Lab/module_0/w2_d2_Intro_to_R_2.html">(Slide)</a>
-</td>
-<td style="text-align:left;">
-<a href="https://r4ds.had.co.nz/workflow-basics.html">T1</a>, <a href="https://r4ds.had.co.nz/transform.html">T2</a> <br> <a href="https://geocompr.robinlovelace.net/spatial-class.html">R1</a>, <a href="https://geocompr.robinlovelace.net/attr.html">R2</a>, <br> <a href="https://geocompr.robinlovelace.net/spatial-operations.html">R3</a>,
-<a href="https://rmarkdown.rstudio.com/lesson-1.html">R4</a>
-</td>
-<td style="text-align:left;">
-</td>
-</tr>
-<tr>
-<td style="text-align:left;width: 12em; vertical-align: top !important;" rowspan="4">
-Module 1: <br> POI &amp; Census
-</td>
-<td style="text-align:left;">
-3 <br><font size="2" color="gray"> Sep6,8 </font>
-</td>
-<td style="text-align:left;">
-Accessing data <a href="https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_1/week1/Module1_Yelp_Census_Slide.html">(Slide)</a>,
-<br> Census &amp; Yelp API <a href="https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_1/week1/Module1_Yelp_Census.html">(RMD)</a>,
-<br>Creating sf objects <a href="https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_1/week1/Module1_Yelp_Census_Slide_additional.html">(Slide)</a>
-</td>
-<td style="text-align:left;">
-<a href="https://dl.acm.org/doi/abs/10.1145/3152178.3152181?casa_token=TKWejCaCUvgAAAAA:B78bsMo0gT6t2GSsl1MQWAIsXs0BCG6usrW5fwpKPYhorO0lKTpXNHUmPQQ0y4xeJYC3U5CF08hjIA">1</a>,
-<a href="https://www.nber.org/system/files/working_papers/w24952/w24952.pdf">2</a>,
-<a href="https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_1/week1/manuscript.pdf">3</a>
-</td>
-<td style="text-align:left;">
-<a href="https://bonwookoo.github.io/UrbanAnalytics2022/Assignment/mini_1/mini_assignment_1.html">Mini
-1</a> <br> (due Sep20)
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-4 <br><font size="2" color="gray"> Sep13,15 </font>
-</td>
-<td style="text-align:left;">
-<b>(Tue) Mini-presentation 1 </b> <a href="https://view.officeapps.live.com/op/view.aspx?src=https%3A%2F%2Fraw.githubusercontent.com%2FBonwooKoo%2FUrbanAnalytics2022%2Fmain%2Fmini_pres%2FPOIPresentationGroup1.pptx&amp;wdOrigin=BROWSELINK">(Slide)</a>,
-<br> Tidy data <a href="https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_1/week2/Module1_Tidy_Yelp_Slide.html">(Slide)</a>,
-<br> Data wrangling <a href="https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_1/week2/Module1_Tidy_Yelp.html">(RMD)</a>
-</td>
-<td style="text-align:left;">
-<a href="https://www.researchgate.net/publication/215990669_Tidy_data">1</a>,
-<a href="https://r4ds.had.co.nz/tidy-data.html">2</a>, <a href>3</a>
-</td>
-<td style="text-align:left;">
-<a href="https://bonwookoo.github.io/UrbanAnalytics2022/Assignment/mini_2/mini_assignment_2.html">Mini
-2</a> <br> (due Sep23)
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-5 <br><font size="2" color="gray"> Sep20,22 </font>
-</td>
-<td style="text-align:left;">
-Deriving insights from your data <a href="https://github.gatech.edu/pages/sguhathakurta3/UA-Lectures/Lecture-2/LectureEDA.html#1">(Slide)</a>,
-<br> Hands-on <a href="https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_1/week3/stats.html">(RMD)</a>
-</td>
-<td style="text-align:left;">
-<a href="https://r4ds.had.co.nz/model-intro.html">1</a>, <a href="https://r4ds.had.co.nz/model-basics.html">2</a>, <a href="https://r4ds.had.co.nz/model-building.html">3</a>, <a href="https://r4ds.had.co.nz/many-models.html">4</a>
-</td>
-<td style="text-align:left;">
-<a href="https://bonwookoo.github.io/UrbanAnalytics2022/Assignment/mini_3/mini_assignment_3.html">Mini
-3</a> <br> (due Oct02)
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-6 <br><font size="2" color="gray"> Sep27,29 </font>
-</td>
-<td style="text-align:left;">
-Interactive visualization 1 <a href="https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_1/week4/interactive_visualization.html">(RMD)</a>
-<br> Interactive visualization 2 <a href="https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_1/week4/interactive_visualization_2.html">(RMD)</a>
-</td>
-<td style="text-align:left;">
-<a href="https://r4ds.had.co.nz/data-visualisation.html">1</a>, <a href="https://r4ds.had.co.nz/graphics-for-communication.html">2</a>
-</td>
-<td style="text-align:left;">
-<a href="https://bonwookoo.github.io/UrbanAnalytics2022/Assignment/mini_4/mini_assignment_4.html">Mini
-4</a> <br> (due Oct10)
-</td>
-</tr>
-<tr>
-<td style="text-align:left;width: 12em; vertical-align: top !important;" rowspan="2">
-Module 2: <br> Transportation
-</td>
-<td style="text-align:left;">
-7 <br><font size="2" color="gray"> Oct4,6 </font>
-</td>
-<td style="text-align:left;">
-<b>(Tue) Mini-presentation 2 <a href="https://bonwookoo.github.io/UrbanAnalytics2022/mini_pres/TransportationPresentationGroup2.pdf">(Slide)</a></b>,
-<br> General Transit Feed Specification <a href="https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_2/1_GTFS_v2.html">(RMD)</a>
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-8 <br><font size="2" color="gray"> Oct11,13 </font>
-</td>
-<td style="text-align:left;">
-Open Street Map <a href="https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_2/2_OSM.html">(RMD)</a>
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-<a href="https://bonwookoo.github.io/UrbanAnalytics2022/Assignment/major_1/major_assignment_1.html">Major
-1</a> <br> (due Oct30)
-</td>
-</tr>
-<tr>
-<td style="text-align:left;width: 12em; vertical-align: top !important;" rowspan="2">
-Module 3: <br> Image &amp; <br>computer vision
-</td>
-<td style="text-align:left;">
-9 <br><font size="2" color="gray"> Oct18,20 </font>
-</td>
-<td style="text-align:left;">
-<b>(Thu) Mini-presentation 3 <a href="https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_3/Urban%20Analytics%20Presentation_%20Urban%20Image%20Processing.pdf">(Slide)</a></b>,
-<br>Urban images &amp; computer vision <a href="https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_3/Module3_computer_vision_Slide.html">(Slide)</a>,
-<br> Computer vision in Colab (<a href="https://colab.research.google.com/drive/1G9m85QNlMqAHNuw854qhZQTFAqetrnYG?usp=sharing">1</a>,
-<a href="https://colab.research.google.com/drive/16Da-YywiLVS5IY3NXlYWxQbH7TaKsoeW?usp=sharing">2</a>)
-</td>
-<td style="text-align:left;">
-<a href="https://www.sciencedirect.com/science/article/pii/S0264275119308443?casa_token=ttj9fEoFey4AAAAA:nR_Wf8tJHv8vfLv93cIlRHlsIqGdUMWByA3AyXcP_zWEYwJAPGKaxZ9TsdwiZlfX1-L8Z0Y7ag">1</a>,
-<a href="https://www.researchgate.net/profile/Bon-Woo-Koo/publication/351636921_How_are_Neighborhood_and_Street-Level_Walkability_Factors_Associated_with_Walking_Behaviors_A_Big_Data_Approach_Using_Street_View_Images/links/618548fba767a03c14f92f6f/How-are-Neighborhood-and-Street-Level-Walkability-Factors-Associated-with-Walking-Behaviors-A-Big-Data-Approach-Using-Street-View-Images.pdf">2</a>,
-<a href="https://link.springer.com/content/pdf/10.1007/978-3-030-84459-2_7.pdf">3</a>
-</td>
-<td style="text-align:left;">
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-10 <br><font size="2" color="gray"> Oct25,27 </font>
-</td>
-<td style="text-align:left;">
-Sampling &amp; processing images <a href="https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_3/Module3_getting_GSV_images.html">(RMD)</a>
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-<a href="https://bonwookoo.github.io/UrbanAnalytics2022/Assignment/major_2/major_assignment_2.html">Major
-2</a> <br> (due Nov13)
-</td>
-</tr>
-<tr>
-<td style="text-align:left;width: 12em; vertical-align: top !important;" rowspan="2">
-Module 4: <br> Social media
-</td>
-<td style="text-align:left;">
-11 <br><font size="2" color="gray"> Nov1,3 </font>
-</td>
-<td style="text-align:left;">
-<b>(Tue) Mini-presentation 4 (Slide)</b>, <br> User-generated text data
-- Twitter (Slide), <br> Getting live feeds from Twitter (RMD)
-</td>
-<td style="text-align:left;">
-<a href="https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0142209">1</a>,
-<a href="https://ascpt.onlinelibrary.wiley.com/doi/pdf/10.1111/cts.12178">2</a>,
-<a href="https://www.sciencedirect.com/science/article/pii/S030324342200109X?via%3Dihub">3</a>
-</td>
-<td style="text-align:left;">
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-12 <br><font size="2" color="gray"> Nov8,10 </font>
-</td>
-<td style="text-align:left;">
-Preprocessing texts (Slide), <br> Sentiment analysis (RMD)
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-Major 3
-</td>
-</tr>
-<tr>
-<td style="text-align:left;width: 12em; vertical-align: top !important;" rowspan="2">
-Module 5: <br> Storytelling
-</td>
-<td style="text-align:left;">
-13 <br><font size="2" color="gray"> Nov15,17 </font>
-</td>
-<td style="text-align:left;">
-<b>(Tue) Mini-presentation 5 (Slide)</b>, <br> Storytelling with data -
-1
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-14 <br><font size="2" color="gray"> Nov22,24 </font>
-</td>
-<td style="text-align:left;">
-Storytelling with data - 2
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-Major 4
-</td>
-</tr>
-<tr>
-<td style="text-align:left;width: 12em; ">
-Student <br> Presentations
-</td>
-<td style="text-align:left;">
-15 <br><font size="2" color="gray"> Nov29,Dec1 </font>
-</td>
-<td style="text-align:left;">
-<b>Student presentations</b>
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-</td>
-</tr>
-<tr>
-<td style="text-align:left;width: 12em; vertical-align: top !important;" rowspan="2">
-Reading weeks
-</td>
-<td style="text-align:left;">
-16 <br><font size="2" color="gray"> Dec6,8 </font>
-</td>
-<td style="text-align:left;">
-<b>Student presentations</b>
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-17 <br><font size="2" color="gray"> Dec13,15 </font>
-</td>
-<td style="text-align:left;">
-Wrap up
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-</td>
-</tr>
-</tbody>
-</table>
-<p><em>NOTE 1: Slide = lecture slide &amp; RMD = R Markdown
-document</em></p>
-<p><em>NOTE 2: The links to the class material will be updated each
-week.</em></p>
-<p><em>NOTE 3: For readings, TU = readings for Tuesday &amp; TH =
-readings for Thursday</em></p>
-</div>
-<div id="how-to-succeed-in-this-class" class="section level1">
-<h1>How to succeed in this class</h1>
+<div id="logistics" class="section level1">
+<h1>Logistics</h1>
 <ol style="list-style-type: decimal">
-<li>Be prepared for occasional frustration. It’s part of learning
-process. However, don’t spin the wheel. You are responsible for actively
-searching for help. Don’t wait until the last minute (e.g.,
-homework).</li>
-<li>Read assigned book chapters/materials, review their examples and
-snippets, replicate their results, and repeat until you understand.</li>
-<li>Work with peers. Form a group early in the semester, and have their
-sharp eyes on your code. Still, you need to submit your HW
-individually.</li>
-<li>If you have a trouble with your code outside of class (and get
-frustrated), Google it. It will not only be faster and more efficient
-than contacting us, but trouble-shooting on your own is essential skill,
-particularly after you graduate. Luckily, most of the problems you may
-encounter in this class have been already encountered by others. You can
-search how they solved them in <strong>StackOverFlow.</strong></li>
-<li>Of course, you can ask questions to us anytime, inside or outside
-classroom. I strongly encourage you to utilize our office hours as
-another learning opportunity.</li>
+<li>Write your report and R code in a R Markdown document.</li>
+<li>Use the Knit button in R Studio to render it as a HTML
+document.</li>
+<li>Publish the rendered document to RPubs.</li>
+<li><font color="pink">Submit the URL of the RPubs document through
+Canvas by <strong>11/13/2022 Sunday midnight (11:59 PM on
+Sunday).</strong> </font></li>
+<li>To submit, go to Canvas &gt; Assignments &gt; Major assignment
+2.</li>
+<li>Grades and feedback will be posted through Canvas.</li>
 </ol>
 </div>
-<div id="grading-breakdown" class="section level1">
-<h1>Grading breakdown</h1>
-<p>There are four major assignments, four mini assignments, and one
-final team project. Only three out of the four major assignments will be
-counted towards the final grade. Same applies to the mini
-assignments.</p>
-<table class="table table-condensed table-responsive" style="margin-left: auto; margin-right: auto;">
-<thead>
-<tr>
-<th style="text-align:left;">
-Assignment.Type
-</th>
-<th style="text-align:left;">
-Percent
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-Final Project Presentation
-</td>
-<td style="text-align:left;">
-20%
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Major Assignment
-</td>
-<td style="text-align:left;">
-45% (15% each x 3)
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Mini Assignment
-</td>
-<td style="text-align:left;">
-30% (10% each x 3)
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Participation (Mini Presentation)
-</td>
-<td style="text-align:left;">
-5%
-</td>
-</tr>
-</tbody>
-</table>
-<p>The final grade will be assigned as a letter grade according to the
-following scale:</p>
-<ul>
-<li><strong>A <span class="math inline">\(~~~\)</span> 100%-90%</strong>
-<span class="math inline">\(~~~\)</span> Excellent (4 quality points per
-credit hour)</li>
-<li><strong>B <span class="math inline">\(~~~\)</span> 89% -
-80%</strong> <span class="math inline">\(~~~\)</span> Good (3 quality
-points per credit hour)</li>
-<li><strong>C <span class="math inline">\(~~~\)</span> 79% -
-70%</strong> <span class="math inline">\(~~~\)</span> Satisfactory (2
-quality points per credit hour)</li>
-<li><strong>D <span class="math inline">\(~~~\)</span> 69% -
-60%</strong> <span class="math inline">\(~~~\)</span> Passing (1 quality
-points per credit hour)</li>
-<li><strong>F <span class="math inline">\(~~~\)</span> 59% <span class="math inline">\(~\)</span>-<span class="math inline">\(~\)</span>
-0%</strong> <span class="math inline">\(~~~\)</span> Failure (0 quality
-points per credit hour)</li>
-</ul>
-</div>
-<div id="textbooksresources" class="section level1">
-<h1>Textbooks/resources</h1>
-<p>There is no textbook associated with this course. I highly recommend
-Data Action by Sarah Williams, and Urban Analytics by Alex Singleton,
-Seth Spielman and David Folch is another popular textbook on the
-topic.</p>
-<p>Here are some other free resources:</p>
-<ul>
-<li><a href="https://r4ds.had.co.nz/">R for Data Science</a></li>
-<li><a href="https://rpubs.com/spring19cp6521/Syllabus">Geocomputation
-with R</a></li>
-<li><a href="https://github.com/alexsingleton/urban_analytics">Urban
-Analytics - supporting materials</a></li>
-</ul>
-</div>
-<div id="technology" class="section level1">
-<h1>Technology</h1>
-<p>Cell phone use is prohibited at all times during class, except if you
-are using cell phones to answer quizzes/ surveys. Laptops, tablets,
-e-readers, and other digital devices may be used to take notes or refer
-to relevant information, take quizzes, and complete in-class
-assignments. If you are using a digital device for non-course purposes
-at any time during the semester, you will be asked to refrain from using
-it for the remainder of the course. No exceptions.</p>
-<p>There will be times in class when the instructor reserves the right
-to enact the “No Device Rule.” During these times, all digital devices
-will be required to be stored off desks so that students may concentrate
-on tasks or presentations. Expect that this rule will be used when your
-peers are presenting and during guest lectures.</p>
-</div>
-<div id="student-faculty-expectations" class="section level1">
-<h1>Student-Faculty expectations</h1>
-<p>At Georgia Tech, we believe that it is important to continually
-strive for an atmosphere of mutual respect, acknowledgement, and
-responsibility between faculty members and the student body. See <a href="http://www.catalog.gatech.edu/rules/22.php" class="uri">http://www.catalog.gatech.edu/rules/22.php</a> for an
-articulation of some basic expectations—that you can have of me, and
-that I have of you. Respect for knowledge, hard work, and cordial
-interactions will help build the environment we seek. Therefore, I
-encourage you to remain committed to the ideals of Georgia Tech while in
-this class.</p>
-</div>
-<div id="academic-integrity" class="section level1">
-<h1>Academic integrity</h1>
-<p>Georgia Tech aims to cultivate a community based on trust, academic
-integrity, and honor. Students are expected to act according to the
-highest ethical standards. For more information on Georgia Tech’s
-Academic Honor Code, please visit <a href="http://www.catalog.gatech.edu/rules/18b.php" class="uri">http://www.catalog.gatech.edu/rules/18b.php</a> and <a href="http://www.catalog.gatech.edu/genregulations/honorcode.php" class="uri">http://www.catalog.gatech.edu/genregulations/honorcode.php</a>.</p>
-</div>
-<div id="ada-accommodations" class="section level1">
-<h1>ADA accommodations</h1>
-<p>If you are a student with learning needs that require special
-accommodation, contact the Office of Disability Services at
-(404)894-2563 or <a href="http://disabilityservices.gatech.edu/" class="uri">http://disabilityservices.gatech.edu/</a>, as soon as
-possible, to make an appointment to discuss your special needs and to
-obtain an accommodations letter. Please also e-mail me as soon as
-possible in order to set up a time to discuss your learning needs.</p>
+<div id="notes" class="section level1">
+<h1>Notes</h1>
+<p>Try Knitting your R Markdown document and publishing it on RPubs
+early. This is to ensure you’d have time to troubleshoot if you
+encounter technical issues.</p>
+<p>You can always replace a published document (i.e., republish) or
+delete the existing one and publish it as a new document.</p>
 </div>
 </div>
 
