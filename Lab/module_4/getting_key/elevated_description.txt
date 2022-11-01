@@ -1,0 +1,9 @@
+1. I am in an intro to urban analytics course in which one of the modules is about text data and how to use them to better understand & manage cities. I plan to use Twitter data and API for this class only. I also do not plan to share or post the data anywhere.
+
+2. The course includes basic text preprocessing (e.g., stemming, removing stop words), counting frequent words, making word cloud, and simple sentiment analysis.
+
+3. The course material uses only tweets. Other functionalities are not included in the scope of the course.
+
+Do you plan to display Tweets or aggregate data about Twitter content outside Twitter? No.
+
+Will your product, service, or analysis make Twitter content or derived information available to a government entity? No.

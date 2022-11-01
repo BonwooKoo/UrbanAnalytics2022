@@ -1,0 +1,164 @@
+---
+title: "Getting Twitter Key"
+author: "Bon Woo Koo"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r, message=FALSE, echo=FALSE}
+library(here)
+```
+
+
+If you don't have credentials for Twitter API, you need get one for this module.
+
+Note that there are multiple *tiers* in Twitter API - Essential Access, Elevated Access, and Academic Research Access. Each level has their own caps in terms of the maximum number of Apps per Project, Tweet consumption per month, and others (see [this page](https://developer.twitter.com/en/docs/projects/overview) for more details). 
+
+Twitter API provides a very well-organized document that's great for understanding the structure of the API. There are Apps and Projects in Twitter API that help you organize your work. Each Project can contain a single App if you have Essential access, and up to three Apps if you have Elevated or greater access. We will be using **Elevated Access** that allows up to 3 Apps within a Project and Tweet consumption cap of 2 million Tweets per month.
+
+
+
+# Signing up for Twitter API
+1. To get Twitter API keys, click this **[link](https://developer.twitter.com/en/docs/twitter-api)**. You will see 'Sign Up' button under where it says Twitter API. Click the button.
+
+```{r, echo=FALSE, out.width="80%"}
+knitr::include_graphics(here("Lab", "module_4", "getting_key", "twitter_key_0.JPG"))
+```
+
+<br>
+2. Next, you will see the screen shown below. Fill out the form as shown in the image and click "Let's do this." When you see the agreement & policy, click accept and Submit button. 
+
+```{r, echo=FALSE, out.width="50%"}
+knitr::include_graphics(here("Lab", "module_4", "getting_key", "twitter_key_1.JPG"))
+knitr::include_graphics(here("Lab", "module_4", "getting_key", "twitter_key_2.JPG"))
+```
+
+<br>
+3. You may get an error message at the top-right corner of the screen. If you have not added a verified phone number to your Twitter account, it will ask you to do it (image below). You need to do it in order to proceed. If you didn't get the error, jump to 4. 
+
+To add your phone number, put your cursor on the your profile icon and click "Go to Twitter."
+```{r, echo=FALSE, out.width="100%"}
+knitr::include_graphics(here("Lab", "module_4", "getting_key", "adding_phone_1.JPG"))
+```
+
+Then, you will see a menu tabs on the left side of the screen, where the last tab is "More". Click it. You will then see "Setting and Support." Click it to see "Setting and privacy" menu. Click that button.
+```{r, echo=FALSE, out.width="100%"}
+knitr::include_graphics(here("Lab", "module_4", "getting_key", "adding_phone_2.JPG"))
+```
+
+<br>
+
+Next, Click through Account information > Phone to finish adding your phone number to your account.
+
+```{r, echo=FALSE, out.width="100%"}
+knitr::include_graphics(here("Lab", "module_4", "getting_key", "adding_phone_3.JPG"))
+```
+
+```{r, echo=FALSE, out.width="100%"}
+knitr::include_graphics(here("Lab", "module_4", "getting_key", "adding_phone_4.JPG"))
+```
+<br>
+
+You will then need to do email verification. After you verify your email, you will a screen shown below.
+
+```{r, echo=FALSE, out.width="100%"}
+knitr::include_graphics(here("Lab", "module_4", "getting_key", "adding_phone_5.JPG"))
+```
+
+<br>
+
+Fill out the form and hit "Get keys." You will see a screen below. When you're done, click this **[link](https://developer.twitter.com/en/docs/twitter-api)** to come back to the Developer Portal.
+
+```{r, echo=FALSE, out.width="100%"}
+knitr::include_graphics(here("Lab", "module_4", "getting_key", "adding_phone_6.JPG"))
+```
+
+<br>  
+# Creating a Project  
+4. (Do this if you had your phone number added to your Twitter account before this class. If you've just added your phone number, a project is already created for you) Now you have signed up for Twitter API. Next thing to do is creating a Project. Projects (and Apps) are to help you manage your works and keys associated with them. Click "Create Project" button.
+
+```{r, echo=FALSE, out.width="100%"}
+knitr::include_graphics(here("Lab", "module_4", "getting_key", "twitter_key_4.JPG"))
+```
+
+<br>
+5. You can follow through the prompts to get it done. First, decide the name of your project. You can choose whatever name you want.
+
+```{r, echo=FALSE, out.width="100%"}
+knitr::include_graphics(here("Lab", "module_4", "getting_key", "twitter_key_7.JPG"))
+```
+
+<br>
+6. Next, for Use cases, select "Student".
+
+```{r, echo=FALSE, out.width="80%"}
+knitr::include_graphics(here("Lab", "module_4", "getting_key", "twitter_key_8.JPG"))
+```
+
+<br>  
+7. Provide a simple description of your project.
+
+```{r, echo=FALSE, out.width="80%"}
+knitr::include_graphics(here("Lab", "module_4", "getting_key", "twitter_key_9.JPG"))
+```
+
+# Creating app
+
+8. (Do this if you had your phone number added to your Twitter account before this class. If you've just added your phone number, an App is already created for you) Next up is App creation. Give it some reasonable name.
+
+```{r, echo=FALSE, out.width="80%"}
+knitr::include_graphics(here("Lab", "module_4", "getting_key", "twitter_key_10.JPG"))
+```
+
+9. Finally, you will have a set of key, secret, and token. 
+
+```{r, echo=FALSE, out.width="80%"}
+knitr::include_graphics(here("Lab", "module_4", "getting_key", "twitter_key_11.JPG"))
+```
+
+# Applying for Elevated access.
+
+So far, we have gained Essential access. For this class, we will need to up this to Elevated access. This requires an application process.
+
+10. If you click \{\} Products > Twitter API v2 on the left panel, you will the screen shown below. Click "Elevated" in red circle. Then, you will be able to click "Apply" button.
+
+```{r, echo=FALSE, out.width="80%"}
+knitr::include_graphics(here("Lab", "module_4", "getting_key", "twitter_key_12.JPG"))
+```
+
+11. After you've verified the "Basic info," you will see "Intended use" page, as shown below. You will need to provide some descriptions about your project. Make sure you mention that you are limited to used it in class project, and for academic purpose only.
+
+Below is an example from my application:
+
+    1. I am in an intro to urban analytics course in which one of the modules is about text data and how to use them to better understand & manage cities. I plan to use Twitter data and API for this class only. I also do not plan to share or post the data anywhere.
+    
+    2. The course includes basic text preprocessing (e.g., stemming, removing stop words), counting frequent words, making word cloud, and simple sentiment analysis.
+    
+    3. The course material uses only tweets. Other functionalities are not included in the scope of the course.
+    
+    4. Do you plan to display Tweets or aggregate data about Twitter content outside Twitter? No.
+    
+    5. Will your product, service, or analysis make Twitter content or derived information available to a government entity? No.
+
+```{r, echo=FALSE, out.width="80%"}
+knitr::include_graphics(here("Lab", "module_4", "getting_key", "twitter_key_13.JPG"))
+```
+
+
+12. Finally, you will see a review page. Hit "Next". The following page is the agreement to their policy. Click agree and hit "Submit." **You will instantly get authorized for Elevated access.**
+
+```{r, echo=FALSE, out.width="80%"}
+knitr::include_graphics(here("Lab", "module_4", "getting_key", "twitter_key_14.JPG"))
+```
+
+# Not done yet
+
+13. One last thing: you need to go back to your App in the left panel, then go to "Keys and tokens." You will the screen as shown below. You can hit "Regenerate" for all three of them. Copy the credentials and store them one by one in your environment variable (or whatever method you prefer to use to protect your keys). 
+
+**If your R Studio is currently open, remember to close it and open it again for the environment variables to be accessible in R Studio.**
+
+```{r, echo=FALSE, out.width="80%"}
+knitr::include_graphics(here("Lab", "module_4", "getting_key", "twitter_key_17.JPG"))
+```
+
+END.
