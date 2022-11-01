@@ -31,7 +31,7 @@ invisible(lapply(packages, library, character.only = TRUE))
 
 # Section 0. Get your API credential
 
-If you don't have credentials for Twitter API, go to [this webpage]() to find instructions on how to get one for yourself. 
+If you don't have credentials for Twitter API, go to [this webpage](https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_4/getting_key.html) to find instructions on how to get one for yourself. 
 
 Note that there are multiple *tiers* in Twitter API - Essential Access, Elevated Access, and Academic Research Access. Each level has their own caps in terms of the maximum number of Apps per Project, Tweet consumption per month, and others (see [this page](https://developer.twitter.com/en/docs/projects/overview) for more details). 
 
