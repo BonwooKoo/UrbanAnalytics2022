@@ -113,13 +113,6 @@ loc_word <- user_loc %>%
 loc_word <- loc_word %>% 
   filter(n > 1 & Location != "")
 
-# userlocations$Var1[str_detect(userlocations$Var1, regex('atl', ignore_case = T))] <- 'Atlanta'
-# userlocations$Var1[str_detect(userlocations$Var1, regex(c('georgia|, ga'), ignore_case = T))] <- 'Georgia'
-# userlocations$Var1[str_detect(userlocations$Var1, regex(c(', ca'), ignore_case = T))] <- 'California'
-# userlocations$Var1[str_detect(userlocations$Var1, regex(c('méx'), ignore_case = T))] <- 'Mexico'
-# userlocations$Var1[str_detect(userlocations$Var1, regex(c('españa'), ignore_case = T))] <- 'Spain'
-
-
 loc_word %>% 
   mutate(Location = factor(Location, levels = Location)) %>% 
   ggplot(data = .) + 
@@ -127,7 +120,7 @@ loc_word %>%
   coord_flip()
 ```
 
-### SECTION 2
+### SECTION 2. What presidents have said
 **This section is heavily borrowed from [Median](https://medium.com/the-artificial-impostor/analyzing-tweets-with-r-92ff2ef990c6)**
 ```{r}
 # Get time lines
@@ -141,6 +134,7 @@ obama <- bind_cols(obama,
 biden <- bind_cols(biden, 
                    users_data(biden) %>% select(screen_name, location))
 
+# Row-bind the two
 tweets <- bind_rows(
   obama %>% select(text, screen_name, created_at, retweet_count, favorite_count),
   biden %>% select(text, screen_name, created_at, retweet_count, favorite_count)
@@ -155,14 +149,21 @@ ggplot(tweets, aes(x = created_at, fill = screen_name)) +
 ```
 
 ```{r}
+# Regex that matches URL-type string
 replace_reg <- "http[s]?://[A-Za-z\\d/\\.]+|&amp;|&lt;|&gt;"
 
+# Tidy the string
 tidy_tweets_words <- tweets %>% 
+  # Drop retweets
   filter(!str_detect(text, "^RT")) %>%
+  # Drop URLs
   mutate(text = str_replace_all(text, replace_reg, "")) %>%
+  # Add id column
   mutate(id = row_number()) %>%
+  # Tokenization (word tokens)
   unnest_tokens(
     word, text, token = "words") %>%
+  # Drop Stopwords & drop non-alphabet-only strings
   filter(!word %in% stop_words$word, str_detect(word, "[a-z]"))
 
 tidy_tweets_words
