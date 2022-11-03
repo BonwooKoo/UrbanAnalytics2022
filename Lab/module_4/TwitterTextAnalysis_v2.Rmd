@@ -13,9 +13,9 @@ output:
   }
 </style>
 
-```{r load-packages, include=FALSE}
+```{r load-packages, message=FALSE, warning=FALSE}
 # Package names
-packages <- c("rtweet", "ggplot2", "dplyr", "tidytext", "tidyverse", "igraph", "ggraph", "tidyr", "wordcloud2", "textdata")
+packages <- c("rtweet", "ggplot2", "dplyr", "tidytext", "tidyverse", "igraph", "ggraph", "tidyr", "wordcloud2", "textdata", "sf", "tmap")
 
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
@@ -39,13 +39,13 @@ Twitter API provides a very well-organized document that's great for understandi
 
 
 
-# Section 1. Getting live tweets
+# Section 1. Let's download some Tweets
 
 In this document, we will use two different ways of collecting Twitter data: (1) collecting live tweets and (2) collecting tweets from the timeline of some users (including past tweets). 
 
 
-### Step 1: Download Tweets 
-```{r, include=FALSE}
+### Step 1-1: Getting Live Tweets
+```{r}
 # whatever name you assigned to your created app
 appname <- "UrbanAnalytics_tutorial"
 
@@ -60,7 +60,8 @@ twitter_token <- create_token(
   access_secret = Sys.getenv("twitter_access_token_secret"))
 ```
 
-We use the keyword Piedmont Park - a popular urban park in Atlanta 
+We use the keyword Piedmont Park - a popular urban park in Atlanta.
+
 ```{r}
 #get/search tweets with any words and hashtags   
 #as an example 'piedmont park' is used which is save under the data frame name - 'park_tweets'
@@ -71,6 +72,8 @@ park_tweets_all <- bind_cols(park_tweets_all,
                              users_data(park_tweets_all) %>% select(screen_name, location))
 ```
 
+The search_tweets() function can go back up to about 7 days. Let's plot when the Tweets were made.
+
 ```{r}
 # When were these tweet made?
 park_tweets_all %>% 
@@ -80,7 +83,7 @@ park_tweets_all %>%
 ```
 
 
-#### Step 2: Tokenization & Barplot 
+### Step 1-2: Tokenization & Barplot 
 
 Tokenization is the fundamental starting point in any NLP pipeline. "Tokenization is a way of separating a piece of text into smaller units called tokens. Here, tokens can be either words, characters, or subwords. Hence, tokenization can be broadly classified into 3 types – word, character, and subword (n-gram characters) tokenization" (direct quotes from [here](https://www.analyticsvidhya.com/blog/2020/05/what-is-tokenization-nlp/)). 
 
@@ -91,9 +94,10 @@ Then, if you code each token with a number, which allows us to represent textual
 To learn more, I found [this video](https://www.youtube.com/watch?v=fNxaJsNG3-s&t=1s) very intuitive.
 
 ```{r}
-#unique screen_name and location of those who tweeted about Georga Tech
+# unique screen_name and location of those who tweeted about the park.
+# Note that screen_name is less stable over time than user_id.
+# You can consider replacing screen_name with user_id.
 users <- park_tweets_all %>% 
-  select(screen_name, location) %>% 
   group_by(screen_name) %>% 
   summarise(location = first(location))
 
@@ -120,7 +124,8 @@ loc_word %>%
   coord_flip()
 ```
 
-### SECTION 2. What presidents have said
+### Step 1-3: Getting Tweets from User Timeline
+
 **This section is heavily borrowed from [Median](https://medium.com/the-artificial-impostor/analyzing-tweets-with-r-92ff2ef990c6)**
 ```{r}
 # Get time lines
@@ -148,6 +153,8 @@ ggplot(tweets, aes(x = created_at, fill = screen_name)) +
   ggtitle("Tweet Activity")
 ```
 
+Let's do the tokenization and delete **URLs and stop words** (more on this later) from the text.
+
 ```{r}
 # Regex that matches URL-type string
 replace_reg <- "http[s]?://[A-Za-z\\d/\\.]+|&amp;|&lt;|&gt;"
@@ -168,6 +175,8 @@ tidy_tweets_words <- tweets %>%
 
 tidy_tweets_words
 ```
+
+Finally, let's do a visualization of the key words used by the two presidents.
 
 ```{r}
 frequency <- tidy_tweets_words %>% 
@@ -192,189 +201,305 @@ ggplot(frequency_wide, mapping = aes(x = BarackObama, y = JoeBiden)) +
   geom_abline(color = "red") + theme_bw()
 ```
 
-<!-- ### SECTION 2: YOUR OWN KEYWORD -->
-
-<!-- #### Part 1: Retrieve Tweets  -->
-<!-- ```{r} -->
-<!-- my_twts <- search_tweets(q = "##Netflix", n = 200, -->
-<!--                                 lang = "en", -->
-<!--                                 include_rts = FALSE) -->
-
-<!-- #save the tweets downloaded using rtweet as a csv  -->
-<!-- #write_as_csv(my_twts, "my_twts.csv", prepend_ids = TRUE, na = "", fileEncoding = "UTF-8")  -->
-
-<!-- head(my_twts$text,3) -->
-<!-- ``` -->
-
-<!-- ```{r} -->
-<!-- my_twts$cleanedTxt <- gsub("http.*","",  my_twts$text) -->
-<!-- my_twts$cleanedTxt <- gsub("https.*","", my_twts$cleanedTxt) -->
-<!-- my_twts$cleanedTxt <- gsub("&amp*","", my_twts$cleanedTxt) -->
-<!-- head(my_twts$cleanedTxt, 3) -->
-<!-- ``` -->
-
-<!-- #### Part 2: Tokenization -->
-<!-- ```{r} -->
-<!-- # We first remove punctuation, convert to lowercase, add id for each tweet! -->
-<!-- my_twts_clean <- my_twts %>% -->
-<!--   dplyr::select(cleanedTxt) %>% -->
-<!--   unnest_tokens(output = word, input = cleanedTxt) -->
-
-<!-- #Then we will check the number of rows after tokenization -->
-<!-- nrow(my_twts_clean) -->
-<!-- View(my_twts_clean) -->
-<!-- ``` -->
+Try this with other figures that you think can be a good comparison. 
 
 
-<!-- ```{r} -->
-<!-- # plot the top 15 words and sort them in order of their counts  -->
-<!-- my_twts_clean %>% -->
-<!--   count(word, sort = TRUE) %>%  -->
-<!--   top_n(15) %>% -->
-<!--   mutate(word = reorder(word, n)) %>% -->
-<!--   ggplot(aes(x = word, y = n)) + -->
-<!--   geom_col() + -->
-<!--   xlab(NULL) + -->
-<!--   coord_flip() + -->
-<!--       labs(x = "words", -->
-<!--       y = "counts", -->
-<!--       title = "Figure 2: Unique wordcounts found in tweets, with no stop words") -->
-
-<!-- #-- Do you observe any problem? -->
-<!-- ``` -->
-
-<!-- #### Part 3: Stop Words  -->
-<!-- ```{r} -->
-<!-- # load list of stop words - from the tidytext package -->
-<!-- data("stop_words") -->
-<!-- # view first 6 words -->
-<!-- #head(stop_words) -->
-<!-- #View(stop_words) -->
-<!-- ``` -->
-
-<!-- The *anti_join function* is part of the tidytext package. It removes stop words from the tweet text and saved as cleaned tweet words.  -->
-<!-- ```{r} -->
-<!-- # remove stop words from your list of words -->
-<!-- cleanTokens <- my_twts_clean %>% anti_join(stop_words) -->
-
-<!-- # Check the number of rows after removal of the stop words. There should be fewer words now -->
-<!-- nrow(cleanTokens) -->
-
-<!-- # plot the top 10 words -- notice any issues? -->
-<!-- cleanTokens %>% -->
-<!--   count(word, sort = TRUE) %>% -->
-<!--   top_n(15) %>% -->
-<!--   mutate(word = reorder(word, n)) %>% -->
-<!--   ggplot(aes(x = word, y = n)) + -->
-<!--   geom_col() + -->
-<!--   xlab(NULL) + -->
-<!--   coord_flip() + -->
-<!--   labs(y = "count", -->
-<!--        x = "words", -->
-<!--        title = "Figure 3: Unique wordcounts found in tweets after applying stop words", -->
-<!--        subtitle = "Stop words removed from the list") -->
-<!-- ``` -->
-
-<!-- #### Part 4: Wordclouds -->
-<!-- ```{r} -->
-<!-- ###You may need these -->
-<!-- #library(wordcloud)  -->
-<!-- library(RColorBrewer) -->
-<!-- pal <- brewer.pal(8,"Dark2") -->
-
-<!-- #Get some frequency counts for each word -->
-<!-- freq_df1 <- cleanTokens %>% -->
-<!--   count(word, sort = TRUE) %>% -->
-<!--   top_n(100) %>% -->
-<!--   mutate(word = reorder(word, n)) -->
-
-<!-- wordcloud2(data = freq_df1, minRotation = 0, maxRotation = 0, ellipticity = 0.8) -->
-<!-- ``` -->
-
-<!-- ```{r} -->
-<!-- ###FURTHER CLEANING BASED ON YOUR EXPERTISE! YOUR CODE HERE -->
-<!-- my_stopwords <- data.frame(c(stop_words$word, 'netflix', '&amp', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', -->
-<!--                              '10', '11', '12', '13', '14', '15', '16', '17', '19', '27', '37', '110', '99', '50', '30', '200')) -->
-
-<!-- colnames(my_stopwords) <- "word" -->
-
-<!-- cleanTokens2 <- my_twts_clean %>% -->
-<!--   anti_join(my_stopwords) -->
-
-<!-- ####Rerun the freq counts -->
-<!-- freq_df2 <- cleanTokens2 %>% -->
-<!--   count(word, sort = TRUE) %>% -->
-<!--   top_n(100) %>% -->
-<!--   mutate(word = reorder(word, n)) -->
-
-<!-- wordcloud2(data = freq_df2, minRotation = 0, maxRotation = 0, ellipticity = 0.8) -->
-<!-- ``` -->
-
-<!-- #### Part 5: N-grams  -->
-
-<!-- N-grams You may what to see words that appear together in the tweets. N-gram is the sequence of n-words appearing together. For example *'basketball coach'*, *'dinner time'* are two words occurring together they are called i-grams. Similarly, *'the three musketeers'* is a tri-gram, and *'she was very hungry'* is a 4-gram respectively. We will learn how to extract ngrams form the the Tweet text and that will give further insights in to the tweet corpus. For advanced text analysis and machine learning based labeling, specific tokens, and n-grams can be used for feature engineering of the tweet.  -->
-
-<!-- N-grams are used to analyze words in context. When we say (1) "We need to check the details." and (2) "Can we pay it with a check?", the word check are used as a verb and as a noun. We know what 'check' means in a sentence based on other words in the sentence, particularly words that are before and after the word 'check.' For example, if the word 'check' is used after 'to', we can infer that it is used as a verb. You can test bi-grams (2 words), tri-grams (3 words), and so on.  -->
-
-<!-- ```{r} -->
-<!-- library(widyr) -->
-<!-- #get ngrams. You may try playing around with the value of n, n=3 , n=4  -->
-<!-- my_twts_ngram <- my_twts %>% -->
-<!--   dplyr::select(cleanedTxt) %>% -->
-<!--   unnest_tokens(output = paired_words,  -->
-<!--                 input = cleanedTxt,  -->
-<!--                 token = "ngrams",  -->
-<!--                 n = 2) -->
-
-<!-- #show ngrams with sorted values -->
-<!-- my_twts_ngram %>% -->
-<!--   count(paired_words, sort = TRUE) -->
-<!-- ``` -->
 
 
-<!-- Here we see the ngrams are using stop words such as * a, to, etc.* Next we will try to obtain ngrams occurring without stop words. We will use the *separate* function of the *tidyr* library to obtain the paired words in two columns i.e. *word 1* and *word 2*. Subsequently we filter out columns containing stop words using the *filter fucntion* -->
-<!-- ```{r} -->
-<!-- library(tidyr) -->
-<!-- #separate the paired words into two columns  -->
-<!-- my_twts_ngram <- my_twts_ngram %>% -->
-<!--   separate(paired_words, c("word1", "word2"), sep = " ") -->
 
-<!-- # filter rows where there are stop words under word 1 column and word 2 column  -->
-<!-- my_twts_filtered <- my_twts_ngram %>% -->
-<!--   filter(!word1 %in% my_stopwords$word) %>% -->
-<!--   filter(!word2 %in% my_stopwords$word) -->
+# Section 2. Refining your search
 
-<!-- # Filter out words that are not encoded in ASCII -->
-<!-- # To see what's ASCCII, google 'ASCII table' -->
-<!-- my_twts_filtered <- my_twts_filtered[stringi::stri_enc_isascii(my_twts_filtered$word1) & -->
-<!--                                        stringi::stri_enc_isascii(my_twts_filtered$word2),] -->
+When we use search_tweets() function, we need to better understand the associated caveats and how to avoid some of them. 
 
-<!-- # Sort the new bi-gram (n=2) counts: -->
-<!-- my_words_counts <- my_twts_filtered %>% -->
-<!--   count(word1, word2) %>%  -->
-<!--   arrange(desc(n)) -->
+Twitter documentation states that the search_tweets() function is limited for past ~7 days. If you want to access the full archival data (starting from the very first Tweet), you will need Academic Research access. See [this webpage](https://developer.twitter.com/en/products/twitter-api/academic-research) to see who can get the access (you may qualify). 
 
-<!-- head(my_words_counts) -->
+If you don't have Academic Research access and want to, for example, analyze what people are Tweeting about some event (e.g., a conference) that lasts for about a week, you will need to start downloading Tweets no later than right after the end of the event, **because you can only go back about a week**. Also, make sure you save the collected Tweet locally. You will not be able to access them again.
 
-<!-- # words occurring in pair after filtering out the stop words -->
-<!-- head(my_twts_filtered) -->
-<!-- ``` -->
-<!-- By using the igraph and ggraph library we are trying to visualize the words occuring in pairs. (Note the edges can't be drawn at this time) -->
+If we want to know what people who attended Georgia Planning Association Conference say about the conference, you may get Tweets that happen to contain some of the keywords but are actually not related to the conference. For example, you search for "Georgia Planning Association," and it will give you any recent Tweets that contains the word "Georgia", "Planning", "Association" anywhere in text and will not be limited to those that are coming from Georgia. 
 
-<!-- ```{r} -->
-<!-- # plot word network -->
-<!-- my_words_counts %>% -->
-<!--   filter(n >= 2) %>% -->
-<!--   graph_from_data_frame() %>% -->
-<!--   ggraph(layout = "fr") + -->
-<!--   geom_edge_link(aes(edge_alpha = .6, edge_width = n)) + -->
-<!--   geom_node_point(color = "darkslategray4", size = 3) + -->
-<!--   geom_node_text(aes(label = name), vjust = 1.8, size = 4) + -->
-<!--   labs(title = "Figure 5: Word Network: Tweets using my hashtag", -->
-<!--        subtitle = "Text mining twitter data", -->
-<!--        x = "", y = "") -->
-<!-- ``` -->
+Twitter API offers a few different ways to narrow down the search. Type `?search_tweets` to see the help page, or better yet see [this page](https://developer.twitter.com/en/docs/twitter-api/v1/tweets/search/api-reference/get-search-tweets) to learn about the parameters. The first argument, q, takes string not exceeding 500 characters. **Space behaves like boolean AND**. If we search for, for example, "home park", it will actually look for tweets that contain the work "home" and "park" anywhere in the text in any order. If you want to use boolean **OR**, you can do "home OR park." This search will return any tweet that contains either "home" or "park". 
 
-<!-- End -->
+What we want is to find tweet that have the word "home park" as an entirety. You will need to wrap single quotes around a search query using double quotes. For example, '"home park"'. 
+
+```{r}
+# q - AND
+hp_and <- search_tweets(q = "Home Park", n = 100,
+                        lang = "en")
+# q - OR
+hp_or <- search_tweets(q = "Home OR Park", n = 100,
+                        lang = "en")
+
+# q - EXACT MATCH
+hp_exact <- search_tweets(q = '"Home Park"', n = 100,
+                        lang = "en")
+
+# Print
+data.frame(
+  "and" = hp_and$text[1:3],
+  "or" = hp_or$text[1:3],
+  "exact" = hp_exact$text[1:3]
+  ) %>% kableExtra::kable()
+  
+
+```
+
+In the example above where you collect Tweets for conference, you may want to get more Tweets than the default number of 100 in **search_tweets()** function. The 'n' parameter can be set to a larger value. You can request up to 180 requests within 15-minute window, and search_tweets() function can deliver up to 100 Tweets per request in reverse-chronological order. That means you can get up to 18000 tweets within 15 minutes.
+
+If you send more requests, you will end up with an error. The easiest way to avoid this and collect many tweets is by setting *retryonratelimit* argument to **TRUE**. Then, when the search_tweets() function hits the rate limit, it will automatically wait until the rate limit refreshes. 
+
+Note that the help page for search_tweets() function states "If you expect a query to take hours or days to perform, you should not rely soley on retryonratelimit because it does not handle other common failure modes like temporarily losing your internet connection."
+
+```{r}
+# n ----------------------
+# Desired number of results to return. Results are downloaded in pages when n is 
+# large; the default value will download a single page. 
+# Set n = Inf to download as many results as possible.
+# 
+# The Twitter API rate limits the number of requests you can perform in each 15 minute period. 
+# The easiest way to download more than that is to use retryonratelimit = TRUE.
+
+
+
+
+# include_rts  ----------------------
+# Logical, indicating whether to include retweets in search results. 
+# Retweets are classified as any tweet generated by Twitter's built-in 
+# "retweet" (recycle arrows) function. 
+# These are distinct from quotes (retweets with additional text provided from sender) or 
+# manual retweets (old school method of manually entering "RT" into the text of one's tweets).
+hp_no_rt <- search_tweets(q = "Home Park", 
+                          n = 100,
+                          lang = "en",
+                          include_rts = FALSE)
+```
+
+
+Another important argument for urban analytics is *geocode*. This allows you to narrow down your search based on certain radius from a XY-coordinates you specify. The Twitter API documentation states that "[geocode] returns tweets by users located within a given radius of the given latitude/longitude. The location is preferentially taking from the Geotagging API, but will fall back to their Twitter profile."
+
+One caveat is that the GeoTagging API can only be used if the users turn on the location function 'on', which only a small proportion of users are known to do. A recent paper reports about 1~2% are geo-tagged Tweets [[1](https://dl.acm.org/doi/abs/10.1145/2531602.2531607)][[2](https://www.mdpi.com/2199-8531/7/1/44)]. 
+
+
+```{r}
+# geocode  ----------------------
+# Geographical limiter of the template "latitude,longitude,radius" 
+# e.g., geocode = "33.76,-84.41,10mi". 
+atl_no_rt <- search_tweets(q = "Atlanta", 
+                          n = 100,
+                          lang = "en",
+                          geocode = "33.76,-84.41,50mi",
+                          include_rts = FALSE)
+
+
+# Does it have XY coordinate info?
+atl_sf <- atl_no_rt %>% bind_cols(
+  bind_rows(atl_no_rt$coordinates)
+) %>% 
+  drop_na(lat,long) %>% 
+  st_as_sf(coords = c("long", "lat"), crs = 4326)
+
+# Map
+tmap_mode('view')
+tm_shape(atl_sf) + tm_dots(id = 'text')
+```
+
+
+
+
+
+
+
+# Section 3. Stop Words, Word Cloud, and N-grams
+
+Another important cleaning up to do is to remove stop words. For fun, let's use your own keyword from now. Using these knowledge, try your own search with a keyword of your selection. It would be useful to think about how you'd do the search if you have a specific research question. For example, if you are interested in what people are talking about 'gentrification' or 'neighborhood change' in metro Atlanta, how would your keyword, search scope, etc. would be? 
+
+**Getting Tweets**
+```{r}
+# Get Tweets using your key
+my_twts <- search_tweets(q = "'Georgia Tech'", 
+                         n = 300,
+                         lang = "en")
+
+# Add User info
+my_twts <- my_twts %>% 
+  cbind(my_twts %>% 
+          users_data() %>% 
+          select(name, screen_name, location, favourites_count))
+```
+
+**Clean + Tokenization**
+```{r}
+# Regex that matches URL-type string
+replace_reg <- "http[s]?://[A-Za-z\\d/\\.]+|&amp;|&lt;|&gt;"
+
+# Tidy the string
+tidy_tweets_words <- my_twts %>% 
+  # Drop retweets
+  filter(!str_detect(text, "^RT|^rt")) %>%
+  # Drop URLs
+  mutate(text = str_replace_all(text, replace_reg, "")) %>%
+  # Add id column
+  mutate(id = row_number()) %>%
+  # Tokenization (word tokens)
+  unnest_tokens(
+    output = word, input = text, token = "words") 
+
+tidy_tweets_words %>% 
+  head(n = 3)
+```
+
+Let's plot top 20 words to see what are some of the words that are frequently used. You will notice that the plot has an issue - there are many redundant words, such as the, to, and, a, for, ..., are included. While it makes sense these words are frequently found in Tweets, they are not useful for our analysis.
+
+```{r}
+# plot the top 20 words and sort them in order of their counts
+tidy_tweets_words %>%
+  count(word, sort = TRUE) %>%
+  top_n(20) %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(x = word, y = n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip() +
+      labs(x = "words",
+      y = "counts",
+      title = "Figure 2: Unique wordcounts found in tweets")
+
+#-- Do you observe any problem?
+```
+
+### Deleting Stop Words
+
+These so-called **stop words** can be easily deleted. In tidytext package is a data set called 'stop_words', which is a list of common stop words. We can use this data set to filter out stop words from our Tweets.
+
+
+```{r}
+# load list of stop words - from the tidytext package
+data("stop_words")
+# view first 6 words
+head(stop_words)
+```
+
+We can use **anti_join()** function for the filtration. This function is part of the dplyr package. It removes stop words from the tweet text and saved as cleaned tweet words. This function works the same way as other *join* functions in that the **order of data.frame in the function argument matters.** Consider the schematic below: anti_join(A,B) will give you *everything from List A* except those that are also in List B. If you do anti_join(B,A), it will give you *everything in List B* except those that are in List A. 
+
+Also, because I am interested in what other words appear in conjunction with 'street parking', I will delete 'street' and 'parking' from the plot. I also delete numbers, because, for some reason, street parking often appear together with some numbers (maybe due to something like 2-hour street parking?)
+
+![](anti_join.JPG)
+
+
+```{r}
+# remove stop words from your list of words
+cleanTokens <- tidy_tweets_words %>% anti_join(stop_words, by = c("word"))
+
+# Check the number of rows after removal of the stop words. There should be fewer words now
+print(
+  glue::glue("Before: {nrow(tidy_tweets_words)}, After: {nrow(cleanTokens)}")
+  )
+
+
+
+# plot the top 20 words 
+cleanTokens %>%
+  count(word, sort = TRUE) %>%
+  filter(!word %in% c("georgia", "tech")) %>% 
+  filter(!str_detect(string = word, pattern = "[0-9]+")) %>% 
+  top_n(20) %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(x = word, y = n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip() +
+  labs(y = "count",
+       x = "words",
+       title = "Figure 3: Unique wordcounts found in tweets after applying stop words",
+       subtitle = "Stop words removed from the list")
+```
+
+#### Part 4: Word clouds
+```{r}
+###You may need these
+#library(wordcloud)
+library(RColorBrewer)
+pal <- brewer.pal(8,"Dark2")
+
+#Get some frequency counts for each word
+# I am dropping 'georgia' and 'tech' because 
+# I am interested what other words appear with georgia tech
+freq_df1 <- cleanTokens %>%
+  filter(!word %in% c("georgia", "tech")) %>% 
+  filter(!str_detect(string = word, pattern = "[0-9]+")) %>% 
+  count(word, sort = TRUE) %>%
+  top_n(100) %>%
+  mutate(word = reorder(word, n))
+
+wordcloud2(data = freq_df1, minRotation = 0, maxRotation = 0, ellipticity = 0.8)
+```
+
+#### Part 5: N-grams
+
+N-grams You may what to see words that appear together in the tweets. N-gram is the sequence of n-words appearing together. For example *'basketball coach'*, *'dinner time'* are two words occurring together they are called i-grams. Similarly, *'the three musketeers'* is a tri-gram, and *'she was very hungry'* is a 4-gram respectively. We will learn how to extract ngrams form the the Tweet text and that will give further insights in to the tweet corpus. For advanced text analysis and machine learning based labeling, specific tokens, and n-grams can be used for feature engineering of the tweet.
+
+N-grams are used to analyze words in context. When we say (1) "We need to check the details." and (2) "Can we pay it with a check?", the word check are used as a verb and as a noun. We know what 'check' means in a sentence based on other words in the sentence, particularly words that are before and after the word 'check.' For example, if the word 'check' is used after 'to', we can infer that it is used as a verb. You can test bi-grams (2 words), tri-grams (3 words), and so on.
+
+```{r}
+#get ngrams. You may try playing around with the value of n, n=3 , n=4
+my_twts_ngram <- my_twts %>%
+  mutate(text = str_replace_all(text, replace_reg, "")) %>%
+  dplyr::select(text) %>%
+  unnest_tokens(output = paired_words,
+                input = text,
+                token = "ngrams",
+                n = 2)
+
+#show ngrams with sorted values
+my_twts_ngram %>%
+  count(paired_words, sort = TRUE) %>% 
+  head()
+```
+
+
+Here we see the ngrams are using stop words such as * a, to, etc.* Next we will try to obtain ngrams occurring without stop words. We will use the *separate* function of the *tidyr* library to obtain the paired words in two columns i.e. *word 1* and *word 2*. Subsequently we filter out columns containing stop words using the *filter fucntion*
+
+```{r}
+library(tidyr)
+#separate the paired words into two columns
+my_twts_ngram_pair <- my_twts_ngram %>%
+  separate(paired_words, c("word1", "word2"), sep = " ")
+
+# filter rows where there are stop words under word 1 column and word 2 column
+my_twts_filtered <- my_twts_ngram_pair %>%
+  filter(!word1 %in% stop_words$word) %>%
+  filter(!word2 %in% stop_words$word)
+
+# Filter out words that are not encoded in ASCII
+# To see what's ASCCII, google 'ASCII table'
+my_twts_filtered <- my_twts_filtered[
+  stringi::stri_enc_isascii(my_twts_filtered$word1) &
+    stringi::stri_enc_isascii(my_twts_filtered$word2),
+  ]
+
+# Sort the new bi-gram (n=2) counts:
+my_words_counts <- my_twts_filtered %>%
+  count(word1, word2) %>%
+  arrange(desc(n))
+
+head(my_words_counts)
+```
+
+
+
+By using the igraph and ggraph library we are trying to visualize the words occuring in pairs. (Note the edges can't be drawn at this time)
+
+```{r}
+# plot word network
+my_words_counts %>%
+  filter(n >= 3) %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha = .6, edge_width = n)) +
+  geom_node_point(color = "darkslategray4", size = 3) +
+  geom_node_text(aes(label = name), vjust = 1.8, size = 2.5) +
+  labs(title = "Figure 5: Word Network: Tweets using my hashtag",
+       subtitle = "Text mining twitter data",
+       x = "", y = "")
+```
 
 
