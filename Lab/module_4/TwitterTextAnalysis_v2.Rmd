@@ -435,9 +435,24 @@ wordcloud2(data = freq_df1, minRotation = 0, maxRotation = 0, ellipticity = 0.8)
 
 #### Part 5: N-grams
 
-N-grams You may what to see words that appear together in the tweets. N-gram is the sequence of n-words appearing together. For example *'basketball coach'*, *'dinner time'* are two words occurring together they are called i-grams. Similarly, *'the three musketeers'* is a tri-gram, and *'she was very hungry'* is a 4-gram respectively. We will learn how to extract ngrams form the the Tweet text and that will give further insights in to the tweet corpus. For advanced text analysis and machine learning based labeling, specific tokens, and n-grams can be used for feature engineering of the tweet.
+You may what to see words that appear together in the tweets. N-gram is the sequence of n-words appearing together. For example *'basketball coach'*, *'dinner time'* are two words occurring together they are called i-grams. Similarly, *'the three musketeers'* is a tri-gram, and *'she was very hungry'* is a 4-gram respectively. We will learn how to extract ngrams form the the Tweet text and that will give further insights in to the tweet corpus. For advanced text analysis and machine learning based labeling, specific tokens, and n-grams can be used for feature engineering of the tweet.
 
 N-grams are used to analyze words in context. When we say (1) "We need to check the details." and (2) "Can we pay it with a check?", the word check are used as a verb and as a noun. We know what 'check' means in a sentence based on other words in the sentence, particularly words that are before and after the word 'check.' For example, if the word 'check' is used after 'to', we can infer that it is used as a verb. You can test bi-grams (2 words), tri-grams (3 words), and so on.
+
+For example, "The result of separating bigrams is helpful for exploratory analyses of the text." becomes 
+          **paired_words**  
+1            the result  
+2             result of  
+3         of separating  
+4    separating bigrams  
+5            bigrams is  
+6            is helpful  
+7           helpful for  
+8       for exploratory  
+9  exploratory analyses  
+10          analyses of  
+11               of the  
+12             the text  
 
 ```{r}
 #get ngrams. You may try playing around with the value of n, n=3 , n=4
@@ -448,6 +463,10 @@ my_twts_ngram <- my_twts %>%
                 input = text,
                 token = "ngrams",
                 n = 2)
+```
+
+
+```{r}
 
 #show ngrams with sorted values
 my_twts_ngram %>%
@@ -491,7 +510,7 @@ By using the igraph and ggraph library we are trying to visualize the words occu
 ```{r}
 # plot word network
 my_words_counts %>%
-  filter(n >= 3) %>%
+  filter(n >= 2) %>%
   graph_from_data_frame() %>%
   ggraph(layout = "fr") +
   geom_edge_link(aes(edge_alpha = .6, edge_width = n)) +
