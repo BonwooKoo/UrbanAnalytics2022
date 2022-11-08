@@ -1,0 +1,13 @@
+- (No anaconda) open RStudio and installed the three sentiment packages
+- Ran # install_sentiment.ai(envname = "r-sentiment-ai",
+      #                      method = "conda",
+      #                      python_version = "3.8.10")
+- This gave me an error: Error: Unable to find conda binary. Is Anaconda installed?
+- Now installing miniconda: https://docs.conda.io/en/latest/miniconda.html. Select Moniconda3 Windows 64-bit installer. 
+- Turn RStudio off and on again. Load the library and run 
+      # install_sentiment.ai(envname = "r-sentiment-ai",
+      #                      method = "conda",
+      #                      python_version = "3.8.10")
+- The previous code will restart R session at the end. Then, run check_sentiment.ai().
+It will ask if I wanted to install Miniconda. Hit y. This is MIniconda for R. This prints out some error messages. But the final message says NULL, which is a good sign.
+- Test run this. It works fine on Chaeyeon's computer.
