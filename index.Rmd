@@ -108,9 +108,9 @@ topic_col <- c(
   
   "Sampling & processing images [(RMD)](https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_3/Module3_getting_GSV_images.html)",# 10
   
-  "<b>(Tue) Mini-presentation 4 (Slide)</b>, <br> Getting & Processing Twitter data in R [(RMD)](https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_4/TwitterTextAnalysis_v2.html) <br> Sentiment Analysis [(RMD)](https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_4/SentimentAnalysis.html)",# 11
+  "<b>(Tue) Mini-presentation 4 (Slide)</b>, <br> Getting & Processing Twitter data in R [(RMD)](https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_4/TwitterTextAnalysis_v2.html)",# 11
   
-  "Preprocessing texts (Slide), <br> Sentiment analysis (RMD)",# 12
+  "Sentiment analysis [(RMD)](https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_4/SentimentAnalysis.html)",# 12
   
   "<b>(Tue) Mini-presentation 5 (Slide)</b>, <br> Storytelling with data - 1",# 13
   
