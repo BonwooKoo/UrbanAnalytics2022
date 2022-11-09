@@ -54,9 +54,8 @@ Unlike other packages we've used so far, this sentiment.ai package is not easy t
 1. Go to https://docs.conda.io/en/latest/miniconda.html and download Miniconda3 Windows 64-bit installer. Install Miniconda by keep clicking 'Next' and 'Install.'
 
 2. If your RStudio is currently open, close it and open it again.
-3. Go to Tools > Global Options > Python  and 
-4. Load the package using `library(sentiment.ai)`.
-5. Run the following code. It will install a lot of stuff and will restart R session at the end. Next time you open RStudio, you don't need to run this code again.
+3. Load the package using `library(sentiment.ai)`.
+4. Run the following code. It will install a lot of stuff and will restart R session at the end. Next time you open RStudio, you don't need to run this code again.
 
 ```{r, eval=FALSE}
 # You need to run it only once.
@@ -65,15 +64,20 @@ install_sentiment.ai(envname = "r-sentiment-ai",
                      python_version = "3.8.10")
 ```
 
-6. After R session is restarted, run `check_sentiment.ai()`. You will be asked if you wanted to install Miniconda. Hit y. This Miniconda is different from the one you've already installed because this one is for the use within R. This function may print some error messages, but that's fine as long as the final message says NULL. 
-
-7. Run the following code for testing purpose.
+5. After R session is restarted, run the following code:
 
 ```{r}
-# Next time you open RStudio, all you need to do is to
-# library(sentiment.ai) and init_sentiment.ai().
-check_sentiment.ai()
+# Sam's solution
+init_sentiment.ai(envname = "r-sentiment-ai", method="conda")
 
+check_sentiment.ai()
+```
+
+If you are asked if you wanted to install Miniconda, hit y. This Miniconda is different from the one you've already installed because this one is for the use within R. This function may print some error messages, but that's fine as long as the final message says NULL. 
+
+6. Run the following code for testing purpose.
+
+```{r}
 sentiment_score(c("This installation process is too complicated!", 
                   "Only if it works in the end.", 
                   "But does it?", 
