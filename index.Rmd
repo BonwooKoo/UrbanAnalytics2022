@@ -114,7 +114,7 @@ topic_col <- c(
   
   "<b>(Tue) Mini-presentation 5 [(Slide)](https://gtvault-my.sharepoint.com/:p:/g/personal/kwells65_gatech_edu/EZMvkXsjm7BJsb7brZHUlfcBV7t7liydB7LsBPFdKSFOyw?e=ZdNr45)</b>, <br> Storytelling with data [(slide)](https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_5/LectureStorytelling-w-data.html)",# 13
   
-  "Storytelling with data - 2",# 14
+  "Guest Lecture",# 14
   
   "<b>Student presentations</b>",# 15
   
