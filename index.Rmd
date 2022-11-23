@@ -170,7 +170,7 @@ assignment_col <- c(
   "[Major 2](https://bonwookoo.github.io/UrbanAnalytics2022/Assignment/major_2/major_assignment_2.html) <br> (due Nov13)",# 10
   "",# 11
   "[Major 3](https://bonwookoo.github.io/UrbanAnalytics2022/Assignment/major_3/major_assignment_3.html) <br> (due Nov27)",# 12
-  "[Major 4](https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_5/LectureStorytelling-w-data.html#28)(due Nov27)",# 13
+  "[Major 4]()(due Nov27)",# 13
   "",# 14
   "",# 15
   "",# 16
