@@ -25,7 +25,6 @@ output:
 ```{r setup, include = FALSE}
 library(knitr)
 library(tidyverse)
-library(NHSRtheme)
 library(skimr)
 library(tmap)
 tmap_mode("view")
@@ -207,12 +206,12 @@ knitr::include_graphics("img/Bubbles2.png")
 2. [New York Times: China Global Fishing Story](https://www.nytimes.com/interactive/2022/09/26/world/asia/china-fishing-south-america.html)
 3. [Hans Rosling of Gapminder](https://youtu.be/fiK5-oAaeUs)
 ---
-# Your Task in the next class (Assignment 5)
+# Your Task in the next class (Assignment 4)
 <font color=blue>Given the number of projects that you are trying to complete at the same time, this will be a simpler project that you could complete during the class</font>
 ###The Assignment
 In 2020, after many frustration in obtaining the data on police killings of civillians, Brian Burghart of USC, began to collect his own data from various sources in the US. He called the database [Fatal Encounters](https://fatalencounters.org/).
 
-The database, as you will see, is quite comprehensive - name, gender, race, location, disposition of the case, etc. Your Assignment 5 is to tell a compelling story about police killings in this country -- it does not have to be comprehensive. Any particular aspect of this dataset might be interesting to highlight and tell a unique story about. There are many stories hidden in the data -- find your own!
+The database, as you will see, is quite comprehensive - name, gender, race, location, disposition of the case, etc. Your Assignment 4 is to tell a compelling story about police killings in this country -- it does not have to be comprehensive. Any particular aspect of this dataset might be interesting to highlight and tell a unique story about. There are many stories hidden in the data -- find your own!
 
 Deliverables:
 1. An rmd file uploaded to some server (GitHub, RStudio, etc. just send the link)
@@ -221,4 +220,4 @@ Deliverables:
   
   b. At least four interesting graphics/maps to illustrate your narrative
   
-2. Submission deadline next Tuesday (11/22 by midnight)
+2. Submission deadline next Tuesday (11/27 by midnight)
