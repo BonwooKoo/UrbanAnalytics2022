@@ -86,7 +86,7 @@ weeks$Week <- paste(weeks$Week, "<br><font size=2 color=gray>", day, "</font>")
 
 ```{r, echo=FALSE}
 topic_col <- c(
-  "Intro to Urban Analytics in R [(Slide)](https://github.gatech.edu/pages/sguhathakurta3/UA-Lectures/Lecture-1/LectureONE.html#1), <br> Data ethics [(Slide)](https://github.gatech.edu/pages/sguhathakurta3/UA-Lectures/Lecture-2/LectureTWO.html#1)",# 1
+  "Intro to Urban Analytics in R <font size=1 color='grey'>(GT only) </font> [(Slide)](https://github.gatech.edu/pages/sguhathakurta3/UA-Lectures/Lecture-1/LectureONE.html#1), <br> Data ethics  <font size=1 color='grey'>(GT only) </font> [(Slide)](https://github.gatech.edu/pages/sguhathakurta3/UA-Lectures/Lecture-2/LectureTWO.html#1)",# 1
   
   "Data for Urban Analytics [(Slide)](./Lab/module_0/w2_d2_modern_data.html), <br> Intro to R - 1 [(Slide)](./Lab/module_0/w2_d1_Intro_to_R_1.html), 2 [(Slide)](./Lab/module_0/w2_d2_Intro_to_R_2.html)",# 2
   
@@ -95,7 +95,7 @@ topic_col <- c(
   
   "<b>(Tue) Mini-presentation 1 </b> [(Slide)](https://view.officeapps.live.com/op/view.aspx?src=https%3A%2F%2Fraw.githubusercontent.com%2FBonwooKoo%2FUrbanAnalytics2022%2Fmain%2Fmini_pres%2FPOIPresentationGroup1.pptx&wdOrigin=BROWSELINK), <br> Tidy data [(Slide)](https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_1/week2/Module1_Tidy_Yelp_Slide.html), <br> Data wrangling [(RMD)](https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_1/week2/Module1_Tidy_Yelp.html)",# 4
   
-  "Deriving insights from your data [(Slide)](https://github.gatech.edu/pages/sguhathakurta3/UA-Lectures/Lecture-2/LectureEDA.html#1), <br> Hands-on [(RMD)](https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_1/week3/stats.html)",# 5
+  "Deriving insights from your data <font size=1 color='grey'>(GT only) </font> [(Slide)](https://github.gatech.edu/pages/sguhathakurta3/UA-Lectures/Lecture-2/LectureEDA.html#1), <br> Hands-on [(RMD)](https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_1/week3/stats.html)",# 5
   
   "Interactive visualization 1 [(RMD)](https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_1/week4/interactive_visualization.html) <br>
   Interactive visualization 2 [(RMD)](https://bonwookoo.github.io/UrbanAnalytics2022/Lab/module_1/week4/interactive_visualization_2.html)",# 6
